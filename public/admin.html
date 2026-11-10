@@ -7,13 +7,13 @@
 <title>Admin — Chef on Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#013E7F;--deep:#012a57;--abyss:#011a36;--gold:#4fa8dc;--sand:#f6f1e7;--cream:#fbf9f4;--line:#dfe4ec;--text:#1d2a3a;--muted:#5b6878;--red:#b4492f;--green:#2f7d4f;
-  --serif:"Playfair Display",Georgia,"Times New Roman",serif;--sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  --serif:Poppins,system-ui,sans-serif;--logo:"Playfair Display",Georgia,"Times New Roman",serif;--sans:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--sans);background:var(--cream);color:var(--text);font-size:15px;line-height:1.5}
-h1,h2,h3{font-family:var(--serif);font-weight:500;color:#0b1b2e}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;color:#0b1b2e}
 button,input,select,textarea{font:inherit}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:0;cursor:pointer;font-weight:600;font-size:.92rem;text-decoration:none}
 .btn-gold{background:var(--navy);color:#fff}
@@ -25,7 +25,7 @@ button,input,select,textarea{font:inherit}
 /* Login */
 #login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(180deg,#010f22 0%,#012a57 55%,#0b3d70 56%,#031a35 100%);padding:20px}
 .lcard{background:#fff;border-radius:20px;padding:36px;width:100%;max-width:380px;box-shadow:0 30px 60px rgba(0,0,0,.35);text-align:center}
-.lcard .mono{font-family:var(--serif);font-size:2.6rem;color:var(--navy);line-height:1}
+.lcard .mono{font-family:var(--logo);font-size:2.6rem;color:var(--navy);line-height:1}
 .lcard h1{font-size:1.4rem;margin:8px 0 4px}
 .lcard p{color:var(--muted);font-size:.9rem;margin-bottom:20px}
 .lcard input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;font-size:1.05rem;text-align:center;letter-spacing:.2em}
@@ -37,7 +37,7 @@ button,input,select,textarea{font:inherit}
 header{background:var(--abyss);color:#fff}
 header .in{max-width:1200px;margin:0 auto;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 header .t{display:flex;align-items:center;gap:12px}
-header .t b{font-family:var(--serif);font-size:1.7rem;font-weight:500;color:var(--gold)}
+header .t b{font-family:var(--logo);font-size:1.7rem;font-weight:500;color:var(--gold)}
 header .t span{font-size:1rem;opacity:.9}
 .tabs{display:flex;gap:6px}
 .tabs button{background:transparent;color:rgba(255,255,255,.75);border:0;padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:500}

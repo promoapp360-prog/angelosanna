@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
 <!--
   PIXEL META / GOOGLE TAG: incollare qui il codice prima di avviare le sponsorizzate.
   Il modulo lancia già l'evento "Lead".
@@ -20,17 +20,17 @@
   --navy:#013E7F; --navy-deep:#012a57; --abyss:#011a36; --ink:#0b1b2e; --sea:#0f6fa8; --sea2:#1a86c2;
   --sand:#f6f1e7; --cream:#fbf9f4; --gold:#4fa8dc; --gold2:#9fd6f5; --line:rgba(1,62,127,.14);
   --text:#1d2a3a; --muted:#5b6878; --red:#b4492f;
-  --serif:"Playfair Display","Bodoni 72",Didot,Georgia,"Times New Roman",serif;
-  --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sans:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:var(--sans);color:var(--text);background:var(--cream);line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);color:var(--text);background:var(--cream);line-height:1.65;font-size:16.5px;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 img,svg{display:block}
 .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
 .eyebrow{font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:600}
-h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.12;color:var(--ink)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.15;color:var(--ink);letter-spacing:-.015em}
 h2{font-size:clamp(2rem,4.6vw,3.2rem);margin:.5rem 0 1rem}
 h3{font-size:1.3rem}
 section{padding:96px 0;position:relative}
@@ -49,7 +49,7 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px}
 .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
 .brand .mono{width:44px;height:44px;border:1px solid rgba(255,255,255,.55);border-radius:50%;display:grid;place-items:center}
-.brand span{font-family:var(--serif);font-size:1.08rem;letter-spacing:.05em}
+.brand span{font-family:var(--sans);font-weight:500;font-size:1rem;letter-spacing:.02em}
 .nav .links{display:flex;gap:28px;align-items:center}
 .nav .links a.l{color:rgba(255,255,255,.82);text-decoration:none;font-size:.92rem}
 .nav .links a.l:hover{color:#fff}
@@ -78,14 +78,14 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .yacht{position:absolute;z-index:2;left:50%;bottom:calc(var(--seaH) - 12px);width:150px;color:#06182e;animation:bob 6s ease-in-out infinite;opacity:.95}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(3px) rotate(.5deg)}}
 .hero .inner{position:relative;z-index:3;padding-top:130px;padding-bottom:40px;width:100%}
-.hero h1{color:#fff;font-size:clamp(2.6rem,6.6vw,5.6rem);max-width:1000px;margin:18px 0 22px;letter-spacing:-.01em;text-shadow:0 4px 40px rgba(0,0,0,.35)}
-.hero h1 em{font-style:italic;background:linear-gradient(120deg,#e6f5ff,#8fd0f5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.8vw,4.9rem);font-weight:700;max-width:1040px;margin:18px 0 22px;letter-spacing:-.03em;text-shadow:0 4px 40px rgba(0,0,0,.35)}
+.hero h1 em{font-style:italic;font-weight:500;background:linear-gradient(120deg,#e6f5ff,#8fd0f5);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p.sub{font-size:clamp(1.05rem,2.1vw,1.28rem);max-width:640px;color:rgba(255,255,255,.88);font-weight:300;text-shadow:0 2px 16px rgba(0,0,0,.35)}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
 .hero .proof{position:relative;z-index:3;padding:0 0 34px}
 .hero .proof .wrap{display:flex;flex-wrap:wrap;gap:40px}
 .hero .proof div{font-size:.9rem;color:rgba(255,255,255,.78)}
-.hero .proof b{display:block;font-family:var(--serif);font-size:2rem;font-weight:500;color:#fff}
+.hero .proof b{display:block;font-family:var(--serif);font-size:1.75rem;font-weight:600;color:#fff}
 .hero-mono{position:absolute;right:4%;top:16%;opacity:.06;width:520px;pointer-events:none;color:#fff}
 
 /* Sezioni */
@@ -105,7 +105,7 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .req .lead{color:rgba(255,255,255,.78)}
 .req-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:40px}
 .badge{border:1px solid rgba(159,214,245,.4);border-radius:22px;padding:34px;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.01))}
-.badge .tag{display:inline-block;font-family:var(--serif);font-size:2.4rem;color:var(--gold2);line-height:1}
+.badge .tag{display:inline-block;font-family:var(--serif);font-weight:700;letter-spacing:-.02em;font-size:2.4rem;color:var(--gold2);line-height:1}
 .badge h3{color:#fff;margin:10px 0 10px}
 .badge p,.badge li{color:rgba(255,255,255,.78);font-size:.98rem}
 .badge ul{list-style:none;margin-top:10px}
@@ -115,10 +115,19 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 
 /* About */
 .about{background:var(--sand)}
-.portrait{aspect-ratio:4/5;border-radius:22px;background:linear-gradient(180deg,#012a57 0%,#013E7F 55%,#0b3d70 56%,#031a35 100%);display:grid;place-items:center;position:relative;overflow:hidden}
-.portrait .ring{position:absolute;inset:22px;border:1px solid rgba(255,255,255,.3);border-radius:14px}
-.portrait figcaption{position:absolute;bottom:34px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-family:var(--serif);font-style:italic;font-size:1.05rem}
-.quote{font-family:var(--serif);font-size:1.4rem;font-style:italic;color:var(--navy);border-left:3px solid var(--gold);padding-left:20px;margin:26px 0}
+.portrait{aspect-ratio:4/5;border-radius:24px;position:relative;overflow:hidden;box-shadow:0 30px 60px rgba(1,42,87,.25);background:var(--navy)}
+.portrait img{width:100%;height:100%;object-fit:cover;object-position:60% 30%}
+.portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(1,26,54,.85) 100%)}
+.portrait figcaption{position:absolute;z-index:2;bottom:22px;left:24px;right:24px;color:#fff;font-size:.95rem;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.portrait figcaption b{display:block;font-size:1.15rem;font-weight:600}
+.portrait figcaption span{opacity:.8;font-size:.85rem}
+.portrait .stamp{position:absolute;z-index:2;top:20px;left:20px;background:rgba(255,255,255,.92);color:var(--navy);border-radius:14px;padding:10px 14px;font-size:.78rem;line-height:1.3;box-shadow:0 10px 24px rgba(0,0,0,.15)}
+.portrait .stamp b{display:block;font-size:1.35rem;font-weight:700}
+.host{display:flex;gap:16px;align-items:center;margin-top:30px;padding:16px 18px;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(255,255,255,.05);max-width:460px}
+.host img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.8);flex:none}
+.host b{display:block;color:#fff;font-weight:600}
+.host span{color:rgba(255,255,255,.75);font-size:.9rem}
+.quote{font-family:var(--serif);font-size:1.22rem;font-weight:400;font-style:italic;color:var(--navy);border-left:3px solid var(--gold);padding-left:20px;margin:26px 0}
 
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
 .feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px;transition:transform .2s,box-shadow .2s}
@@ -132,7 +141,7 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .program .lead{color:rgba(255,255,255,.75)}
 .modules{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:44px}
 .mod{border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:28px;background:rgba(255,255,255,.03)}
-.mod .n{font-family:var(--serif);color:var(--gold);font-size:1rem;letter-spacing:.1em}
+.mod .n{color:var(--gold2);font-size:.8rem;font-weight:600;letter-spacing:.16em}
 .mod h3{color:#fff;margin:6px 0 12px}
 .mod ul{list-style:none}
 .mod li{color:rgba(255,255,255,.78);font-size:.96rem;padding:5px 0 5px 18px;position:relative}
@@ -148,7 +157,7 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px;margin-top:40px}
 .course{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 34px rgba(1,42,87,.08)}
 .course .top{background:linear-gradient(135deg,var(--navy),var(--sea));color:#fff;padding:24px 26px;position:relative}
-.course .date{font-family:var(--serif);font-size:1.5rem;line-height:1.2}
+.course .date{font-size:1.35rem;font-weight:600;line-height:1.25}
 .course .place{opacity:.85;margin-top:6px;font-size:.95rem;display:flex;gap:8px;align-items:center}
 .course .body{padding:22px 26px;flex:1;display:flex;flex-direction:column;gap:14px}
 .course h3{font-size:1.2rem}
@@ -168,12 +177,12 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:44px;counter-reset:s}
 .step{padding:26px;border-top:2px solid var(--navy);background:#fff;border-radius:0 0 16px 16px}
-.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--serif);font-size:2.1rem;color:var(--gold);display:block;margin-bottom:8px}
+.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--serif);font-weight:700;font-size:2rem;color:var(--gold);display:block;margin-bottom:8px}
 .step p{color:var(--muted);font-size:.96rem;margin-top:6px}
 .fit{background:var(--sand)}
 
 .faq details{border-bottom:1px solid var(--line);padding:20px 0}
-.faq summary{cursor:pointer;font-family:var(--serif);font-size:1.18rem;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:20px}
+.faq summary{cursor:pointer;font-family:var(--serif);font-weight:500;font-size:1.08rem;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:20px}
 .faq summary::-webkit-details-marker{display:none}
 .faq summary::after{content:"+";color:var(--gold);font-size:1.5rem;line-height:1}
 .faq details[open] summary::after{content:"–"}
@@ -226,8 +235,9 @@ footer a:hover{color:#fff}
   .hero .proof .wrap{gap:18px}
   .hero .proof b{font-size:1.12rem;white-space:nowrap}
   .hero .proof div{font-size:.78rem;flex:1;min-width:90px}
+  .mcta{background:var(--navy)!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)}
   .mcta{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:60;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  .portrait{aspect-ratio:16/11}
+  .portrait{aspect-ratio:4/5;max-width:460px;width:100%;margin:0 auto}
 }
 @media (max-width:520px){
   .steps{grid-template-columns:1fr}
@@ -244,8 +254,8 @@ footer a:hover{color:#fff}
 <!-- Monogramma AS (ricostruzione vettoriale del logo) -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="as" viewBox="0 0 120 100">
-    <text x="8" y="80" font-family="Playfair Display, Bodoni 72, Didot, Georgia, Times New Roman, serif" font-size="88" fill="currentColor">A</text>
-    <text x="52" y="80" font-family="Playfair Display, Bodoni 72, Didot, Georgia, Times New Roman, serif" font-size="88" fill="currentColor">S</text>
+    <text x="8" y="80" font-family="Playfair Display, Bodoni 72, Didot, Georgia, Times New Roman, serif" font-weight="400" font-size="88" fill="currentColor">A</text>
+    <text x="52" y="80" font-family="Playfair Display, Bodoni 72, Didot, Georgia, Times New Roman, serif" font-weight="400" font-size="88" fill="currentColor">S</text>
   </symbol>
   <symbol id="wave" viewBox="0 0 1440 200" preserveAspectRatio="none">
     <path d="M0 80 C 180 40 360 40 540 80 S 900 120 1080 80 S 1260 40 1440 80 V200 H0Z"/>
@@ -334,9 +344,10 @@ footer a:hover{color:#fff}
 <section class="about" id="chi-sono">
   <div class="wrap split">
     <figure class="portrait reveal">
-      <div class="ring"></div>
-      <svg width="220" height="184" viewBox="0 0 120 100" style="color:#fff"><use href="#as"/></svg>
-      <figcaption>Passione, discrezione e arte culinaria</figcaption>
+      <img src="assets/angelo.jpg" alt="Chef Angelo Sanna a bordo di uno yacht davanti ai Faraglioni di Capri" loading="lazy" width="1000" height="1245">
+      <div class="stamp"><b>20+</b>anni tra yacht<br>e ville di lusso</div>
+      <figcaption><div><b>Chef Angelo Sanna</b><span>A bordo, davanti ai Faraglioni di Capri</span></div>
+        <svg width="44" height="36" viewBox="0 0 120 100" style="color:#fff;flex:none"><use href="#as"/></svg></figcaption>
     </figure>
     <div class="reveal">
       <div class="eyebrow">Il tuo docente</div>
@@ -520,6 +531,10 @@ footer a:hover{color:#fff}
       <div class="eyebrow">Posti limitati per ogni edizione</div>
       <h2>Il tuo passaporto verso il lusso, il mare e il mondo.</h2>
       <p class="lead">Lascia i tuoi dati: riceverai date, sede, costi e programma dettagliato del prossimo corso Chef on Board. Nessun impegno.</p>
+      <div class="host">
+        <img src="assets/angelo-avatar.jpg" alt="Chef Angelo Sanna" width="64" height="64" loading="lazy">
+        <div><b>Ti risponde Angelo, di persona</b><span>Ogni richiesta viene letta e seguita direttamente dallo chef.</span></div>
+      </div>
       <div class="contacts">
         <a href="mailto:chef@angelosanna.com"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> chef@angelosanna.com</a>
         <a href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg> @angelosannachef — scrivi in DM</a>
