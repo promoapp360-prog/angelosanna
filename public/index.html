@@ -18,7 +18,7 @@
 <style>
 :root{
   --navy:#013E7F; --navy-deep:#012a57; --abyss:#011a36; --ink:#0b1b2e; --sea:#0f6fa8; --sea2:#1a86c2;
-  --sand:#f6f1e7; --cream:#fbf9f4; --gold:#c8a25a; --gold2:#e7c98a; --line:rgba(1,62,127,.14);
+  --sand:#f6f1e7; --cream:#fbf9f4; --gold:#4fa8dc; --gold2:#9fd6f5; --line:rgba(1,62,127,.14);
   --text:#1d2a3a; --muted:#5b6878; --red:#b4492f;
   --serif:"Playfair Display","Bodoni 72",Didot,Georgia,"Times New Roman",serif;
   --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -37,7 +37,9 @@ section{padding:96px 0;position:relative}
 .lead{font-size:1.12rem;color:var(--muted);max-width:660px}
 .btn{display:inline-flex;align-items:center;gap:.6rem;padding:17px 30px;border-radius:999px;font-weight:600;text-decoration:none;border:0;cursor:pointer;font-size:1rem;font-family:var(--sans);transition:transform .15s ease,box-shadow .15s ease,background .15s}
 .btn:hover{transform:translateY(-2px)}
-.btn-gold{background:linear-gradient(135deg,#e2c483,#c8a25a);color:#1b1404;box-shadow:0 12px 34px rgba(200,162,90,.38)}
+.btn-gold{background:#fff;color:var(--navy);box-shadow:0 12px 34px rgba(1,26,54,.28)}
+.btn-gold:hover{background:#eaf5fc}
+section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course .btn-gold{background:var(--navy);color:#fff;box-shadow:0 12px 30px rgba(1,62,127,.25)}
 .btn-ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(4px)}
 .btn-navy{background:var(--navy);color:#fff}
 
@@ -46,7 +48,7 @@ section{padding:96px 0;position:relative}
 .nav.solid{background:rgba(1,26,54,.94);box-shadow:0 4px 20px rgba(0,0,0,.2);backdrop-filter:blur(8px)}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px}
 .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
-.brand .mono{width:44px;height:44px;border:1px solid rgba(231,201,138,.6);border-radius:50%;display:grid;place-items:center}
+.brand .mono{width:44px;height:44px;border:1px solid rgba(255,255,255,.55);border-radius:50%;display:grid;place-items:center}
 .brand span{font-family:var(--serif);font-size:1.08rem;letter-spacing:.05em}
 .nav .links{display:flex;gap:28px;align-items:center}
 .nav .links a.l{color:rgba(255,255,255,.82);text-decoration:none;font-size:.92rem}
@@ -55,15 +57,15 @@ section{padding:96px 0;position:relative}
 
 /* HERO — cielo, orizzonte e mare */
 .hero{--seaH:270px;position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
-  background:linear-gradient(180deg,#010f22 0%,#012a57 35%,#0a4a8a 70%,#3b78a8 90%,#d9b779 100%)}
-.horizon{position:absolute;left:0;right:0;bottom:calc(var(--seaH) - 1px);height:2px;background:linear-gradient(90deg,transparent,rgba(242,201,122,.9) 50%,transparent);z-index:1}
+  background:linear-gradient(180deg,#010f22 0%,#012a57 35%,#0a4a8a 70%,#3b78a8 90%,#a9d4ee 100%)}
+.horizon{position:absolute;left:0;right:0;bottom:calc(var(--seaH) - 1px);height:2px;background:linear-gradient(90deg,transparent,rgba(220,240,255,.85) 50%,transparent);z-index:1}
 .sky-stars{position:absolute;inset:0 0 var(--seaH) 0;background-image:radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 32% 8%,rgba(255,255,255,.5),transparent),radial-gradient(1.5px 1.5px at 72% 14%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 86% 26%,rgba(255,255,255,.45),transparent),radial-gradient(1px 1px at 55% 22%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 22% 34%,rgba(255,255,255,.35),transparent);opacity:.8}
 .sun{position:absolute;left:68%;bottom:var(--seaH);top:auto;width:min(70vw,900px);height:min(70vw,900px);transform:translate(-50%,50%);
-  background:radial-gradient(circle,rgba(255,226,160,.85) 0%,rgba(240,190,110,.45) 9%,rgba(200,150,90,.18) 22%,transparent 50%);pointer-events:none}
+  background:radial-gradient(circle,rgba(240,248,255,.9) 0%,rgba(190,225,250,.45) 8%,rgba(130,190,235,.16) 22%,transparent 50%);pointer-events:none}
 .sea{position:absolute;left:0;right:0;bottom:0;height:var(--seaH);overflow:hidden;
   background:linear-gradient(180deg,#0b3d70 0%,#08305c 30%,#052648 65%,#031a35 100%)}
 .glitter{position:absolute;left:68%;top:0;bottom:0;width:240px;transform:translateX(-50%);
-  background:repeating-linear-gradient(180deg,rgba(255,226,160,.0) 0 6px,rgba(255,226,160,.55) 6px 7px,rgba(255,226,160,0) 7px 15px);
+  background:repeating-linear-gradient(180deg,rgba(220,240,255,0) 0 6px,rgba(220,240,255,.55) 6px 7px,rgba(220,240,255,0) 7px 15px);
   -webkit-mask:radial-gradient(ellipse 50% 100% at 50% 0%,#000 30%,transparent 75%);mask:radial-gradient(ellipse 50% 100% at 50% 0%,#000 30%,transparent 75%);
   animation:glit 3.5s ease-in-out infinite alternate;opacity:.8}
 @keyframes glit{from{opacity:.45;transform:translateX(-50%) scaleX(.9)}to{opacity:.95;transform:translateX(-50%) scaleX(1.12)}}
@@ -77,7 +79,7 @@ section{padding:96px 0;position:relative}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(3px) rotate(.5deg)}}
 .hero .inner{position:relative;z-index:3;padding-top:130px;padding-bottom:40px;width:100%}
 .hero h1{color:#fff;font-size:clamp(2.6rem,6.6vw,5.6rem);max-width:1000px;margin:18px 0 22px;letter-spacing:-.01em;text-shadow:0 4px 40px rgba(0,0,0,.35)}
-.hero h1 em{font-style:italic;background:linear-gradient(120deg,#f6e1b0,#d2a95c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 em{font-style:italic;background:linear-gradient(120deg,#e6f5ff,#8fd0f5);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p.sub{font-size:clamp(1.05rem,2.1vw,1.28rem);max-width:640px;color:rgba(255,255,255,.88);font-weight:300;text-shadow:0 2px 16px rgba(0,0,0,.35)}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
 .hero .proof{position:relative;z-index:3;padding:0 0 34px}
@@ -92,8 +94,9 @@ section{padding:96px 0;position:relative}
 .card-dark h3{color:#fff;margin-bottom:14px}
 .ticks{list-style:none;margin-top:6px}
 .ticks li{padding:10px 0 10px 34px;position:relative;border-bottom:1px solid var(--line)}
+.card-dark .ticks li::before{background:#fff;color:var(--navy)}
 .card-dark .ticks li{border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.88)}
-.ticks li::before{content:"✓";position:absolute;left:0;top:12px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#1b1404;font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.ticks li::before{content:"✓";position:absolute;left:0;top:12px;width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:.72rem;font-weight:700;display:grid;place-items:center}
 .x li::before{content:"✕";background:var(--red);color:#fff}
 
 /* Requisiti */
@@ -101,19 +104,19 @@ section{padding:96px 0;position:relative}
 .req h2{color:#fff}
 .req .lead{color:rgba(255,255,255,.78)}
 .req-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:40px}
-.badge{border:1px solid rgba(231,201,138,.45);border-radius:22px;padding:34px;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.01))}
+.badge{border:1px solid rgba(159,214,245,.4);border-radius:22px;padding:34px;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.01))}
 .badge .tag{display:inline-block;font-family:var(--serif);font-size:2.4rem;color:var(--gold2);line-height:1}
 .badge h3{color:#fff;margin:10px 0 10px}
 .badge p,.badge li{color:rgba(255,255,255,.78);font-size:.98rem}
 .badge ul{list-style:none;margin-top:10px}
 .badge li{padding:4px 0 4px 18px;position:relative}
 .badge li::before{content:"";position:absolute;left:0;top:13px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
-.alert{margin-top:28px;display:flex;gap:14px;align-items:flex-start;background:rgba(200,162,90,.12);border:1px solid rgba(200,162,90,.4);border-radius:14px;padding:18px 20px;color:#f3e3bf}
+.alert{margin-top:28px;display:flex;gap:14px;align-items:flex-start;background:rgba(79,168,220,.12);border:1px solid rgba(79,168,220,.4);border-radius:14px;padding:18px 20px;color:#dcf0fc}
 
 /* About */
 .about{background:var(--sand)}
 .portrait{aspect-ratio:4/5;border-radius:22px;background:linear-gradient(180deg,#012a57 0%,#013E7F 55%,#0b3d70 56%,#031a35 100%);display:grid;place-items:center;position:relative;overflow:hidden}
-.portrait .ring{position:absolute;inset:22px;border:1px solid rgba(231,201,138,.35);border-radius:14px}
+.portrait .ring{position:absolute;inset:22px;border:1px solid rgba(255,255,255,.3);border-radius:14px}
 .portrait figcaption{position:absolute;bottom:34px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-family:var(--serif);font-style:italic;font-size:1.05rem}
 .quote{font-family:var(--serif);font-size:1.4rem;font-style:italic;color:var(--navy);border-left:3px solid var(--gold);padding-left:20px;margin:26px 0}
 
@@ -153,10 +156,10 @@ section{padding:96px 0;position:relative}
 .chip{background:var(--sand);color:var(--navy);border-radius:999px;padding:5px 12px;font-size:.82rem}
 .seats{display:flex;justify-content:space-between;align-items:center;font-size:.92rem;color:var(--muted)}
 .bar{height:6px;border-radius:6px;background:#e7ebf1;overflow:hidden;margin-top:6px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e2c483)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--navy),var(--sea2))}
 .pill{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;position:absolute;top:18px;right:18px}
 .pill.ok{background:rgba(255,255,255,.18)}
-.pill.few{background:var(--gold);color:#1b1404}
+.pill.few{background:#fff;color:var(--navy)}
 .pill.full{background:var(--red)}
 .course details summary{cursor:pointer;color:var(--navy);font-weight:600;font-size:.92rem}
 .course details p{white-space:pre-line;color:var(--muted);font-size:.93rem;margin-top:10px}
@@ -276,8 +279,8 @@ footer a:hover{color:#fff}
     <path d="M78 36 L94 24 L196 24 L214 36 Z"/>
     <path d="M110 24 L122 15 L170 15 L180 24 Z"/>
     <rect x="146" y="4" width="3" height="12"/>
-    <rect x="70" y="40" width="150" height="3" fill="#f2c97a" opacity=".55"/>
-    <rect x="100" y="28" width="90" height="2.5" fill="#f2c97a" opacity=".45"/>
+    <rect x="70" y="40" width="150" height="3" fill="#cfe9fb" opacity=".55"/>
+    <rect x="100" y="28" width="90" height="2.5" fill="#cfe9fb" opacity=".45"/>
   </svg>
   <div class="sea">
     <div class="glitter"></div>
