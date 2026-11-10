@@ -63,7 +63,8 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 
 /* HERO — cielo, orizzonte e mare */
 .hero{--seaH:270px;position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
-  background:linear-gradient(180deg,#010f22 0%,#012a57 35%,#0a4a8a 70%,#3b78a8 90%,#a9d4ee 100%)}
+  background:linear-gradient(180deg,rgba(1,15,34,.58) 0%,rgba(1,42,87,.34) 52%,rgba(1,26,54,.62) 100%),url("assets/hero-yacht.jpeg") center 37% / cover no-repeat}
+.hero .horizon,.hero .sky-stars,.hero .sun,.hero .sea,.hero .yacht{display:none}
 .horizon{position:absolute;left:0;right:0;bottom:calc(var(--seaH) - 1px);height:2px;background:linear-gradient(90deg,transparent,rgba(220,240,255,.85) 50%,transparent);z-index:1}
 .sky-stars{position:absolute;inset:0 0 var(--seaH) 0;background-image:radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 32% 8%,rgba(255,255,255,.5),transparent),radial-gradient(1.5px 1.5px at 72% 14%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 86% 26%,rgba(255,255,255,.45),transparent),radial-gradient(1px 1px at 55% 22%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 22% 34%,rgba(255,255,255,.35),transparent);opacity:.8}
 .sun{position:absolute;left:68%;bottom:var(--seaH);top:auto;width:min(70vw,900px);height:min(70vw,900px);transform:translate(-50%,50%);
