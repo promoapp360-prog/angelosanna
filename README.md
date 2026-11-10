@@ -1,14 +1,28 @@
-# Chef on Board — Landing page
+# Chef on Board — Landing + pannello Admin
 
-Landing page del corso **Chef on Board** di Chef Angelo Sanna: formazione per chef che vogliono lavorare come Private Chef su yacht e ville di lusso.
+Sito del corso **Chef on Board** di Chef Angelo Sanna. Contiene:
 
-- `index.html` — la landing: un unico file con CSS e JS inclusi, pronta per GitHub Pages, Replit o qualsiasi hosting statico
-- `STRATEGIA-MARKETING.md` — strategia per le sponsorizzate social e la gestione dei contatti
+- la **landing** pubblica (`public/index.html`), con i prossimi corsi caricati in automatico;
+- il **pannello admin** (`/admin`), dove Angelo inserisce date, sede, argomenti, numero di partecipanti e programma, e vede le richieste arrivate dal modulo;
+- `STRATEGIA-MARKETING.md`, la strategia per le sponsorizzate.
 
-## Pubblicare con GitHub Pages
-Settings → Pages → Branch `main` / root → Save.
+Server: `server.js`, scritto in Node puro senza dipendenze esterne.
+
+## Avvio su Replit
+1. Importa il repo GitHub `promoapp360-prog/angelosanna` su Replit.
+2. **Tools → Secrets**: aggiungi `ADMIN_PASSWORD` con la password del pannello.
+3. **Tools → Database (Key-Value)**: attivalo, così corsi e richieste restano salvati anche dopo un nuovo deploy. Il server lo rileva da solo tramite `REPLIT_DB_URL`.
+4. Premi **Run**, poi **Deploy** per avere l'indirizzo pubblico.
+
+Il pannello si apre da `tuo-sito/admin` (link "Admin" in fondo alla pagina).
+
+> Senza il Database di Replit i dati vengono scritti nella cartella `data/`. In locale va bene, ma su un deploy Autoscale quei file si possono perdere.
+
+## Sicurezza
+- Dopo 5 password sbagliate l'accesso si blocca per 15 minuti.
+- La sessione dura 12 ore.
+- Una password corta (6 lettere) è facile da indovinare. Meglio mescolare lettere e numeri, per esempio `mare26`.
 
 ## Da personalizzare
-- Il logo "AS" è ricostruito in vettoriale. Per usare il file originale, salvarlo in `assets/logo.png` e sostituire i `<use href="#as"/>`.
-- Il codice del Meta Pixel va incollato nel `<head>` (c'è il commento dedicato). Il modulo lancia già l'evento `Lead`.
-- Il modulo prepara un'email a chef@angelosanna.com. Per raccogliere i contatti in automatico si può collegare Formspree, Google Form o un CRM.
+- **Logo:** il monogramma "AS" è ricostruito in vettoriale. Per usare il file originale, salvarlo in `public/assets/logo.png`.
+- **Meta Pixel:** incollare il codice nel `<head>` di `public/index.html`. Il modulo lancia già l'evento `Lead`.

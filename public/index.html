@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chef on Board — Corso per Private Chef su Yacht e Ville di Lusso | Chef Angelo Sanna</title>
+<meta name="description" content="Chef on Board: il corso di Chef Angelo Sanna per chef di ristorante, hotel e catering che vogliono lavorare come Private Chef su yacht e ville di lusso.">
+<meta property="og:title" content="Chef on Board — Da chef di terra a Private Chef su yacht di lusso">
+<meta property="og:description" content="20+ anni tra yacht e ville esclusive. Competenze, metodo e contatti per entrare nel lusso privato.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!--
+  PIXEL META / GOOGLE TAG: incollare qui il codice prima di avviare le sponsorizzate.
+  Il modulo lancia già l'evento "Lead".
+-->
+<style>
+:root{
+  --navy:#013E7F; --navy-deep:#012a57; --abyss:#011a36; --ink:#0b1b2e; --sea:#0f6fa8; --sea2:#1a86c2;
+  --sand:#f6f1e7; --cream:#fbf9f4; --gold:#c8a25a; --gold2:#e7c98a; --line:rgba(1,62,127,.14);
+  --text:#1d2a3a; --muted:#5b6878; --red:#b4492f;
+  --serif:"Playfair Display","Bodoni 72",Didot,Georgia,"Times New Roman",serif;
+  --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--text);background:var(--cream);line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img,svg{display:block}
+.wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+.eyebrow{font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:600}
+h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.12;color:var(--ink)}
+h2{font-size:clamp(2rem,4.6vw,3.2rem);margin:.5rem 0 1rem}
+h3{font-size:1.3rem}
+section{padding:96px 0;position:relative}
+.lead{font-size:1.12rem;color:var(--muted);max-width:660px}
+.btn{display:inline-flex;align-items:center;gap:.6rem;padding:17px 30px;border-radius:999px;font-weight:600;text-decoration:none;border:0;cursor:pointer;font-size:1rem;font-family:var(--sans);transition:transform .15s ease,box-shadow .15s ease,background .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn-gold{background:linear-gradient(135deg,#e2c483,#c8a25a);color:#1b1404;box-shadow:0 12px 34px rgba(200,162,90,.38)}
+.btn-ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(4px)}
+.btn-navy{background:var(--navy);color:#fff}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .25s,box-shadow .25s}
+.nav.solid{background:rgba(1,26,54,.94);box-shadow:0 4px 20px rgba(0,0,0,.2);backdrop-filter:blur(8px)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px}
+.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+.brand .mono{width:44px;height:44px;border:1px solid rgba(231,201,138,.6);border-radius:50%;display:grid;place-items:center}
+.brand span{font-family:var(--serif);font-size:1.08rem;letter-spacing:.05em}
+.nav .links{display:flex;gap:28px;align-items:center}
+.nav .links a.l{color:rgba(255,255,255,.82);text-decoration:none;font-size:.92rem}
+.nav .links a.l:hover{color:#fff}
+.nav .btn{padding:11px 20px;font-size:.9rem}
+
+/* HERO — cielo, orizzonte e mare */
+.hero{--seaH:270px;position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
+  background:linear-gradient(180deg,#010f22 0%,#012a57 35%,#0a4a8a 70%,#3b78a8 90%,#d9b779 100%)}
+.horizon{position:absolute;left:0;right:0;bottom:calc(var(--seaH) - 1px);height:2px;background:linear-gradient(90deg,transparent,rgba(242,201,122,.9) 50%,transparent);z-index:1}
+.sky-stars{position:absolute;inset:0 0 var(--seaH) 0;background-image:radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.7),transparent),radial-gradient(1px 1px at 32% 8%,rgba(255,255,255,.5),transparent),radial-gradient(1.5px 1.5px at 72% 14%,rgba(255,255,255,.6),transparent),radial-gradient(1px 1px at 86% 26%,rgba(255,255,255,.45),transparent),radial-gradient(1px 1px at 55% 22%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 22% 34%,rgba(255,255,255,.35),transparent);opacity:.8}
+.sun{position:absolute;left:68%;bottom:var(--seaH);top:auto;width:min(70vw,900px);height:min(70vw,900px);transform:translate(-50%,50%);
+  background:radial-gradient(circle,rgba(255,226,160,.85) 0%,rgba(240,190,110,.45) 9%,rgba(200,150,90,.18) 22%,transparent 50%);pointer-events:none}
+.sea{position:absolute;left:0;right:0;bottom:0;height:var(--seaH);overflow:hidden;
+  background:linear-gradient(180deg,#0b3d70 0%,#08305c 30%,#052648 65%,#031a35 100%)}
+.glitter{position:absolute;left:68%;top:0;bottom:0;width:240px;transform:translateX(-50%);
+  background:repeating-linear-gradient(180deg,rgba(255,226,160,.0) 0 6px,rgba(255,226,160,.55) 6px 7px,rgba(255,226,160,0) 7px 15px);
+  -webkit-mask:radial-gradient(ellipse 50% 100% at 50% 0%,#000 30%,transparent 75%);mask:radial-gradient(ellipse 50% 100% at 50% 0%,#000 30%,transparent 75%);
+  animation:glit 3.5s ease-in-out infinite alternate;opacity:.8}
+@keyframes glit{from{opacity:.45;transform:translateX(-50%) scaleX(.9)}to{opacity:.95;transform:translateX(-50%) scaleX(1.12)}}
+.wave{position:absolute;left:0;width:200%;height:100%;bottom:0}
+.wave svg{width:100%;height:100%}
+.w1{animation:drift 26s linear infinite;opacity:.35;bottom:-12%}
+.w2{animation:drift 18s linear infinite reverse;opacity:.55;bottom:-30%}
+.w3{animation:drift 12s linear infinite;opacity:.9;bottom:-52%}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.yacht{position:absolute;z-index:2;left:50%;bottom:calc(var(--seaH) - 12px);width:150px;color:#06182e;animation:bob 6s ease-in-out infinite;opacity:.95}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(3px) rotate(.5deg)}}
+.hero .inner{position:relative;z-index:3;padding-top:130px;padding-bottom:40px;width:100%}
+.hero h1{color:#fff;font-size:clamp(2.6rem,6.6vw,5.6rem);max-width:1000px;margin:18px 0 22px;letter-spacing:-.01em;text-shadow:0 4px 40px rgba(0,0,0,.35)}
+.hero h1 em{font-style:italic;background:linear-gradient(120deg,#f6e1b0,#d2a95c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{font-size:clamp(1.05rem,2.1vw,1.28rem);max-width:640px;color:rgba(255,255,255,.88);font-weight:300;text-shadow:0 2px 16px rgba(0,0,0,.35)}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+.hero .proof{position:relative;z-index:3;padding:0 0 34px}
+.hero .proof .wrap{display:flex;flex-wrap:wrap;gap:40px}
+.hero .proof div{font-size:.9rem;color:rgba(255,255,255,.78)}
+.hero .proof b{display:block;font-family:var(--serif);font-size:2rem;font-weight:500;color:#fff}
+.hero-mono{position:absolute;right:4%;top:16%;opacity:.06;width:520px;pointer-events:none;color:#fff}
+
+/* Sezioni */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.card-dark{background:var(--navy-deep);color:#fff;border-radius:22px;padding:40px;box-shadow:0 30px 60px rgba(1,42,87,.25)}
+.card-dark h3{color:#fff;margin-bottom:14px}
+.ticks{list-style:none;margin-top:6px}
+.ticks li{padding:10px 0 10px 34px;position:relative;border-bottom:1px solid var(--line)}
+.card-dark .ticks li{border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.88)}
+.ticks li::before{content:"✓";position:absolute;left:0;top:12px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#1b1404;font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.x li::before{content:"✕";background:var(--red);color:#fff}
+
+/* Requisiti */
+.req{background:linear-gradient(180deg,var(--abyss),var(--navy-deep));color:#fff;overflow:hidden}
+.req h2{color:#fff}
+.req .lead{color:rgba(255,255,255,.78)}
+.req-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:40px}
+.badge{border:1px solid rgba(231,201,138,.45);border-radius:22px;padding:34px;background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.01))}
+.badge .tag{display:inline-block;font-family:var(--serif);font-size:2.4rem;color:var(--gold2);line-height:1}
+.badge h3{color:#fff;margin:10px 0 10px}
+.badge p,.badge li{color:rgba(255,255,255,.78);font-size:.98rem}
+.badge ul{list-style:none;margin-top:10px}
+.badge li{padding:4px 0 4px 18px;position:relative}
+.badge li::before{content:"";position:absolute;left:0;top:13px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.alert{margin-top:28px;display:flex;gap:14px;align-items:flex-start;background:rgba(200,162,90,.12);border:1px solid rgba(200,162,90,.4);border-radius:14px;padding:18px 20px;color:#f3e3bf}
+
+/* About */
+.about{background:var(--sand)}
+.portrait{aspect-ratio:4/5;border-radius:22px;background:linear-gradient(180deg,#012a57 0%,#013E7F 55%,#0b3d70 56%,#031a35 100%);display:grid;place-items:center;position:relative;overflow:hidden}
+.portrait .ring{position:absolute;inset:22px;border:1px solid rgba(231,201,138,.35);border-radius:14px}
+.portrait figcaption{position:absolute;bottom:34px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-family:var(--serif);font-style:italic;font-size:1.05rem}
+.quote{font-family:var(--serif);font-size:1.4rem;font-style:italic;color:var(--navy);border-left:3px solid var(--gold);padding-left:20px;margin:26px 0}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
+.feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px;transition:transform .2s,box-shadow .2s}
+.feature:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(1,42,87,.1)}
+.feature .ic{width:50px;height:50px;border-radius:12px;background:rgba(1,62,127,.08);display:grid;place-items:center;margin-bottom:18px;color:var(--navy)}
+.feature p{color:var(--muted);margin-top:8px;font-size:.98rem}
+
+/* Programma */
+.program{background:var(--navy-deep);color:#fff}
+.program h2{color:#fff}
+.program .lead{color:rgba(255,255,255,.75)}
+.modules{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:44px}
+.mod{border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:28px;background:rgba(255,255,255,.03)}
+.mod .n{font-family:var(--serif);color:var(--gold);font-size:1rem;letter-spacing:.1em}
+.mod h3{color:#fff;margin:6px 0 12px}
+.mod ul{list-style:none}
+.mod li{color:rgba(255,255,255,.78);font-size:.96rem;padding:5px 0 5px 18px;position:relative}
+.mod li::before{content:"";position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+/* Divisore onde */
+.divider{position:absolute;left:0;right:0;height:90px;pointer-events:none}
+.divider.top{top:-1px}
+.divider.bottom{bottom:-1px}
+.divider svg{width:100%;height:100%}
+
+/* Prossimi corsi */
+.courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px;margin-top:40px}
+.course{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 34px rgba(1,42,87,.08)}
+.course .top{background:linear-gradient(135deg,var(--navy),var(--sea));color:#fff;padding:24px 26px;position:relative}
+.course .date{font-family:var(--serif);font-size:1.5rem;line-height:1.2}
+.course .place{opacity:.85;margin-top:6px;font-size:.95rem;display:flex;gap:8px;align-items:center}
+.course .body{padding:22px 26px;flex:1;display:flex;flex-direction:column;gap:14px}
+.course h3{font-size:1.2rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--sand);color:var(--navy);border-radius:999px;padding:5px 12px;font-size:.82rem}
+.seats{display:flex;justify-content:space-between;align-items:center;font-size:.92rem;color:var(--muted)}
+.bar{height:6px;border-radius:6px;background:#e7ebf1;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e2c483)}
+.pill{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;position:absolute;top:18px;right:18px}
+.pill.ok{background:rgba(255,255,255,.18)}
+.pill.few{background:var(--gold);color:#1b1404}
+.pill.full{background:var(--red)}
+.course details summary{cursor:pointer;color:var(--navy);font-weight:600;font-size:.92rem}
+.course details p{white-space:pre-line;color:var(--muted);font-size:.93rem;margin-top:10px}
+.course .btn{justify-content:center;margin-top:auto}
+.empty{grid-column:1/-1;background:#fff;border:1px dashed var(--line);border-radius:20px;padding:40px;text-align:center;color:var(--muted)}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:44px;counter-reset:s}
+.step{padding:26px;border-top:2px solid var(--navy);background:#fff;border-radius:0 0 16px 16px}
+.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--serif);font-size:2.1rem;color:var(--gold);display:block;margin-bottom:8px}
+.step p{color:var(--muted);font-size:.96rem;margin-top:6px}
+.fit{background:var(--sand)}
+
+.faq details{border-bottom:1px solid var(--line);padding:20px 0}
+.faq summary{cursor:pointer;font-family:var(--serif);font-size:1.18rem;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:20px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--gold);font-size:1.5rem;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq details p{color:var(--muted);margin-top:12px;max-width:760px}
+
+/* CTA con mare */
+.cta{background:linear-gradient(180deg,#0b3d70 0%,#052648 55%,#011a36 100%);color:#fff;overflow:hidden;padding-top:150px}
+.cta h2{color:#fff}
+.cta .lead{color:rgba(255,255,255,.8)}
+.cta .seatop{position:absolute;left:0;right:0;top:0;height:140px;overflow:hidden}
+.formcard{background:#fff;color:var(--text);border-radius:22px;padding:36px;box-shadow:0 30px 60px rgba(0,0,0,.3);position:relative;z-index:2}
+.formcard label{display:block;font-size:.85rem;font-weight:600;margin:14px 0 6px;color:var(--ink)}
+.formcard input,.formcard select,.formcard textarea{width:100%;padding:13px 14px;border:1px solid #d6dbe3;border-radius:10px;font:inherit;font-size:1rem;background:#fbfcfd}
+.formcard input:focus,.formcard select:focus,.formcard textarea:focus{outline:2px solid var(--navy);border-color:transparent}
+.formcard .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.formcard .btn{width:100%;justify-content:center;margin-top:22px}
+.consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:.85rem;color:var(--muted);font-weight:400!important}
+.consent input{width:auto!important;margin-top:4px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.done{display:none;text-align:center;padding:10px 0}
+.done h3{margin-bottom:10px}
+.done .msg{background:var(--sand);border-radius:10px;padding:14px;text-align:left;font-size:.9rem;white-space:pre-wrap;margin:14px 0;color:var(--text)}
+.done .actions{display:grid;gap:10px}
+.contacts{margin-top:30px;display:grid;gap:12px}
+.contacts a{color:#fff;text-decoration:none;display:flex;gap:12px;align-items:center;opacity:.9}
+.contacts a:hover{opacity:1;text-decoration:underline}
+
+footer{background:#010f22;color:rgba(255,255,255,.6);padding:36px 0 40px;font-size:.88rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center}
+footer a{color:rgba(255,255,255,.45);text-decoration:none}
+footer a:hover{color:#fff}
+
+.mcta{display:none}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .8s ease,transform .8s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:900px){
+  section{padding:72px 0}
+  .split,.modules,.req-grid{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .nav .links a.l,.nav .btn{display:none}
+  .hero-mono{width:300px;right:-60px;top:12%}
+  .hero{--seaH:210px}
+  .sun{left:72%}
+  .glitter{left:72%;width:140px}
+  .yacht{width:104px;left:58%;bottom:calc(var(--seaH) - 8px)}
+  .hero .inner{padding-top:108px}
+  .hero .proof{padding-bottom:86px}
+  .hero .proof .wrap{gap:18px}
+  .hero .proof b{font-size:1.12rem;white-space:nowrap}
+  .hero .proof div{font-size:.78rem;flex:1;min-width:90px}
+  .mcta{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:60;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .portrait{aspect-ratio:16/11}
+}
+@media (max-width:520px){
+  .steps{grid-template-columns:1fr}
+  .formcard{padding:24px}
+  .formcard .row{grid-template-columns:1fr}
+  body{font-size:16px}
+  .hero .ctas .btn{width:100%;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.w1,.w2,.w3,.yacht,.glitter{animation:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<!-- Monogramma AS (ricostruzione vettoriale del logo) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="as" viewBox="0 0 120 100">
+    <text x="8" y="80" font-family="Playfair Display, Bodoni 72, Didot, Georgia, Times New Roman, serif" font-size="88" fill="currentColor">A</text>
+    <text x="52" y="80" font-family="Playfair Display, Bodoni 72, Didot, Georgia, Times New Roman, serif" font-size="88" fill="currentColor">S</text>
+  </symbol>
+  <symbol id="wave" viewBox="0 0 1440 200" preserveAspectRatio="none">
+    <path d="M0 80 C 180 40 360 40 540 80 S 900 120 1080 80 S 1260 40 1440 80 V200 H0Z"/>
+  </symbol>
+</svg>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Chef Angelo Sanna">
+      <div class="mono"><svg width="30" height="26" style="color:#fff"><use href="#as"/></svg></div>
+      <span>Chef Angelo Sanna</span>
+    </a>
+    <div class="links">
+      <a class="l" href="#programma">Programma</a>
+      <a class="l" href="#requisiti">Requisiti</a>
+      <a class="l" href="#corsi">Prossimi corsi</a>
+      <a class="btn btn-gold" href="#iscriviti">Richiedi info</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="sky-stars"></div>
+  <div class="sun"></div>
+  <div class="horizon"></div>
+  <svg class="hero-mono" viewBox="0 0 120 100"><use href="#as"/></svg>
+  <!-- yacht all'orizzonte -->
+  <svg class="yacht" viewBox="0 0 300 70" fill="currentColor" aria-hidden="true">
+    <path d="M6 52 L294 52 L270 66 L30 66 Z"/>
+    <path d="M40 52 L60 36 L230 36 L262 52 Z"/>
+    <path d="M78 36 L94 24 L196 24 L214 36 Z"/>
+    <path d="M110 24 L122 15 L170 15 L180 24 Z"/>
+    <rect x="146" y="4" width="3" height="12"/>
+    <rect x="70" y="40" width="150" height="3" fill="#f2c97a" opacity=".55"/>
+    <rect x="100" y="28" width="90" height="2.5" fill="#f2c97a" opacity=".45"/>
+  </svg>
+  <div class="sea">
+    <div class="glitter"></div>
+    <div class="wave w1"><svg viewBox="0 0 2880 200" preserveAspectRatio="none"><g fill="#1a5d97"><use href="#wave" width="1440" height="200"/><use href="#wave" x="1440" width="1440" height="200"/></g></svg></div>
+    <div class="wave w2"><svg viewBox="0 0 2880 200" preserveAspectRatio="none"><g fill="#0b3d70"><use href="#wave" width="1440" height="200"/><use href="#wave" x="1440" width="1440" height="200"/></g></svg></div>
+    <div class="wave w3"><svg viewBox="0 0 2880 200" preserveAspectRatio="none"><g fill="#031a35"><use href="#wave" width="1440" height="200"/><use href="#wave" x="1440" width="1440" height="200"/></g></svg></div>
+  </div>
+
+  <div class="wrap inner">
+    <div class="eyebrow">Corso Chef on Board · by Chef Angelo Sanna</div>
+    <h1>Da chef di terra a <em>Private Chef</em> su yacht e ville di lusso.</h1>
+    <p class="sub">Il corso per chi lavora in ristorante, hotel o catering e vuole trasformare il proprio mestiere in una carriera internazionale nel lusso privato.</p>
+    <div class="ctas">
+      <a class="btn btn-gold" href="#corsi">Scopri le prossime date
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn btn-ghost" href="#programma">Vedi il programma</a>
+    </div>
+  </div>
+  <div class="proof">
+    <div class="wrap">
+      <div><b>20+ anni</b>di cucina italiana e internazionale</div>
+      <div><b>Yacht & ville</b>per ospiti di altissimo profilo</div>
+      <div><b>Network</b>comandanti, armatori, broker</div>
+    </div>
+  </div>
+</header>
+
+<!-- IL SALTO -->
+<section id="salto">
+  <div class="wrap split">
+    <div class="reveal">
+      <div class="eyebrow">Il salto di carriera</div>
+      <h2>Sai cucinare. Ora impara a farlo dove il servizio diventa arte.</h2>
+      <p class="lead">Essere Private Chef non significa solo cucinare bene. Significa gestire una galley in pochi metri quadri, leggere i desideri di ospiti esigenti prima che li esprimano, vivere con un equipaggio e muoversi con discrezione in contesti esclusivi e internazionali.</p>
+      <p class="lead" style="margin-top:14px">Sono competenze che la cucina di un ristorante non insegna. Chef on Board le mette in fila, una per una.</p>
+    </div>
+    <div class="card-dark reveal">
+      <h3>Cosa ti aspetta a bordo</h3>
+      <ul class="ticks">
+        <li>Lavorare tra Mediterraneo, Caraibi e le destinazioni più belle del mondo</li>
+        <li>Cucinare per armatori, famiglie e ospiti internazionali con menu su misura</li>
+        <li>Una forte domanda di <strong>Italian Chef</strong> nel mercato dello yachting</li>
+        <li>Un ambiente d'élite dove professionalità e riservatezza fanno la differenza</li>
+        <li>Crescita rapida grazie a una rete di contatti nel settore</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CHI È ANGELO -->
+<section class="about" id="chi-sono">
+  <div class="wrap split">
+    <figure class="portrait reveal">
+      <div class="ring"></div>
+      <svg width="220" height="184" viewBox="0 0 120 100" style="color:#fff"><use href="#as"/></svg>
+      <figcaption>Passione, discrezione e arte culinaria</figcaption>
+    </figure>
+    <div class="reveal">
+      <div class="eyebrow">Il tuo docente</div>
+      <h2>Chef Angelo Sanna</h2>
+      <p class="lead">Chef privato con oltre vent'anni di esperienza nella cucina italiana e internazionale, specializzato nel servizio esclusivo per yacht e ville di lusso. Ha cucinato per personaggi famosi, politici di alto profilo, attori e icone della musica e dello sport.</p>
+      <p class="quote">"Ho creato Chef on Board per gli chef di terra che vogliono entrare nel mondo del privato di lusso — e per accompagnarli fino alla posizione giusta."</p>
+      <p class="lead">Oltre alla formazione, Angelo mette a disposizione dei partecipanti la propria rete di contatti con comandanti, armatori, broker e agenzie in tutto il mondo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PERCHÉ -->
+<section id="perche">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Perché Chef on Board</div>
+      <h2>Una formazione a 360 gradi, costruita sul campo.</h2>
+      <p class="lead">Non un corso di cucina, ma il passaggio completo dal ristorante al lusso privato: competenze culinarie, organizzative, relazionali e la conoscenza delle dinamiche reali del settore nautico e delle grandi proprietà.</p>
+    </div>
+    <div class="grid3">
+      <div class="feature reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></div>
+        <h3>Metodo di bordo</h3>
+        <p>Tecniche e strategie per ottimizzare i tempi di esecuzione, la logistica e le scorte in una galley dagli spazi ridotti.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <h3>L'arte dell'ospitalità</h3>
+        <p>Comunicazione con armatori e ospiti internazionali, cordialità e discrezione come strumenti di lavoro quotidiano.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div>
+        <h3>Accompagnamento</h3>
+        <p>Come presentarsi a comandanti, agenzie e broker, e il supporto di una rete di contatti costruita in vent'anni.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAMMA -->
+<section class="program" id="programma">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Il programma</div>
+      <h2>Cosa imparerai</h2>
+      <p class="lead">Sei aree che coprono tutto ciò che serve per lavorare — e restare — nel settore privato di lusso.</p>
+    </div>
+    <div class="modules">
+      <div class="mod reveal"><div class="n">MODULO 01</div><h3>Competenze relazionali e professionali</h3>
+        <ul><li>Approccio e comunicazione con armatori, famiglie e ospiti internazionali</li><li>Cordialità e discrezione: lo stile del Private Chef</li><li>Convivialità con equipaggio e personale di villa</li></ul></div>
+      <div class="mod reveal"><div class="n">MODULO 02</div><h3>Gestione alimentare e preference list</h3>
+        <ul><li>Utilizzo e interpretazione della preference list</li><li>Abitudini, intolleranze, allergie e diete personalizzate</li><li>Menu bilanciati e raffinati per guests e crew</li></ul></div>
+      <div class="mod reveal"><div class="n">MODULO 03</div><h3>Tempi e logistica nella galley</h3>
+        <ul><li>Pianificazione, preparazione anticipata e scorte</li><li>Organizzazione di spazi ridotti e flusso di lavoro</li><li>Coordinamento del servizio con il personale</li></ul></div>
+      <div class="mod reveal"><div class="n">MODULO 04</div><h3>Vita a bordo nel settore privato</h3>
+        <ul><li>Struttura gerarchica e ruoli dell'equipaggio</li><li>Orari di lavoro, contratti, riposi e aspetti fiscali</li><li>Adattamento culturale e gestione dello stress</li></ul></div>
+      <div class="mod reveal"><div class="n">MODULO 05</div><h3>Certificazioni marittime</h3>
+        <ul><li>STCW ed ENG1: cosa sono, dove si ottengono, quanto durano</li><li>Security Awareness e altri corsi utili a bordo</li><li>Come arrivare in regola alla prima chiamata</li></ul></div>
+      <div class="mod reveal"><div class="n">MODULO 06</div><h3>Mercato e opportunità di carriera</h3>
+        <ul><li>La domanda internazionale di Italian Chef</li><li>Tendenze dello yachting e dell'hospitality di lusso</li><li>CV, portfolio e come presentarsi a comandanti, agenzie e broker</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- REQUISITI STCW / ENG1 -->
+<section class="req" id="requisiti">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Requisiti obbligatori per lavorare a bordo</div>
+      <h2>Per salire a bordo servono STCW ed ENG1.</h2>
+      <p class="lead">Per lavorare su uno yacht, chef compreso, sono obbligatori due documenti: la formazione di sicurezza <strong>STCW</strong> e il certificato medico <strong>ENG1</strong>. Senza questi documenti nessun comandante può imbarcarti.</p>
+    </div>
+    <div class="req-grid">
+      <div class="badge reveal">
+        <span class="tag">STCW</span>
+        <h3>Basic Safety Training</h3>
+        <p>Lo standard internazionale di formazione per chi lavora in mare. Il corso base comprende:</p>
+        <ul>
+          <li>Tecniche di sopravvivenza in mare</li>
+          <li>Prevenzione e lotta antincendio</li>
+          <li>Primo soccorso elementare</li>
+          <li>Sicurezza personale e responsabilità sociali</li>
+        </ul>
+      </div>
+      <div class="badge reveal">
+        <span class="tag">ENG1</span>
+        <h3>Certificato medico marittimo</h3>
+        <p>La visita medica che attesta l'idoneità fisica al lavoro in mare, richiesta sugli yacht di tutto il mondo.</p>
+        <ul>
+          <li>Si effettua presso medici autorizzati</li>
+          <li>Ha una validità massima di 2 anni</li>
+          <li>Va rinnovato prima della scadenza per restare imbarcabile</li>
+        </ul>
+      </div>
+    </div>
+    <div class="alert reveal">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div>Il corso Chef on Board ti spiega <strong>quali certificati servono, dove ottenerli, i tempi e le scadenze</strong>, così arrivi pronto alla prima chiamata. STCW ed ENG1 si conseguono presso centri e medici autorizzati.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROSSIMI CORSI (gestiti dal pannello admin) -->
+<section id="corsi">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Calendario</div>
+      <h2>Prossimi corsi</h2>
+      <p class="lead">Date, sedi e posti disponibili delle prossime edizioni di Chef on Board. Ogni edizione ha un numero limitato di partecipanti.</p>
+    </div>
+    <div class="courses" id="courseList">
+      <div class="empty">Caricamento delle date…</div>
+    </div>
+  </div>
+</section>
+
+<!-- COME FUNZIONA -->
+<section id="come-funziona" style="padding-top:20px">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Come funziona</div>
+      <h2>Dal primo contatto alla prima stagione.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>Richiedi info</h3><p>Compila il modulo: ti contattiamo con date, sede e dettagli del prossimo corso.</p></div>
+      <div class="step reveal"><h3>Colloquio</h3><p>Una chiacchierata con Angelo per capire la tua esperienza e i tuoi obiettivi.</p></div>
+      <div class="step reveal"><h3>Il corso</h3><p>Formazione intensiva in aula con lo chef: tecnica, metodo, regole e mercato.</p></div>
+      <div class="step reveal"><h3>A bordo</h3><p>Con STCW ed ENG1 in regola, ti presenti a comandanti, agenzie e broker con il supporto della rete di Angelo.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PER CHI -->
+<section class="fit" id="per-chi">
+  <div class="wrap split" style="align-items:start">
+    <div class="reveal">
+      <div class="eyebrow">Per chi è</div>
+      <h2>Il corso giusto se…</h2>
+      <ul class="ticks">
+        <li>Lavori già in cucina: ristorante, hotel, catering, mense o fast food</li>
+        <li>Vuoi una carriera internazionale e sei pronto a viaggiare</li>
+        <li>Sei disposto a ottenere STCW ed ENG1 per lavorare a bordo</li>
+        <li>Ami l'ospitalità di alto livello e sai lavorare in squadra</li>
+      </ul>
+    </div>
+    <div class="reveal">
+      <div class="eyebrow" style="color:var(--red)">Per chi non è</div>
+      <h2>Lascia perdere se…</h2>
+      <ul class="ticks x">
+        <li>Non hai mai lavorato in una cucina professionale</li>
+        <li>Cerchi un posto fisso vicino a casa</li>
+        <li>Non sei disposto a orari flessibili e a vivere in equipaggio</li>
+        <li>Pensi che basti cucinare bene per lavorare nel lusso</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="wrap" style="max-width:860px">
+    <div class="eyebrow">Domande frequenti</div>
+    <h2>Prima di chiederci info</h2>
+    <details><summary>Devo avere già esperienza come chef?</summary><p>Sì. Chef on Board è pensato per chi lavora già in cucina "a terra". Non insegna le basi del mestiere: ti insegna a portarlo nel mondo del privato di lusso.</p></details>
+    <details><summary>Servono STCW ed ENG1 per lavorare a bordo?</summary><p>Sì, sono obbligatori: senza la formazione di sicurezza STCW e il certificato medico ENG1 non si può essere imbarcati. Il corso ti spiega dove e come ottenerli, ma i certificati si conseguono presso centri e medici autorizzati.</p></details>
+    <details><summary>Dove e quando si svolge il corso?</summary><p>Il corso si tiene in presenza, in diverse città e periodi dell'anno. Trovi le edizioni aperte nella sezione "Prossimi corsi" oppure puoi scrivere in DM su Instagram.</p></details>
+    <details><summary>Dopo il corso trovo lavoro?</summary><p>Nessuno può garantirlo in modo onesto. Quello che il corso offre è preparazione concreta, un metodo per presentarti nel modo giusto e l'accesso alla rete di contatti di Angelo con comandanti, armatori, broker e agenzie.</p></details>
+    <details><summary>Serve parlare inglese?</summary><p>Lo yachting è internazionale e l'inglese è molto utile. Ne parliamo durante il colloquio per valutare il tuo punto di partenza.</p></details>
+    <details><summary>Quanto costa?</summary><p>Il costo dipende dalla sede e dal formato del corso. Ricevi tutte le informazioni, senza impegno, compilando il modulo qui sotto.</p></details>
+  </div>
+</section>
+
+<!-- FORM -->
+<section class="cta" id="iscriviti">
+  <div class="seatop">
+    <div class="wave w1" style="bottom:auto;top:0;height:140px"><svg viewBox="0 0 2880 200" preserveAspectRatio="none" style="transform:scaleY(-1)"><g fill="#fbf9f4"><use href="#wave" width="1440" height="200"/><use href="#wave" x="1440" width="1440" height="200"/></g></svg></div>
+    <div class="wave w2" style="bottom:auto;top:-20px;height:120px;opacity:1"><svg viewBox="0 0 2880 200" preserveAspectRatio="none" style="transform:scaleY(-1)"><g fill="#fbf9f4"><use href="#wave" width="1440" height="200"/><use href="#wave" x="1440" width="1440" height="200"/></g></svg></div>
+  </div>
+  <div class="wrap split" style="align-items:start">
+    <div class="reveal">
+      <div class="eyebrow">Posti limitati per ogni edizione</div>
+      <h2>Il tuo passaporto verso il lusso, il mare e il mondo.</h2>
+      <p class="lead">Lascia i tuoi dati: riceverai date, sede, costi e programma dettagliato del prossimo corso Chef on Board. Nessun impegno.</p>
+      <div class="contacts">
+        <a href="mailto:chef@angelosanna.com"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> chef@angelosanna.com</a>
+        <a href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg> @angelosannachef — scrivi in DM</a>
+        <a href="https://www.angelosanna.com" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> www.angelosanna.com</a>
+      </div>
+    </div>
+    <div class="formcard reveal">
+      <form id="lead" novalidate>
+        <div class="row">
+          <div><label for="nome">Nome e cognome *</label><input id="nome" name="nome" required autocomplete="name"></div>
+          <div><label for="tel">Telefono / WhatsApp *</label><input id="tel" name="tel" type="tel" required autocomplete="tel"></div>
+        </div>
+        <label for="email">Email *</label><input id="email" name="email" type="email" required autocomplete="email">
+        <label for="corso">Corso di interesse</label>
+        <select id="corso" name="corso"><option value="">Prossima edizione disponibile</option></select>
+        <div class="row">
+          <div><label for="ruolo">Dove lavori oggi?</label>
+            <select id="ruolo" name="ruolo"><option>Ristorante</option><option>Hotel</option><option>Catering / banqueting</option><option>Mensa / collettività</option><option>Altro</option></select></div>
+          <div><label for="anni">Anni di esperienza</label>
+            <select id="anni" name="anni"><option>Meno di 2</option><option>2 – 5</option><option>5 – 10</option><option>Più di 10</option></select></div>
+        </div>
+        <label for="citta">Città</label><input id="citta" name="citta" autocomplete="address-level2">
+        <label for="note">Domande o note</label><textarea id="note" name="note" rows="3"></textarea>
+        <input class="hp" id="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="consent"><input type="checkbox" id="privacy" required> Acconsento al trattamento dei miei dati per essere ricontattato riguardo al corso.</label>
+        <button class="btn btn-gold" type="submit" id="sendBtn">Voglio ricevere le info</button>
+        <small id="err" style="color:var(--red);display:none;margin-top:10px">Compila nome, telefono, email e accetta il consenso.</small>
+      </form>
+      <div class="done" id="doneOk">
+        <h3>Richiesta inviata!</h3>
+        <p style="color:var(--muted)">Grazie, Chef Angelo ti contatterà a breve con tutti i dettagli. Nel frattempo puoi seguirlo su Instagram.</p>
+        <div class="actions" style="margin-top:18px"><a class="btn btn-navy" style="justify-content:center" href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener">Segui @angelosannachef</a></div>
+      </div>
+      <div class="done" id="doneMail">
+        <h3>Ci siamo quasi!</h3>
+        <p style="color:var(--muted)">Invia la richiesta con un tocco: si apre la tua email già compilata.</p>
+        <div class="msg" id="msg"></div>
+        <div class="actions">
+          <a class="btn btn-navy" id="mail" href="#" style="justify-content:center">Invia via email</a>
+          <button class="btn btn-gold" id="copy" type="button" style="justify-content:center">Copia il messaggio</button>
+          <a class="btn" style="justify-content:center;background:var(--sand)" href="https://ig.me/m/angelosannachef" target="_blank" rel="noopener">Oppure scrivi in DM su Instagram</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:12px"><svg width="34" height="28" style="color:#fff"><use href="#as"/></svg> © <span id="y"></span> Chef Angelo Sanna · Chef on Board</div>
+    <div>chef@angelosanna.com · @angelosannachef · <a href="/admin">Admin</a></div>
+  </div>
+</footer>
+
+<a class="btn btn-gold mcta" href="#iscriviti">Richiedi le prossime date</a>
+
+<script>
+(function(){
+  document.getElementById('y').textContent=new Date().getFullYear();
+  var nav=document.getElementById('nav');
+  function onS(){nav.classList.toggle('solid',window.scrollY>40)}
+  window.addEventListener('scroll',onS,{passive:true});onS();
+  var io=('IntersectionObserver' in window)?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.1}):null;
+  function watch(root){(root||document).querySelectorAll('.reveal:not(.in)').forEach(function(el){io?io.observe(el):el.classList.add('in')})}
+  watch();
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function fmt(d){if(!d)return'';var p=d.split('-');var dt=new Date(+p[0],+p[1]-1,+p[2]);return dt.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}
+  function range(a,b){
+    if(!a)return'Data da definire'; if(!b||a===b)return fmt(a);
+    var pa=a.split('-'),pb=b.split('-');
+    if(pa[0]===pb[0]&&pa[1]===pb[1]){var m=new Date(+pb[0],+pb[1]-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});return (+pa[2])+'–'+(+pb[2])+' '+m}
+    return fmt(a)+' – '+fmt(b);
+  }
+
+  var list=document.getElementById('courseList'), sel=document.getElementById('corso');
+  function emptyMsg(){
+    list.innerHTML='<div class="empty"><h3 style="margin-bottom:8px">Nuove date in arrivo</h3>Le prossime edizioni sono in programmazione. Lascia i tuoi dati qui sotto e sarai tra i primi a saperlo.<div style="margin-top:18px"><a class="btn btn-navy" href="#iscriviti">Avvisami per le prossime date</a></div></div>';
+  }
+  fetch('/api/corsi').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(cs){
+    if(!cs.length) return emptyMsg();
+    list.innerHTML=cs.map(function(c){
+      var tot=c.postiTotali||0, occ=c.postiOccupati||0, lib=Math.max(0,tot-occ);
+      var pill= tot? (lib===0?'<span class="pill full">Completo</span>':lib<=3?'<span class="pill few">Ultimi '+lib+' posti</span>':'<span class="pill ok">Iscrizioni aperte</span>'):'<span class="pill ok">Iscrizioni aperte</span>';
+      var label=c.titolo+' — '+range(c.dataInizio,c.dataFine)+(c.sede?' — '+c.sede:'');
+      return '<article class="course reveal">'+
+        '<div class="top">'+pill+'<div class="date">'+esc(range(c.dataInizio,c.dataFine))+'</div>'+
+        (c.sede?'<div class="place"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'+esc(c.sede)+'</div>':'')+
+        (c.orario?'<div class="place" style="font-size:.85rem">'+esc(c.orario)+'</div>':'')+'</div>'+
+        '<div class="body"><h3>'+esc(c.titolo)+'</h3>'+
+        (c.argomenti&&c.argomenti.length?'<div class="chips">'+c.argomenti.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+
+        (tot?'<div><div class="seats"><span>'+(lib?lib+' posti disponibili':'Posti esauriti')+'</span><span>'+occ+'/'+tot+' partecipanti</span></div><div class="bar"><i style="width:'+Math.min(100,Math.round(occ/tot*100))+'%"></i></div></div>':'')+
+        (c.prezzo?'<div style="font-weight:600;color:var(--navy)">'+esc(c.prezzo)+'</div>':'')+
+        (c.programma?'<details><summary>Leggi il programma</summary><p>'+esc(c.programma)+'</p></details>':'')+
+        '<a class="btn '+(lib===0&&tot?'btn-navy':'btn-gold')+'" href="#iscriviti" data-corso="'+esc(label)+'">'+(lib===0&&tot?'Mettiti in lista d\'attesa':'Prenota il tuo posto')+'</a>'+
+        '</div></article>';
+    }).join('');
+    cs.forEach(function(c){var o=document.createElement('option');o.textContent=c.titolo+' — '+range(c.dataInizio,c.dataFine)+(c.sede?' — '+c.sede:'');o.value=o.textContent;sel.appendChild(o)});
+    list.querySelectorAll('[data-corso]').forEach(function(a){a.addEventListener('click',function(){sel.value=a.getAttribute('data-corso')})});
+    watch(list);
+  }).catch(emptyMsg);
+
+  var f=document.getElementById('lead');
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var v=function(id){return (document.getElementById(id).value||'').trim()};
+    var ok=v('nome')&&v('tel')&&/\S+@\S+\.\S+/.test(v('email'))&&document.getElementById('privacy').checked;
+    document.getElementById('err').style.display=ok?'none':'block';
+    if(!ok) return;
+    var data={nome:v('nome'),tel:v('tel'),email:v('email'),corso:v('corso'),ruolo:v('ruolo'),anni:v('anni'),citta:v('citta'),note:v('note'),website:v('website')};
+    var btn=document.getElementById('sendBtn'); btn.disabled=true; btn.textContent='Invio in corso…';
+    function tracked(){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','generate_lead')}catch(e){}}
+    fetch('/api/richieste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+      .then(function(r){if(!r.ok)throw 0; f.style.display='none'; document.getElementById('doneOk').style.display='block'; tracked();})
+      .catch(function(){
+        var txt='Ciao Chef Angelo, vorrei ricevere informazioni sul corso Chef on Board.\n\nNome: '+data.nome+'\nTelefono: '+data.tel+'\nEmail: '+data.email+
+          (data.corso?'\nCorso: '+data.corso:'')+'\nLavoro attuale: '+data.ruolo+'\nEsperienza: '+data.anni+' anni'+(data.citta?'\nCittà: '+data.citta:'')+(data.note?'\nNote: '+data.note:'');
+        document.getElementById('msg').textContent=txt;
+        document.getElementById('mail').href='mailto:chef@angelosanna.com?subject='+encodeURIComponent('Richiesta info corso Chef on Board')+'&body='+encodeURIComponent(txt);
+        f.style.display='none'; document.getElementById('doneMail').style.display='block'; tracked();
+        document.getElementById('copy').onclick=function(){var b=this;try{navigator.clipboard.writeText(txt).then(function(){b.textContent='Copiato ✓'},function(){b.textContent='Seleziona e copia il testo sopra'})}catch(e){b.textContent='Seleziona e copia il testo sopra'}};
+      });
+  });
+})();
+</script>
+</body>
+</html>
