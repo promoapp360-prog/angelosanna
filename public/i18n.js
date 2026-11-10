@@ -7,6 +7,7 @@
     "Prossimi corsi": "Upcoming courses",
     "Richiedi info": "Request info",
     "Lingua": "Language",
+    "Scrivi su WhatsApp": "Chat on WhatsApp",
     "Corso Chef on Board · by Chef Angelo Sanna": "Chef on Board course · by Chef Angelo Sanna",
     "Da chef di terra a": "From land-based chef to",
     "su yacht e ville di lusso.": "on luxury yachts and in villas.",
