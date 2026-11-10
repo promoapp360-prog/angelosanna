@@ -9,24 +9,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
 <style>
-:root{--navy:#013E7F;--deep:#012a57;--abyss:#011a36;--gold:#4fa8dc;--sand:#f6f1e7;--cream:#fbf9f4;--line:#dfe4ec;--text:#1d2a3a;--muted:#5b6878;--red:#b4492f;--green:#2f7d4f;
-  --serif:Poppins,system-ui,sans-serif;--logo:"Playfair Display",Georgia,"Times New Roman",serif;--sans:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:root{--navy:#013E7F;--deep:#012a57;--abyss:#011a36;--sky:#4fa8dc;--sand:#f6f1e7;--cream:#fbf9f4;--line:#dfe4ec;--text:#1d2a3a;--muted:#5b6878;--red:#b4492f;--green:#2f7d4f;
+  --sans:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--logo:"Playfair Display",Georgia,"Times New Roman",serif}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--cream);color:var(--text);font-size:15px;line-height:1.5}
-h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;color:#0b1b2e}
+body{font-family:var(--sans);background:var(--cream);color:var(--text);font-size:14.5px;line-height:1.5}
+h1,h2,h3{font-weight:600;color:#0b1b2e;letter-spacing:-.01em}
 button,input,select,textarea{font:inherit}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:0;cursor:pointer;font-weight:600;font-size:.92rem;text-decoration:none}
-.btn-gold{background:var(--navy);color:#fff}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:0;cursor:pointer;font-weight:600;font-size:.9rem;text-decoration:none;white-space:nowrap}
 .btn-navy{background:var(--navy);color:#fff}
 .btn-line{background:#fff;border:1px solid var(--line);color:var(--text)}
 .btn-red{background:#fff;border:1px solid #e6c2b8;color:var(--red)}
+.btn-sm{padding:6px 12px;font-size:.82rem}
 .btn:disabled{opacity:.6;cursor:default}
 
 /* Login */
 #login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(180deg,#010f22 0%,#012a57 55%,#0b3d70 56%,#031a35 100%);padding:20px}
 .lcard{background:#fff;border-radius:20px;padding:36px;width:100%;max-width:380px;box-shadow:0 30px 60px rgba(0,0,0,.35);text-align:center}
 .lcard .mono{font-family:var(--logo);font-size:2.6rem;color:var(--navy);line-height:1}
-.lcard h1{font-size:1.4rem;margin:8px 0 4px}
+.lcard h1{font-size:1.3rem;margin:8px 0 4px}
 .lcard p{color:var(--muted);font-size:.9rem;margin-bottom:20px}
 .lcard input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;font-size:1.05rem;text-align:center;letter-spacing:.2em}
 .lcard .btn{width:100%;justify-content:center;margin-top:14px;padding:13px}
@@ -34,60 +34,88 @@ button,input,select,textarea{font:inherit}
 
 /* App */
 #app{display:none}
-header{background:var(--abyss);color:#fff}
-header .in{max-width:1200px;margin:0 auto;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header{background:var(--abyss);color:#fff;position:sticky;top:0;z-index:10}
+header .in{max-width:1240px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 header .t{display:flex;align-items:center;gap:12px}
-header .t b{font-family:var(--logo);font-size:1.7rem;font-weight:500;color:var(--gold)}
-header .t span{font-size:1rem;opacity:.9}
+header .t b{font-family:var(--logo);font-size:1.7rem;font-weight:400;color:#fff}
+header .t span{font-size:.95rem;opacity:.85}
 .tabs{display:flex;gap:6px}
 .tabs button{background:transparent;color:rgba(255,255,255,.75);border:0;padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:500}
-.tabs button.on{background:rgba(255,255,255,.12);color:#fff}
-.tabs .count{background:var(--gold);color:#fff;border-radius:999px;padding:1px 7px;font-size:.75rem;margin-left:6px}
-main{max-width:1200px;margin:0 auto;padding:28px 22px 60px}
-.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.bar h2{font-size:1.7rem}
+.tabs button.on{background:rgba(255,255,255,.14);color:#fff}
+.tabs .count{background:var(--sky);color:#fff;border-radius:999px;padding:1px 7px;font-size:.72rem;margin-left:6px}
+main{max-width:1240px;margin:0 auto;padding:28px 22px 60px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.bar h2{font-size:1.5rem}
+.bar .r{display:flex;gap:8px;flex-wrap:wrap}
 .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
 .course{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
-.course h3{font-size:1.15rem}
-.meta{color:var(--muted);font-size:.9rem;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px 16px}
+.course h3{font-size:1.08rem}
+.meta{color:var(--muted);font-size:.88rem;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px 16px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{background:var(--sand);color:var(--navy);border-radius:999px;padding:3px 10px;font-size:.8rem}
-.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.75rem;font-weight:600;margin-left:8px;vertical-align:middle}
+.chip{background:var(--sand);color:var(--navy);border-radius:999px;padding:3px 10px;font-size:.78rem}
+.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.72rem;font-weight:600;margin-left:8px;vertical-align:middle}
 .tag.pub{background:#e3f1e8;color:var(--green)}
 .tag.draft{background:#eef0f3;color:var(--muted)}
 .tag.past{background:#f6e8e4;color:var(--red)}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-.seatctl{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.9rem}
-.seatctl button{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:1.1rem}
+.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.seatctl{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.88rem;flex-wrap:wrap}
+.seatctl button.pm{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:1.05rem}
+.seatbar{height:6px;width:160px;border-radius:6px;background:#e7ebf1;overflow:hidden}
+.seatbar i{display:block;height:100%;background:var(--navy)}
+.link{background:none;border:0;color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;font-size:.86rem}
 .empty{text-align:center;color:var(--muted);padding:40px;border:1px dashed var(--line);border-radius:16px;background:#fff}
 
-/* Editor */
+/* Statistiche contatti */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;transition:border-color .15s}
+.stat:hover,.stat.on{border-color:var(--navy)}
+.stat b{display:block;font-size:1.6rem;font-weight:700;color:#0b1b2e;line-height:1.2}
+.stat span{color:var(--muted);font-size:.8rem}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.filters input,.filters select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.filters input{flex:1;min-width:200px}
+.filters select{width:auto;min-width:150px}
+td select.st{border:0;padding:5px 10px;cursor:pointer;font-weight:600}
+
+/* Badge stato */
+.st{display:inline-block;border-radius:999px;padding:3px 10px;font-size:.76rem;font-weight:600;white-space:nowrap}
+.st-nuovo{background:#e6f1fb;color:#0d5a92}
+.st-contattato{background:#fff2dc;color:#8a5a00}
+.st-colloquio{background:#efe6fb;color:#5d3a9b}
+.st-partecipante{background:#e3f1e8;color:var(--green)}
+.st-non-interessato{background:#f0f1f3;color:var(--muted)}
+.src{font-size:.78rem;color:var(--muted)}
+
+/* Tabella */
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.86rem}
+th{background:var(--sand);font-weight:600;color:#0b1b2e;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+td a{color:var(--navy)}
+td select{padding:5px 8px;font-size:.82rem;border:1px solid var(--line);border-radius:8px;background:#fff;max-width:170px}
+.note{color:var(--muted);font-size:.8rem;margin-top:4px;white-space:pre-wrap;max-width:260px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+tr.hl td{background:#f4fbf6}
+
+/* Modali */
 .modal{position:fixed;inset:0;background:rgba(1,15,34,.6);display:none;align-items:flex-start;justify-content:center;padding:30px 14px;overflow:auto;z-index:20}
 .modal.open{display:flex}
 .sheet{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:720px}
-.sheet h2{margin-bottom:6px}
+.sheet h2{margin-bottom:6px;font-size:1.35rem}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .full{grid-column:1/-1}
-label{display:block;font-size:.82rem;font-weight:600;margin-bottom:5px;color:#0b1b2e}
+label{display:block;font-size:.8rem;font-weight:600;margin-bottom:5px;color:#0b1b2e}
 label small{font-weight:400;color:var(--muted)}
-input[type=text],input[type=date],input[type=number],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfcfd}
+input[type=text],input[type=date],input[type=number],input[type=email],input[type=tel],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfcfd}
 textarea{resize:vertical}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-color:transparent}
 .check{display:flex;gap:10px;align-items:center;font-weight:500}
-.sheet .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
-.ferr{color:var(--red);font-size:.88rem;margin-top:10px}
-
-/* Richieste */
-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.9rem}
-th{background:var(--sand);font-weight:600;color:#0b1b2e;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
-td a{color:var(--navy)}
-td select{padding:6px 8px;font-size:.85rem}
-.note{color:var(--muted);font-size:.85rem;margin-top:4px;white-space:pre-wrap}
-.tablewrap{overflow-x:auto;border-radius:16px}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0b1b2e;color:#fff;padding:12px 20px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30}
+.sheet .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
+.ferr{color:var(--red);font-size:.86rem;margin-top:10px}
+.hint{background:#e3f1e8;color:var(--green);border-radius:10px;padding:10px 12px;font-size:.84rem;margin-top:4px;display:none}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0b1b2e;color:#fff;padding:12px 20px;border-radius:999px;font-size:.88rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
-@media(max-width:640px){.grid{grid-template-columns:1fr}.course{grid-template-columns:1fr}header .t span{display:none}}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.course{grid-template-columns:1fr}.acts{justify-content:flex-start}header .t span{display:none}}
 </style>
 </head>
 <body>
@@ -96,7 +124,7 @@ td select{padding:6px 8px;font-size:.85rem}
   <form class="lcard" id="lform">
     <div class="mono">AS</div>
     <h1>Area riservata</h1>
-    <p>Chef on Board — gestione corsi</p>
+    <p>Chef on Board — gestione corsi e contatti</p>
     <input type="password" id="pw" placeholder="Password" autocomplete="current-password" autofocus>
     <button class="btn btn-navy" type="submit" id="lbtn">Entra</button>
     <div class="lerr" id="lerr"></div>
@@ -109,27 +137,40 @@ td select{padding:6px 8px;font-size:.85rem}
     <div class="t"><b>AS</b><span>Chef on Board · Admin</span></div>
     <div class="tabs">
       <button id="tCorsi" class="on">Corsi</button>
-      <button id="tRich">Richieste<span class="count" id="nNew" style="display:none"></span></button>
+      <button id="tCont">Contatti<span class="count" id="nNew" style="display:none"></span></button>
     </div>
-    <div style="display:flex;gap:8px"><a class="btn btn-line" href="/" target="_blank">Vedi sito</a><button class="btn btn-line" id="logout">Esci</button></div>
+    <div style="display:flex;gap:8px"><a class="btn btn-line btn-sm" href="/" target="_blank">Vedi sito</a><button class="btn btn-line btn-sm" id="logout">Esci</button></div>
   </div></header>
 
   <main>
+    <!-- CORSI -->
     <div id="vCorsi">
-      <div class="bar"><h2>I tuoi corsi</h2><button class="btn btn-gold" id="addBtn">+ Nuovo corso</button></div>
+      <div class="bar"><h2>I tuoi corsi</h2><button class="btn btn-navy" id="addCorso">+ Nuovo corso</button></div>
       <div id="corsiList"></div>
     </div>
-    <div id="vRich" style="display:none">
-      <div class="bar"><h2>Richieste di informazioni</h2><button class="btn btn-line" id="csvBtn">Scarica CSV</button></div>
-      <div id="richList"></div>
+
+    <!-- CONTATTI -->
+    <div id="vCont" style="display:none">
+      <div class="bar"><h2>Contatti</h2>
+        <div class="r"><button class="btn btn-line" id="csvBtn">Scarica CSV</button><button class="btn btn-navy" id="addCont">+ Nuovo contatto</button></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="filters">
+        <input type="search" id="q" placeholder="Cerca nome, telefono, email, città…">
+        <select id="fStato"><option value="">Tutti gli stati</option></select>
+        <select id="fCorso"><option value="">Tutti i corsi</option><option value="-">Senza corso</option></select>
+        <select id="fFonte"><option value="">Tutte le fonti</option></select>
+      </div>
+      <div id="contList"></div>
     </div>
   </main>
 </div>
 
-<div class="modal" id="modal">
+<!-- Editor corso -->
+<div class="modal" id="mCorso">
   <form class="sheet" id="cform">
-    <h2 id="mTitle">Nuovo corso</h2>
-    <p style="color:var(--muted);margin-bottom:18px;font-size:.9rem">Le informazioni compaiono nella sezione "Prossimi corsi" del sito.</p>
+    <h2 id="cTitle">Nuovo corso</h2>
+    <p style="color:var(--muted);margin-bottom:18px;font-size:.88rem">Le informazioni compaiono nella sezione "Prossimi corsi" del sito.</p>
     <div class="grid">
       <div class="full"><label for="fTitolo">Titolo del corso</label><input type="text" id="fTitolo" placeholder="Chef on Board — Edizione Sardegna" required></div>
       <div><label for="fInizio">Data inizio</label><input type="date" id="fInizio" required></div>
@@ -138,15 +179,43 @@ td select{padding:6px 8px;font-size:.85rem}
       <div><label for="fOrario">Orari <small>(facoltativo)</small></label><input type="text" id="fOrario" placeholder="Es. 9:30 – 17:30"></div>
       <div><label for="fPrezzo">Prezzo <small>(facoltativo)</small></label><input type="text" id="fPrezzo" placeholder="Es. € 690 IVA inclusa"></div>
       <div><label for="fTot">Numero massimo partecipanti</label><input type="number" id="fTot" min="0" value="12"></div>
-      <div><label for="fOcc">Partecipanti già iscritti</label><input type="number" id="fOcc" min="0" value="0"></div>
+      <div><label for="fOcc">Partecipanti iscritti <small>(si aggiorna dai Contatti)</small></label><input type="number" id="fOcc" min="0" value="0"></div>
       <div class="full"><label for="fArg">Argomenti <small>(uno per riga)</small></label><textarea id="fArg" rows="5" placeholder="Preference list&#10;Gestione della galley&#10;Vita a bordo e contratti&#10;STCW ed ENG1"></textarea></div>
       <div class="full"><label for="fProg">Programma <small>(dettaglio giornate e orari)</small></label><textarea id="fProg" rows="7" placeholder="Giorno 1&#10;9:30 – Accoglienza e presentazione&#10;10:00 – Il mondo del private chef&#10;…"></textarea></div>
       <div class="full"><label class="check"><input type="checkbox" id="fPub" checked> Pubblicato sul sito</label></div>
     </div>
-    <div class="ferr" id="ferr"></div>
+    <div class="ferr" id="cerr"></div>
     <div class="foot">
-      <button type="button" class="btn btn-line" id="cancel">Annulla</button>
-      <button type="submit" class="btn btn-navy" id="saveBtn">Salva corso</button>
+      <button type="button" class="btn btn-line" data-close>Annulla</button>
+      <button type="submit" class="btn btn-navy" id="cSave">Salva corso</button>
+    </div>
+  </form>
+</div>
+
+<!-- Editor contatto -->
+<div class="modal" id="mCont">
+  <form class="sheet" id="kform">
+    <h2 id="kTitle">Nuovo contatto</h2>
+    <p style="color:var(--muted);margin-bottom:18px;font-size:.88rem">Registra chi ti ha contattato (Instagram, WhatsApp, telefono…) e segui il suo percorso fino all'iscrizione.</p>
+    <div class="grid">
+      <div><label for="kNome">Nome e cognome *</label><input type="text" id="kNome" required></div>
+      <div><label for="kTel">Telefono / WhatsApp</label><input type="tel" id="kTel"></div>
+      <div><label for="kEmail">Email</label><input type="email" id="kEmail"></div>
+      <div><label for="kCitta">Città</label><input type="text" id="kCitta"></div>
+      <div><label for="kFonte">Come ti ha contattato</label><select id="kFonte"></select></div>
+      <div><label for="kRuolo">Dove lavora oggi</label>
+        <select id="kRuolo"><option value="">—</option><option>Ristorante</option><option>Hotel</option><option>Catering / banqueting</option><option>Mensa / collettività</option><option>Altro</option></select></div>
+      <div><label for="kAnni">Anni di esperienza</label>
+        <select id="kAnni"><option value="">—</option><option>Meno di 2</option><option>2 – 5</option><option>5 – 10</option><option>Più di 10</option></select></div>
+      <div><label for="kStato">Stato</label><select id="kStato"></select></div>
+      <div class="full"><label for="kCorso">Corso <small>(obbligatorio se è partecipante)</small></label><select id="kCorso"></select>
+        <div class="hint" id="kHint">✓ Diventando partecipante, verrà conteggiato nei posti occupati del corso.</div></div>
+      <div class="full"><label for="kNote">Note</label><textarea id="kNote" rows="3" placeholder="Es. ha chiesto info sul prezzo, richiamare lunedì…"></textarea></div>
+    </div>
+    <div class="ferr" id="kerr"></div>
+    <div class="foot">
+      <button type="button" class="btn btn-line" data-close>Annulla</button>
+      <button type="submit" class="btn btn-navy" id="kSave">Salva contatto</button>
     </div>
   </form>
 </div>
@@ -155,110 +224,196 @@ td select{padding:6px 8px;font-size:.85rem}
 
 <script>
 (function(){
+  var STATI=['nuovo','contattato','colloquio','partecipante','non interessato'];
+  var STATI_LBL={'nuovo':'Nuovo','contattato':'Contattato','colloquio':'Colloquio','partecipante':'Partecipante','non interessato':'Non interessato'};
+  var FONTI=['Sito','Instagram','Facebook','WhatsApp','Telefono','Email','Passaparola','Evento','Altro'];
   var token=null; try{token=sessionStorage.getItem('cob_t')}catch(e){}
-  var corsi=[], rich=[], editId=null;
+  var corsi=[], cont=[], editCorso=null, editCont=null, statFilter='';
   var $=function(id){return document.getElementById(id)};
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');setTimeout(function(){el.classList.remove('on')},2200)}
+  function toast(t){var el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},3200)}
   function fmt(d){if(!d)return'—';var p=d.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'})}
+  function corsoLabel(c){return c.titolo+' — '+fmt(c.dataInizio)+(c.sede?' · '+c.sede:'')}
+  function stCls(s){return 'st st-'+String(s).replace(/\s+/g,'-')}
   function api(method,url,body){
     return fetch(url,{method:method,headers:Object.assign({'Content-Type':'application/json'},token?{Authorization:'Bearer '+token}:{}),body:body?JSON.stringify(body):undefined})
-      .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(r.status===401&&url!=='/api/login'){logout();throw new Error('Sessione scaduta')}if(!r.ok)throw new Error(j.error||'Errore');return j})});
+      .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(r.status===401&&url!=='/api/login'){logout();throw new Error('Sessione scaduta, accedi di nuovo')}if(!r.ok)throw new Error(j.error||'Errore');return j})});
   }
 
-  /* Login */
+  /* ---------- Login ---------- */
   $('lform').addEventListener('submit',function(e){
     e.preventDefault();$('lerr').textContent='';$('lbtn').disabled=true;
-    api('POST','/api/login',{password:$('pw').value}).then(function(j){
-      token=j.token;try{sessionStorage.setItem('cob_t',token)}catch(e){} show();
-    }).catch(function(err){$('lerr').textContent=err.message}).finally(function(){$('lbtn').disabled=false});
+    api('POST','/api/login',{password:$('pw').value}).then(function(j){token=j.token;try{sessionStorage.setItem('cob_t',token)}catch(e){}show()})
+      .catch(function(err){$('lerr').textContent=err.message}).finally(function(){$('lbtn').disabled=false});
   });
-  function logout(){ if(token) fetch('/api/admin/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(function(){});
-    token=null;try{sessionStorage.removeItem('cob_t')}catch(e){} $('app').style.display='none';$('login').style.display='grid';$('pw').value=''; }
+  function logout(){if(token)fetch('/api/admin/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(function(){});
+    token=null;try{sessionStorage.removeItem('cob_t')}catch(e){}$('app').style.display='none';$('login').style.display='grid';$('pw').value=''}
   $('logout').onclick=logout;
-  function show(){$('login').style.display='none';$('app').style.display='block';loadCorsi();loadRich()}
+  function show(){$('login').style.display='none';$('app').style.display='block';reload()}
+  function reload(){return Promise.all([api('GET','/api/admin/corsi'),api('GET','/api/admin/richieste')]).then(function(r){corsi=r[0];cont=r[1];renderCorsi();fillCorsoSelects();renderCont()}).catch(function(e){toast(e.message)})}
 
-  /* Tabs */
-  $('tCorsi').onclick=function(){$('tCorsi').classList.add('on');$('tRich').classList.remove('on');$('vCorsi').style.display='';$('vRich').style.display='none'};
-  $('tRich').onclick=function(){$('tRich').classList.add('on');$('tCorsi').classList.remove('on');$('vRich').style.display='';$('vCorsi').style.display='none';loadRich()};
+  /* ---------- Tabs ---------- */
+  function tab(which){
+    $('tCorsi').classList.toggle('on',which==='corsi');$('tCont').classList.toggle('on',which==='cont');
+    $('vCorsi').style.display=which==='corsi'?'':'none';$('vCont').style.display=which==='cont'?'':'none';
+  }
+  $('tCorsi').onclick=function(){tab('corsi')};
+  $('tCont').onclick=function(){tab('cont')};
 
-  /* Corsi */
-  function loadCorsi(){api('GET','/api/admin/corsi').then(function(c){corsi=c;renderCorsi()}).catch(function(e){toast(e.message)})}
+  /* ---------- Corsi ---------- */
+  function partOf(id){return cont.filter(function(k){return k.corsoId===id&&k.stato==='partecipante'})}
+  function interOf(id){return cont.filter(function(k){return k.corsoId===id&&k.stato!=='partecipante'&&k.stato!=='non interessato'})}
   function renderCorsi(){
     var today=new Date().toISOString().slice(0,10);
     if(!corsi.length){$('corsiList').innerHTML='<div class="empty"><h3 style="margin-bottom:6px">Nessun corso inserito</h3>Clicca "+ Nuovo corso" per pubblicare la prima data.</div>';return}
     $('corsiList').innerHTML=corsi.map(function(c){
       var past=(c.dataFine||c.dataInizio)&&(c.dataFine||c.dataInizio)<today;
       var tag=past?'<span class="tag past">Concluso</span>':c.pubblicato?'<span class="tag pub">Pubblicato</span>':'<span class="tag draft">Bozza</span>';
+      var tot=c.postiTotali||0, occ=c.postiOccupati||0, p=partOf(c.id).length, i=interOf(c.id).length;
       return '<div class="card course"><div><h3>'+esc(c.titolo)+tag+'</h3>'+
         '<div class="meta"><span>📅 '+fmt(c.dataInizio)+(c.dataFine&&c.dataFine!==c.dataInizio?' → '+fmt(c.dataFine):'')+'</span>'+(c.sede?'<span>📍 '+esc(c.sede)+'</span>':'')+(c.prezzo?'<span>💶 '+esc(c.prezzo)+'</span>':'')+'</div>'+
         (c.argomenti&&c.argomenti.length?'<div class="chips">'+c.argomenti.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+
-        '<div class="seatctl">Partecipanti: <button data-seat="-1" data-id="'+c.id+'" aria-label="Togli un partecipante">−</button><b>'+(c.postiOccupati||0)+' / '+(c.postiTotali||0)+'</b><button data-seat="1" data-id="'+c.id+'" aria-label="Aggiungi un partecipante">+</button></div></div>'+
-        '<div class="acts"><button class="btn btn-line" data-edit="'+c.id+'">Modifica</button><button class="btn btn-red" data-del="'+c.id+'">Elimina</button></div></div>';
+        '<div class="seatctl">Posti occupati: <button class="pm" data-seat="-1" data-id="'+c.id+'" aria-label="Togli un posto">−</button><b>'+occ+' / '+tot+'</b><button class="pm" data-seat="1" data-id="'+c.id+'" aria-label="Aggiungi un posto">+</button>'+
+        (tot?'<div class="seatbar"><i style="width:'+Math.min(100,Math.round(occ/tot*100))+'%"></i></div>':'')+'</div>'+
+        '<div class="seatctl"><button class="link" data-view="'+c.id+'">👥 '+p+' partecipant'+(p===1?'e':'i')+' in rubrica · '+i+' interessat'+(i===1?'o':'i')+'</button></div></div>'+
+        '<div class="acts"><button class="btn btn-line btn-sm" data-edit="'+c.id+'">Modifica</button><button class="btn btn-red btn-sm" data-del="'+c.id+'">Elimina</button></div></div>';
     }).join('');
   }
   $('corsiList').addEventListener('click',function(e){
     var b=e.target.closest('button');if(!b)return;
-    if(b.dataset.edit) openEditor(corsi.find(function(c){return c.id===b.dataset.edit}));
-    if(b.dataset.del){var c=corsi.find(function(x){return x.id===b.dataset.del});
+    var c=corsi.find(function(x){return x.id===(b.dataset.edit||b.dataset.del||b.dataset.id||b.dataset.view)});
+    if(b.dataset.view){$('fCorso').value=b.dataset.view;statFilter='';$('fStato').value='';tab('cont');renderCont();return}
+    if(b.dataset.edit) return openCorso(c);
+    if(b.dataset.del){
       if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Conferma eliminazione';setTimeout(function(){if(b.isConnected){b.dataset.confirm='';b.textContent='Elimina'}},3500);return}
-      api('DELETE','/api/admin/corsi/'+c.id).then(function(){toast('Corso eliminato');loadCorsi()}).catch(function(e){toast(e.message)})}
-    if(b.dataset.seat){var c2=corsi.find(function(x){return x.id===b.dataset.id});var n=Math.max(0,(c2.postiOccupati||0)+(+b.dataset.seat));
-      if(c2.postiTotali&&n>c2.postiTotali)return toast('Corso al completo');
-      api('PUT','/api/admin/corsi/'+c2.id,Object.assign({},c2,{postiOccupati:n})).then(function(){c2.postiOccupati=n;renderCorsi()}).catch(function(e){toast(e.message)})}
+      return api('DELETE','/api/admin/corsi/'+c.id).then(function(){toast('Corso eliminato');reload()}).catch(function(e){toast(e.message)})}
+    if(b.dataset.seat){var n=Math.max(0,(c.postiOccupati||0)+(+b.dataset.seat));
+      if(c.postiTotali&&n>c.postiTotali)return toast('Corso al completo');
+      api('PUT','/api/admin/corsi/'+c.id,Object.assign({},c,{postiOccupati:n})).then(function(){c.postiOccupati=n;renderCorsi()}).catch(function(e){toast(e.message)})}
   });
-
-  function openEditor(c){
-    editId=c?c.id:null; $('mTitle').textContent=c?'Modifica corso':'Nuovo corso'; $('ferr').textContent='';
-    $('fTitolo').value=c?c.titolo:'Chef on Board'; $('fInizio').value=c?c.dataInizio:''; $('fFine').value=c?c.dataFine:'';
-    $('fSede').value=c?c.sede:''; $('fOrario').value=c?c.orario:''; $('fPrezzo').value=c?c.prezzo:'';
-    $('fTot').value=c?c.postiTotali:12; $('fOcc').value=c?c.postiOccupati:0;
-    $('fArg').value=c&&c.argomenti?c.argomenti.join('\n'):''; $('fProg').value=c?c.programma:''; $('fPub').checked=c?c.pubblicato:true;
-    $('modal').classList.add('open'); $('fTitolo').focus();
+  function openCorso(c){
+    editCorso=c?c.id:null;$('cTitle').textContent=c?'Modifica corso':'Nuovo corso';$('cerr').textContent='';
+    $('fTitolo').value=c?c.titolo:'Chef on Board';$('fInizio').value=c?c.dataInizio:'';$('fFine').value=c?c.dataFine:'';
+    $('fSede').value=c?c.sede:'';$('fOrario').value=c?c.orario:'';$('fPrezzo').value=c?c.prezzo:'';
+    $('fTot').value=c?c.postiTotali:12;$('fOcc').value=c?c.postiOccupati:0;
+    $('fArg').value=c&&c.argomenti?c.argomenti.join('\n'):'';$('fProg').value=c?c.programma:'';$('fPub').checked=c?c.pubblicato:true;
+    $('mCorso').classList.add('open');$('fTitolo').focus();
   }
-  $('addBtn').onclick=function(){openEditor(null)};
-  $('cancel').onclick=function(){$('modal').classList.remove('open')};
-  $('modal').addEventListener('click',function(e){if(e.target===$('modal'))$('modal').classList.remove('open')});
+  $('addCorso').onclick=function(){openCorso(null)};
   $('cform').addEventListener('submit',function(e){
     e.preventDefault();
     var d={titolo:$('fTitolo').value,dataInizio:$('fInizio').value,dataFine:$('fFine').value,sede:$('fSede').value,orario:$('fOrario').value,prezzo:$('fPrezzo').value,
       postiTotali:$('fTot').value,postiOccupati:$('fOcc').value,argomenti:$('fArg').value,programma:$('fProg').value,pubblicato:$('fPub').checked};
-    if(!d.dataInizio){$('ferr').textContent='Inserisci la data di inizio.';return}
-    if(d.dataFine&&d.dataFine<d.dataInizio){$('ferr').textContent='La data di fine è precedente all\'inizio.';return}
-    $('saveBtn').disabled=true;
-    (editId?api('PUT','/api/admin/corsi/'+editId,d):api('POST','/api/admin/corsi',d))
-      .then(function(){$('modal').classList.remove('open');toast('Corso salvato');loadCorsi()})
-      .catch(function(err){$('ferr').textContent=err.message}).finally(function(){$('saveBtn').disabled=false});
+    if(!d.dataInizio){$('cerr').textContent='Inserisci la data di inizio.';return}
+    if(d.dataFine&&d.dataFine<d.dataInizio){$('cerr').textContent='La data di fine è precedente all\'inizio.';return}
+    $('cSave').disabled=true;
+    (editCorso?api('PUT','/api/admin/corsi/'+editCorso,d):api('POST','/api/admin/corsi',d))
+      .then(function(){$('mCorso').classList.remove('open');toast('Corso salvato');reload()})
+      .catch(function(err){$('cerr').textContent=err.message}).finally(function(){$('cSave').disabled=false});
   });
 
-  /* Richieste */
-  var STATI=['nuova','contattato','colloquio','iscritto','perso'];
-  function loadRich(){api('GET','/api/admin/richieste').then(function(r){rich=r;renderRich()}).catch(function(e){toast(e.message)})}
-  function renderRich(){
-    var n=rich.filter(function(r){return r.stato==='nuova'}).length;
-    $('nNew').style.display=n?'':'none';$('nNew').textContent=n;
-    if(!rich.length){$('richList').innerHTML='<div class="empty">Ancora nessuna richiesta. Arriveranno qui dal modulo del sito.</div>';return}
-    $('richList').innerHTML='<div class="tablewrap"><table><thead><tr><th>Data</th><th>Contatto</th><th>Profilo</th><th>Corso</th><th>Stato</th><th></th></tr></thead><tbody>'+
-      rich.map(function(r){
-        var wa=r.tel.replace(/[^\d+]/g,'').replace(/^00/,'+'); if(wa&&wa[0]!=='+')wa='39'+wa; wa=wa.replace('+','');
-        return '<tr><td>'+new Date(r.data).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})+'</td>'+
-        '<td><b>'+esc(r.nome)+'</b><br><a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener">'+esc(r.tel)+'</a><br><a href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></td>'+
-        '<td>'+esc(r.ruolo)+'<br><span style="color:var(--muted)">'+esc(r.anni)+' anni'+(r.citta?' · '+esc(r.citta):'')+'</span>'+(r.note?'<div class="note">'+esc(r.note)+'</div>':'')+'</td>'+
-        '<td>'+(esc(r.corso)||'<span style="color:var(--muted)">Prossima disponibile</span>')+'</td>'+
-        '<td><select data-st="'+r.id+'">'+STATI.map(function(s){return '<option'+(s===r.stato?' selected':'')+'>'+s+'</option>'}).join('')+'</select></td>'+
-        '<td><button class="btn btn-red" style="padding:6px 12px" data-rdel="'+r.id+'">Elimina</button></td></tr>';
+  /* ---------- Contatti ---------- */
+  STATI.forEach(function(s){$('fStato').insertAdjacentHTML('beforeend','<option value="'+s+'">'+STATI_LBL[s]+'</option>');$('kStato').insertAdjacentHTML('beforeend','<option value="'+s+'">'+STATI_LBL[s]+'</option>')});
+  FONTI.forEach(function(f){$('fFonte').insertAdjacentHTML('beforeend','<option>'+f+'</option>');$('kFonte').insertAdjacentHTML('beforeend','<option>'+f+'</option>')});
+  function fillCorsoSelects(){
+    var keepF=$('fCorso').value;
+    $('fCorso').innerHTML='<option value="">Tutti i corsi</option><option value="-">Senza corso</option>'+corsi.map(function(c){return '<option value="'+c.id+'">'+esc(corsoLabel(c))+'</option>'}).join('');
+    $('fCorso').value=keepF;
+    $('kCorso').innerHTML='<option value="">— Nessun corso —</option>'+corsi.map(function(c){var full=c.postiTotali&&c.postiOccupati>=c.postiTotali;return '<option value="'+c.id+'">'+esc(corsoLabel(c))+' ('+(c.postiOccupati||0)+'/'+(c.postiTotali||0)+(full?' · completo':'')+')</option>'}).join('');
+  }
+  function filtered(){
+    var q=$('q').value.trim().toLowerCase(), st=$('fStato').value||statFilter, co=$('fCorso').value, fo=$('fFonte').value;
+    return cont.filter(function(k){
+      if(st==='trattativa'){if(k.stato!=='contattato'&&k.stato!=='colloquio')return false}
+      else if(st&&k.stato!==st)return false;
+      if(co==='-'&&k.corsoId)return false; if(co&&co!=='-'&&k.corsoId!==co)return false;
+      if(fo&&k.fonte!==fo)return false;
+      if(q&&[k.nome,k.tel,k.email,k.citta,k.note].join(' ').toLowerCase().indexOf(q)<0)return false;
+      return true;
+    });
+  }
+  function renderStats(){
+    var n=function(f){return cont.filter(f).length};
+    var tot=cont.length, nuovi=n(function(k){return k.stato==='nuovo'}), tratt=n(function(k){return k.stato==='contattato'||k.stato==='colloquio'}),
+        part=n(function(k){return k.stato==='partecipante'}), conv=tot?Math.round(part/tot*100):0;
+    var items=[['','Contatti totali',tot],['nuovo','Da ricontattare',nuovi],['trattativa','In trattativa',tratt],['partecipante','Partecipanti',part],['conv','Conversione',conv+'%']];
+    $('stats').innerHTML=items.map(function(i){return '<div class="stat'+(i[0]&&i[0]===statFilter?' on':'')+'" data-sf="'+i[0]+'"><b>'+i[2]+'</b><span>'+i[1]+'</span></div>'}).join('');
+    $('nNew').style.display=nuovi?'':'none';$('nNew').textContent=nuovi;
+  }
+  $('stats').addEventListener('click',function(e){var s=e.target.closest('.stat');if(!s||s.dataset.sf==='conv')return;statFilter=s.dataset.sf;$('fStato').value='';renderCont()});
+  function renderCont(){
+    renderStats();
+    var list=filtered();
+    if(!cont.length){$('contList').innerHTML='<div class="empty"><h3 style="margin-bottom:6px">Nessun contatto ancora</h3>Le richieste dal sito arrivano qui da sole. Puoi anche aggiungere a mano chi ti scrive su Instagram o WhatsApp con "+ Nuovo contatto".</div>';return}
+    if(!list.length){$('contList').innerHTML='<div class="empty">Nessun contatto corrisponde ai filtri.</div>';return}
+    $('contList').innerHTML='<div class="tablewrap"><table><thead><tr><th>Data</th><th>Contatto</th><th>Profilo</th><th>Fonte</th><th>Corso</th><th>Stato</th><th></th></tr></thead><tbody>'+
+      list.map(function(k){
+        var wa=(k.tel||'').replace(/[^\d+]/g,'').replace(/^00/,'+'); if(wa&&wa[0]!=='+')wa='39'+wa; wa=wa.replace('+','');
+        var c=corsi.find(function(x){return x.id===k.corsoId});
+        var corsoTxt=c?esc(corsoLabel(c)):(k.corsoId?'<span style="color:var(--red)">Corso eliminato</span>':(k.corso?'<span class="src">Richiesto: '+esc(k.corso)+'</span>':'<span class="src">—</span>'));
+        return '<tr class="'+(k.stato==='partecipante'?'hl':'')+'"><td>'+new Date(k.data).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'})+'</td>'+
+        '<td><b>'+esc(k.nome)+'</b>'+(k.tel?'<br><a href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener">'+esc(k.tel)+'</a>':'')+(k.email?'<br><a href="mailto:'+esc(k.email)+'">'+esc(k.email)+'</a>':'')+'</td>'+
+        '<td>'+(esc(k.ruolo)||'<span class="src">—</span>')+(k.anni?'<br><span class="src">'+esc(k.anni)+' anni</span>':'')+(k.citta?'<br><span class="src">'+esc(k.citta)+'</span>':'')+(k.note?'<div class="note">'+esc(k.note)+'</div>':'')+'</td>'+
+        '<td><span class="src">'+esc(k.fonte)+'</span></td>'+
+        '<td>'+corsoTxt+'</td>'+
+        '<td><select class="'+stCls(k.stato)+'" data-st="'+k.id+'">'+STATI.map(function(s){return '<option value="'+s+'"'+(s===k.stato?' selected':'')+'>'+STATI_LBL[s]+'</option>'}).join('')+'</select></td>'+
+        '<td><div class="acts"><button class="btn btn-line btn-sm" data-kedit="'+k.id+'">Modifica</button><button class="btn btn-red btn-sm" data-kdel="'+k.id+'">Elimina</button></div></td></tr>';
       }).join('')+'</tbody></table></div>';
   }
-  $('richList').addEventListener('change',function(e){var s=e.target.closest('select[data-st]');if(!s)return;
-    api('PUT','/api/admin/richieste/'+s.dataset.st,{stato:s.value}).then(function(){rich.find(function(r){return r.id===s.dataset.st}).stato=s.value;renderRich();toast('Stato aggiornato')}).catch(function(e){toast(e.message)})});
-  $('richList').addEventListener('click',function(e){var b=e.target.closest('button[data-rdel]');if(!b)return;
-    if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Conferma';setTimeout(function(){if(b.isConnected){b.dataset.confirm='';b.textContent='Elimina'}},3500);return}
-    api('DELETE','/api/admin/richieste/'+b.dataset.rdel).then(function(){toast('Richiesta eliminata');loadRich()}).catch(function(e){toast(e.message)})});
+  ['q','fStato','fCorso','fFonte'].forEach(function(id){$(id).addEventListener('input',function(){if(id==='fStato')statFilter='';renderCont()})});
+
+  function saveCont(id,data){
+    return (id?api('PUT','/api/admin/richieste/'+id,data):api('POST','/api/admin/richieste',data)).then(function(){return reload()});
+  }
+  $('contList').addEventListener('change',function(e){
+    var s=e.target.closest('select[data-st]');if(!s)return;
+    var k=cont.find(function(x){return x.id===s.dataset.st});
+    if(s.value==='partecipante'&&!k.corsoId){ s.value=k.stato; openCont(k,'partecipante'); toast('Scegli il corso a cui partecipa'); return }
+    saveCont(k.id,{stato:s.value}).then(function(){toast(s.value==='partecipante'?'🎉 Partecipante aggiunto al corso':'Stato aggiornato')}).catch(function(err){s.value=k.stato;toast(err.message)});
+  });
+  $('contList').addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    if(b.dataset.kedit) return openCont(cont.find(function(x){return x.id===b.dataset.kedit}));
+    if(b.dataset.kdel){
+      if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Conferma';setTimeout(function(){if(b.isConnected){b.dataset.confirm='';b.textContent='Elimina'}},3500);return}
+      api('DELETE','/api/admin/richieste/'+b.dataset.kdel).then(function(){toast('Contatto eliminato');reload()}).catch(function(e){toast(e.message)})}
+  });
+  function openCont(k,forceStato){
+    editCont=k?k.id:null;$('kTitle').textContent=k?'Modifica contatto':'Nuovo contatto';$('kerr').textContent='';
+    $('kNome').value=k?k.nome:'';$('kTel').value=k?k.tel:'';$('kEmail').value=k?k.email:'';$('kCitta').value=k?k.citta:'';
+    $('kFonte').value=k?k.fonte:'Instagram';$('kRuolo').value=k?k.ruolo||'':'';$('kAnni').value=k?k.anni||'':'';
+    $('kStato').value=forceStato||(k?k.stato:'nuovo');
+    var fc=$('fCorso').value; $('kCorso').value=k?k.corsoId||'':(fc&&fc!=='-'?fc:'');
+    $('kNote').value=k?k.note:'';hint();
+    $('mCont').classList.add('open');(forceStato?$('kCorso'):$('kNome')).focus();
+  }
+  function hint(){$('kHint').style.display=($('kStato').value==='partecipante'&&$('kCorso').value)?'block':'none'}
+  $('kStato').addEventListener('change',hint);$('kCorso').addEventListener('change',hint);
+  $('addCont').onclick=function(){openCont(null)};
+  $('kform').addEventListener('submit',function(e){
+    e.preventDefault();
+    var d={nome:$('kNome').value,tel:$('kTel').value,email:$('kEmail').value,citta:$('kCitta').value,fonte:$('kFonte').value,ruolo:$('kRuolo').value,anni:$('kAnni').value,stato:$('kStato').value,corsoId:$('kCorso').value,note:$('kNote').value};
+    if(!d.nome.trim()){$('kerr').textContent='Inserisci il nome.';return}
+    if(d.stato==='partecipante'&&!d.corsoId){$('kerr').textContent='Per segnarlo come partecipante scegli il corso.';return}
+    $('kSave').disabled=true;
+    saveCont(editCont,d).then(function(){$('mCont').classList.remove('open');toast('Contatto salvato')})
+      .catch(function(err){$('kerr').textContent=err.message}).finally(function(){$('kSave').disabled=false});
+  });
+
   $('csvBtn').onclick=function(){
-    var cols=['data','nome','tel','email','ruolo','anni','citta','corso','note','stato'];
-    var csv=[cols.join(';')].concat(rich.map(function(r){return cols.map(function(k){return '"'+String(r[k]||'').replace(/"/g,'""')+'"'}).join(';')})).join('\n');
-    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));a.download='richieste-chef-on-board.csv';a.click();
+    var cols=[['data','Data'],['nome','Nome'],['tel','Telefono'],['email','Email'],['citta','Città'],['ruolo','Lavoro'],['anni','Esperienza'],['fonte','Fonte'],['corso','Corso'],['stato','Stato'],['note','Note']];
+    var rows=filtered().map(function(k){var c=corsi.find(function(x){return x.id===k.corsoId});
+      var v={data:new Date(k.data).toLocaleDateString('it-IT'),corso:c?corsoLabel(c):(k.corso||''),stato:STATI_LBL[k.stato]};
+      return cols.map(function(col){return '"'+String(v[col[0]]!=null?v[col[0]]:(k[col[0]]||'')).replace(/"/g,'""')+'"'}).join(';')});
+    var csv=[cols.map(function(c){return c[1]}).join(';')].concat(rows).join('\n');
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));a.download='contatti-chef-on-board.csv';a.click();
   };
+
+  /* chiusura modali */
+  document.querySelectorAll('.modal').forEach(function(m){
+    m.addEventListener('click',function(e){if(e.target===m||e.target.hasAttribute('data-close'))m.classList.remove('open')});
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal.open').forEach(function(m){m.classList.remove('open')})});
 
   if(token) api('GET','/api/admin/corsi').then(function(){show()}).catch(function(){});
 })();

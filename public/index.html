@@ -653,10 +653,10 @@ footer a:hover{color:#fff}
          (tot?'<div><div class="seats"><span>'+(lib?t('{n} posti disponibili',{n:lib}):t('Posti esauriti'))+'</span><span>'+occ+'/'+tot+' '+t('partecipanti')+'</span></div><div class="bar"><i style="width:'+Math.min(100,Math.round(occ/tot*100))+'%"></i></div></div>':'')+
         (c.prezzo?'<div style="font-weight:600;color:var(--navy)">'+esc(c.prezzo)+'</div>':'')+
          (c.programma?'<details><summary>'+t('Leggi il programma')+'</summary><p>'+esc(c.programma)+'</p></details>':'')+
-         '<a class="btn '+(lib===0&&tot?'btn-navy':'btn-gold')+'" href="#iscriviti" data-corso="'+esc(label)+'">'+(lib===0&&tot?t("Mettiti in lista d'attesa"):t('Prenota il tuo posto'))+'</a>'+
+         '<a class="btn '+(lib===0&&tot?'btn-navy':'btn-gold')+'" href="#iscriviti" data-corso="'+esc(c.id)+'">'+(lib===0&&tot?t("Mettiti in lista d'attesa"):t('Prenota il tuo posto'))+'</a>'+
         '</div></article>';
     }).join('');
-    cs.forEach(function(c){var o=document.createElement('option');o.textContent=c.titolo+' — '+range(c.dataInizio,c.dataFine)+(c.sede?' — '+c.sede:'');o.value=o.textContent;sel.appendChild(o)});
+    cs.forEach(function(c){var o=document.createElement('option');o.textContent=c.titolo+' — '+range(c.dataInizio,c.dataFine)+(c.sede?' — '+c.sede:'');o.value=c.id;sel.appendChild(o)});
     if(selected>=0&&selected<sel.options.length)sel.selectedIndex=selected;
     list.querySelectorAll('[data-corso]').forEach(function(a){a.addEventListener('click',function(){sel.value=a.getAttribute('data-corso')})});
     watch(list);
@@ -676,7 +676,7 @@ footer a:hover{color:#fff}
     var ok=v('nome')&&v('tel')&&/\S+@\S+\.\S+/.test(v('email'))&&document.getElementById('privacy').checked;
     document.getElementById('err').style.display=ok?'none':'block';
     if(!ok) return;
-    var data={nome:v('nome'),tel:v('tel'),email:v('email'),corso:v('corso'),ruolo:v('ruolo'),anni:v('anni'),citta:v('citta'),note:v('note'),website:v('website')};
+    var data={nome:v('nome'),tel:v('tel'),email:v('email'),corsoId:v('corso'),corso:(sel.value?sel.options[sel.selectedIndex].textContent:''),ruolo:v('ruolo'),anni:v('anni'),citta:v('citta'),note:v('note'),website:v('website')};
     var btn=document.getElementById('sendBtn'); btn.disabled=true; btn.textContent=t('Invio in corso…');
     function tracked(){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','generate_lead')}catch(e){}}
     fetch('/api/richieste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})

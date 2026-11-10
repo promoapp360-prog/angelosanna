@@ -119,6 +119,41 @@ function cleanCorso(b) {
   return c;
 }
 
+/* ---------------- Contatti ---------------- */
+const STATI = ['nuovo', 'contattato', 'colloquio', 'partecipante', 'non interessato'];
+const FONTI = ['Sito', 'Instagram', 'Facebook', 'WhatsApp', 'Telefono', 'Email', 'Passaparola', 'Evento', 'Altro'];
+const OLD_STATI = { nuova: 'nuovo', iscritto: 'partecipante', perso: 'non interessato' };
+
+function normContatto(r) {
+  if (OLD_STATI[r.stato]) r.stato = OLD_STATI[r.stato];
+  if (!STATI.includes(r.stato)) r.stato = 'nuovo';
+  if (!r.fonte) r.fonte = 'Sito';
+  if (!('corsoId' in r)) r.corsoId = '';
+  return r;
+}
+function cleanContatto(b) {
+  return {
+    nome: str(b.nome, 120), tel: str(b.tel, 40), email: str(b.email, 160),
+    ruolo: str(b.ruolo, 60), anni: str(b.anni, 30), citta: str(b.citta, 80),
+    note: str(b.note, 2000),
+    fonte: FONTI.includes(b.fonte) ? b.fonte : 'Altro',
+    stato: STATI.includes(b.stato) ? b.stato : 'nuovo',
+    corsoId: str(b.corsoId, 60),
+  };
+}
+// Aggiorna i posti occupati del corso quando un contatto diventa (o smette di essere) partecipante
+function seatDelta(corsi, corsoId, delta) {
+  const c = corsi.find(x => x.id === corsoId);
+  if (!c) return;
+  const occ = (c.postiOccupati || 0) + delta;
+  if (delta > 0 && c.postiTotali > 0 && (c.postiOccupati || 0) >= c.postiTotali) {
+    const e = new Error('Il corso "' + c.titolo + '" è al completo (' + c.postiTotali + ' posti). Aumenta i posti del corso prima di aggiungere partecipanti.');
+    e.code = 409; throw e;
+  }
+  c.postiOccupati = Math.max(0, occ);
+}
+const isPart = (r) => r && r.stato === 'partecipante' && r.corsoId;
+
 /* ---------------- File statici ---------------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml',
@@ -154,11 +189,12 @@ async function api(req, res, url) {
   if (p === '/api/richieste' && m === 'POST') {
     const b = await readBody(req);
     if (str(b.website)) return send(res, 200, { ok: true }); // campo trappola anti-spam
+    const corsi = await load('corsi', []);
+    const corsoId = corsi.some(c => c.id === b.corsoId) ? b.corsoId : '';
     const r = {
       id: crypto.randomUUID(), data: new Date().toISOString(),
-      nome: str(b.nome, 120), tel: str(b.tel, 40), email: str(b.email, 160),
-      ruolo: str(b.ruolo, 60), anni: str(b.anni, 30), citta: str(b.citta, 80),
-      corso: str(b.corso, 200), note: str(b.note, 2000), stato: 'nuova',
+      ...cleanContatto({ ...b, fonte: 'Sito', stato: 'nuovo', corsoId }),
+      corso: str(b.corso, 200),
     };
     if (!r.nome || !r.tel || !/\S+@\S+\.\S+/.test(r.email)) return send(res, 400, { error: 'Dati mancanti' });
     const list = await load('richieste', []);
@@ -218,19 +254,47 @@ async function api(req, res, url) {
       return send(res, 200, { ok: true });
     }
 
-    if (p === '/api/admin/richieste' && m === 'GET') return send(res, 200, await load('richieste', []));
+    // Contatti (richieste dal sito + contatti inseriti a mano)
+    if (p === '/api/admin/richieste' && m === 'GET') {
+      return send(res, 200, (await load('richieste', [])).map(normContatto));
+    }
+    if (p === '/api/admin/richieste' && m === 'POST') {
+      const b = cleanContatto(await readBody(req));
+      if (!b.nome) return send(res, 400, { error: 'Inserisci almeno il nome del contatto.' });
+      if (b.stato === 'partecipante' && !b.corsoId) return send(res, 400, { error: 'Scegli il corso a cui partecipa.' });
+      const corsi = await load('corsi', []);
+      if (isPart(b)) seatDelta(corsi, b.corsoId, +1);
+      const r = { id: crypto.randomUUID(), data: new Date().toISOString(), ...b };
+      const list = await load('richieste', []);
+      list.unshift(r);
+      await save('richieste', list);
+      if (isPart(b)) await save('corsi', corsi);
+      return send(res, 201, r);
+    }
     const mr = p.match(/^\/api\/admin\/richieste\/([\w-]+)$/);
     if (mr && (m === 'PUT' || m === 'DELETE')) {
-      let list = await load('richieste', []);
-      if (m === 'DELETE') list = list.filter(r => r.id !== mr[1]);
-      else {
+      const list = (await load('richieste', [])).map(normContatto);
+      const i = list.findIndex(x => x.id === mr[1]);
+      if (i < 0) return send(res, 404, { error: 'Contatto non trovato' });
+      const corsi = await load('corsi', []);
+      const before = list[i];
+      if (m === 'DELETE') {
+        if (isPart(before)) seatDelta(corsi, before.corsoId, -1);
+        list.splice(i, 1);
+      } else {
         const b = await readBody(req);
-        const r = list.find(x => x.id === mr[1]);
-        if (!r) return send(res, 404, { error: 'Richiesta non trovata' });
-        if (['nuova', 'contattato', 'colloquio', 'iscritto', 'perso'].includes(b.stato)) r.stato = b.stato;
+        // aggiornamento parziale: si possono mandare solo i campi da cambiare (es. solo lo stato)
+        const after = { ...before, ...cleanContatto({ ...before, ...b }), id: before.id, data: before.data, corso: before.corso };
+        if (!after.nome) return send(res, 400, { error: 'Il nome non può essere vuoto.' });
+        if (after.stato === 'partecipante' && !after.corsoId) return send(res, 400, { error: 'Scegli il corso a cui partecipa.' });
+        const wasP = isPart(before), isP = isPart(after);
+        if (wasP && (!isP || before.corsoId !== after.corsoId)) seatDelta(corsi, before.corsoId, -1);
+        if (isP && (!wasP || before.corsoId !== after.corsoId)) seatDelta(corsi, after.corsoId, +1);
+        list[i] = after;
       }
       await save('richieste', list);
-      return send(res, 200, { ok: true });
+      await save('corsi', corsi);
+      return send(res, 200, m === 'DELETE' ? { ok: true } : list[i]);
     }
   }
   return send(res, 404, { error: 'Non trovato' });
@@ -243,7 +307,10 @@ http.createServer(async (req, res) => {
   res.setHeader('Referrer-Policy', 'same-origin');
   if (url.pathname.startsWith('/api/')) {
     try { await api(req, res, url); }
-    catch (e) { send(res, e.message === 'too_large' ? 413 : 400, { error: 'Richiesta non valida' }); }
+    catch (e) {
+      if (e.code === 409) return send(res, 409, { error: e.message });
+      send(res, e.message === 'too_large' ? 413 : 400, { error: 'Richiesta non valida' });
+    }
     return;
   }
   serveStatic(req, res, url.pathname);

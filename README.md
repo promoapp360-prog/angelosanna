@@ -3,7 +3,9 @@
 Sito del corso **Chef on Board** di Chef Angelo Sanna. Contiene:
 
 - la **landing** pubblica (`public/index.html`), con i prossimi corsi caricati in automatico;
-- il **pannello admin** (`/admin`), dove Angelo inserisce date, sede, argomenti, numero di partecipanti e programma, e vede le richieste arrivate dal modulo;
+- il **pannello admin** (`/admin`), con due sezioni:
+  - **Corsi**: date, sede, argomenti, numero massimo di partecipanti, programma, pubblicato/bozza;
+  - **Contatti**: le richieste dal sito arrivano da sole; si aggiungono a mano i contatti da Instagram, WhatsApp, telefono, passaparola. Ogni contatto ha uno stato (Nuovo → Contattato → Colloquio → **Partecipante** / Non interessato) e un corso collegato. Quando diventa *Partecipante*, i posti occupati del corso si aggiornano da soli (e si liberano se torna indietro o viene eliminato). Statistiche di conversione, filtri ed export CSV;
 - `STRATEGIA-MARKETING.md`, la strategia per le sponsorizzate.
 
 Server: `server.js`, scritto in Node puro senza dipendenze esterne.
