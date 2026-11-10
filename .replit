@@ -1,10 +1,38 @@
+modules = ["nodejs-24"]
 run = "node server.js"
 entrypoint = "server.js"
-modules = ["nodejs-20"]
 
 [deployment]
 run = ["node", "server.js"]
-deploymentTarget = "cloudrun"
+build = ["node", "--check", "server.js"]
+deploymentTarget = "vm"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Chef on Board"
+
+[[workflows.workflow]]
+name = "Chef on Board"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[agent]
+expertMode = true
 
 [[ports]]
 localPort = 3000
