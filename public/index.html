@@ -581,14 +581,19 @@ footer a:hover{color:#fff}
       </form>
       <div class="done" id="doneOk">
         <h3>Richiesta inviata!</h3>
-        <p style="color:var(--muted)">Grazie, Chef Angelo ti contatterà a breve con tutti i dettagli. Nel frattempo puoi seguirlo su Instagram.</p>
-        <div class="actions" style="margin-top:18px"><a class="btn btn-navy" style="justify-content:center" href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener">Segui @angelosannachef</a></div>
+        <p style="color:var(--muted)">La richiesta è stata registrata. Se vuoi, puoi inviare ad Angelo anche il messaggio WhatsApp qui sotto.</p>
+        <div class="msg" id="whatsappMsgOk"></div>
+        <div class="actions" style="margin-top:18px">
+          <a class="btn" id="whatsappOk" href="#" target="_blank" rel="noopener noreferrer" style="justify-content:center;background:#25d366;color:#fff">Apri WhatsApp con il messaggio</a>
+          <a class="btn btn-navy" style="justify-content:center" href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener">Segui @angelosannachef</a>
+        </div>
       </div>
       <div class="done" id="doneMail">
         <h3>Ci siamo quasi!</h3>
         <p style="color:var(--muted)">Invia la richiesta con un tocco: si apre la tua email già compilata.</p>
         <div class="msg" id="msg"></div>
         <div class="actions">
+          <a class="btn" id="whatsappMail" href="#" target="_blank" rel="noopener noreferrer" style="justify-content:center;background:#25d366;color:#fff">Apri WhatsApp con il messaggio</a>
           <a class="btn btn-navy" id="mail" href="#" style="justify-content:center">Invia via email</a>
           <button class="btn btn-gold" id="copy" type="button" style="justify-content:center">Copia il messaggio</button>
           <a class="btn" style="justify-content:center;background:var(--sand)" href="https://ig.me/m/angelosannachef" target="_blank" rel="noopener">Oppure scrivi in DM su Instagram</a>
@@ -667,7 +672,7 @@ footer a:hover{color:#fff}
     if(courses!==null)renderCourses(courses);
     else list.textContent=t('Caricamento delle date…');
     if(document.getElementById('sendBtn').disabled)document.getElementById('sendBtn').textContent=t('Invio in corso…');
-    if(fallbackData)showFallback(fallbackData);
+    if(requestData)showRequestActions(requestData);
   });
 
   var f=document.getElementById('lead');
@@ -681,18 +686,22 @@ footer a:hover{color:#fff}
     var btn=document.getElementById('sendBtn'); btn.disabled=true; btn.textContent=t('Invio in corso…');
     function tracked(){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','generate_lead')}catch(e){}}
     fetch('/api/richieste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
-      .then(function(r){if(!r.ok)throw 0; f.style.display='none'; document.getElementById('doneOk').style.display='block'; tracked();})
+      .then(function(r){if(!r.ok)throw 0; requestData=data; showRequestActions(data); f.style.display='none'; document.getElementById('doneOk').style.display='block'; tracked();})
       .catch(function(){
-        fallbackData=data;
-        showFallback(data);
+        requestData=data;
+        showRequestActions(data);
         f.style.display='none'; document.getElementById('doneMail').style.display='block'; tracked();
       });
   });
-  var fallbackData=null;
-  function showFallback(data){
+  var requestData=null;
+  function showRequestActions(data){
         var txt=t('Ciao Chef Angelo, vorrei ricevere informazioni sul corso Chef on Board.')+'\n\n'+t('Nome')+': '+data.nome+'\n'+t('Telefono')+': '+data.tel+'\nEmail: '+data.email+
           (data.corso?'\n'+t('Corso')+': '+data.corso:'')+'\n'+t('Lavoro attuale')+': '+t(data.ruolo)+'\n'+t('Esperienza')+': '+t(data.anni)+' '+t('anni')+(data.citta?'\n'+t('Città')+': '+data.citta:'')+(data.note?'\n'+t('Note')+': '+data.note:'');
+        var whatsappHref='https://wa.me/393208877838?text='+encodeURIComponent(txt);
+        document.getElementById('whatsappMsgOk').textContent=txt;
+        document.getElementById('whatsappOk').href=whatsappHref;
         document.getElementById('msg').textContent=txt;
+        document.getElementById('whatsappMail').href=whatsappHref;
         document.getElementById('mail').href='mailto:chef@angelosanna.com?subject='+encodeURIComponent(t('Richiesta info corso Chef on Board'))+'&body='+encodeURIComponent(txt);
         document.getElementById('copy').onclick=function(){var b=this;try{navigator.clipboard.writeText(txt).then(function(){b.textContent=t('Copiato ✓')},function(){b.textContent=t('Seleziona e copia il testo sopra')})}catch(e){b.textContent=t('Seleziona e copia il testo sopra')}};
   }
