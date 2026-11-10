@@ -54,6 +54,12 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .nav .links a.l{color:rgba(255,255,255,.82);text-decoration:none;font-size:.92rem}
 .nav .links a.l:hover{color:#fff}
 .nav .btn{padding:11px 20px;font-size:.9rem}
+.language-switch{display:flex;flex:none;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:3px;gap:2px}
+.language-switch button{border:0;background:transparent;color:#fff;font:600 .76rem var(--sans);padding:5px 8px;border-radius:999px;cursor:pointer}
+.language-switch button[aria-pressed="true"]{background:#fff;color:var(--navy)}
+.language-switch button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+@media(max-width:600px){.nav .links{gap:10px}.nav .brand{gap:8px}.nav .brand span{font-size:.78rem}.nav .brand .mono{width:34px;height:34px}.nav .btn{padding:9px 12px;font-size:.75rem}.language-switch button{padding:5px 6px}}
+@media(max-width:370px){.nav .links>.btn{display:none}}
 
 /* HERO — cielo, orizzonte e mare */
 .hero{--seaH:270px;position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
@@ -240,6 +246,7 @@ footer a:hover{color:#fff}
   .portrait{aspect-ratio:4/5;max-width:460px;width:100%;margin:0 auto}
 }
 @media (max-width:520px){
+  html[lang="en"] .hero .proof b{white-space:normal}
   .steps{grid-template-columns:1fr}
   .formcard{padding:24px}
   .formcard .row{grid-template-columns:1fr}
@@ -273,6 +280,10 @@ footer a:hover{color:#fff}
       <a class="l" href="#requisiti">Requisiti</a>
       <a class="l" href="#corsi">Prossimi corsi</a>
       <a class="btn btn-gold" href="#iscriviti">Richiedi info</a>
+      <div class="language-switch" role="group" aria-label="Lingua">
+        <button type="button" data-language="it" lang="it" aria-label="Italiano" aria-pressed="true">IT</button>
+        <button type="button" data-language="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
+      </div>
     </div>
   </div>
 </nav>
@@ -591,8 +602,11 @@ footer a:hover{color:#fff}
 
 <a class="btn btn-gold mcta" href="#iscriviti">Richiedi le prossime date</a>
 
+<script src="/i18n.js"></script>
 <script>
 (function(){
+  var t=window.ChefI18n.t;
+  function locale(){return window.ChefI18n.language()==='en'?'en-GB':'it-IT'}
   document.getElementById('y').textContent=new Date().getFullYear();
   var nav=document.getElementById('nav');
   function onS(){nav.classList.toggle('solid',window.scrollY>40)}
@@ -602,23 +616,26 @@ footer a:hover{color:#fff}
   watch();
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function fmt(d){if(!d)return'';var p=d.split('-');var dt=new Date(+p[0],+p[1]-1,+p[2]);return dt.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}
+  function fmt(d){if(!d)return'';var p=d.split('-');var dt=new Date(+p[0],+p[1]-1,+p[2]);return dt.toLocaleDateString(locale(),{day:'numeric',month:'long',year:'numeric'})}
   function range(a,b){
-    if(!a)return'Data da definire'; if(!b||a===b)return fmt(a);
+    if(!a)return t('Data da definire'); if(!b||a===b)return fmt(a);
     var pa=a.split('-'),pb=b.split('-');
-    if(pa[0]===pb[0]&&pa[1]===pb[1]){var m=new Date(+pb[0],+pb[1]-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});return (+pa[2])+'–'+(+pb[2])+' '+m}
+    if(pa[0]===pb[0]&&pa[1]===pb[1]){var m=new Date(+pb[0],+pb[1]-1,1).toLocaleDateString(locale(),{month:'long',year:'numeric'});return (+pa[2])+'–'+(+pb[2])+' '+m}
     return fmt(a)+' – '+fmt(b);
   }
 
-  var list=document.getElementById('courseList'), sel=document.getElementById('corso');
+  var list=document.getElementById('courseList'), sel=document.getElementById('corso'), courses=null;
+  list.textContent=t('Caricamento delle date…');
   function emptyMsg(){
-    list.innerHTML='<div class="empty"><h3 style="margin-bottom:8px">Nuove date in arrivo</h3>Le prossime edizioni sono in programmazione. Lascia i tuoi dati qui sotto e sarai tra i primi a saperlo.<div style="margin-top:18px"><a class="btn btn-navy" href="#iscriviti">Avvisami per le prossime date</a></div></div>';
+    list.innerHTML='<div class="empty"><h3 style="margin-bottom:8px">'+t('Nuove date in arrivo')+'</h3>'+t('Le prossime edizioni sono in programmazione. Lascia i tuoi dati qui sotto e sarai tra i primi a saperlo.')+'<div style="margin-top:18px"><a class="btn btn-navy" href="#iscriviti">'+t('Avvisami per le prossime date')+'</a></div></div>';
   }
-  fetch('/api/corsi').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(cs){
+  function renderCourses(cs){
+    var selected=sel.selectedIndex;
+    while(sel.options.length>1)sel.remove(1);
     if(!cs.length) return emptyMsg();
     list.innerHTML=cs.map(function(c){
       var tot=c.postiTotali||0, occ=c.postiOccupati||0, lib=Math.max(0,tot-occ);
-      var pill= tot? (lib===0?'<span class="pill full">Completo</span>':lib<=3?'<span class="pill few">Ultimi '+lib+' posti</span>':'<span class="pill ok">Iscrizioni aperte</span>'):'<span class="pill ok">Iscrizioni aperte</span>';
+      var pill= '<span class="pill '+(tot&&lib===0?'full':tot&&lib<=3?'few':'ok')+'">'+(tot&&lib===0?t('Completo'):tot&&lib<=3?t(lib===1?'Ultimo posto':'Ultimi {n} posti',{n:lib}):t('Iscrizioni aperte'))+'</span>';
       var label=c.titolo+' — '+range(c.dataInizio,c.dataFine)+(c.sede?' — '+c.sede:'');
       return '<article class="course reveal">'+
         '<div class="top">'+pill+'<div class="date">'+esc(range(c.dataInizio,c.dataFine))+'</div>'+
@@ -626,16 +643,24 @@ footer a:hover{color:#fff}
         (c.orario?'<div class="place" style="font-size:.85rem">'+esc(c.orario)+'</div>':'')+'</div>'+
         '<div class="body"><h3>'+esc(c.titolo)+'</h3>'+
         (c.argomenti&&c.argomenti.length?'<div class="chips">'+c.argomenti.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+
-        (tot?'<div><div class="seats"><span>'+(lib?lib+' posti disponibili':'Posti esauriti')+'</span><span>'+occ+'/'+tot+' partecipanti</span></div><div class="bar"><i style="width:'+Math.min(100,Math.round(occ/tot*100))+'%"></i></div></div>':'')+
+         (tot?'<div><div class="seats"><span>'+(lib?t('{n} posti disponibili',{n:lib}):t('Posti esauriti'))+'</span><span>'+occ+'/'+tot+' '+t('partecipanti')+'</span></div><div class="bar"><i style="width:'+Math.min(100,Math.round(occ/tot*100))+'%"></i></div></div>':'')+
         (c.prezzo?'<div style="font-weight:600;color:var(--navy)">'+esc(c.prezzo)+'</div>':'')+
-        (c.programma?'<details><summary>Leggi il programma</summary><p>'+esc(c.programma)+'</p></details>':'')+
-        '<a class="btn '+(lib===0&&tot?'btn-navy':'btn-gold')+'" href="#iscriviti" data-corso="'+esc(label)+'">'+(lib===0&&tot?'Mettiti in lista d\'attesa':'Prenota il tuo posto')+'</a>'+
+         (c.programma?'<details><summary>'+t('Leggi il programma')+'</summary><p>'+esc(c.programma)+'</p></details>':'')+
+         '<a class="btn '+(lib===0&&tot?'btn-navy':'btn-gold')+'" href="#iscriviti" data-corso="'+esc(label)+'">'+(lib===0&&tot?t("Mettiti in lista d'attesa"):t('Prenota il tuo posto'))+'</a>'+
         '</div></article>';
     }).join('');
     cs.forEach(function(c){var o=document.createElement('option');o.textContent=c.titolo+' — '+range(c.dataInizio,c.dataFine)+(c.sede?' — '+c.sede:'');o.value=o.textContent;sel.appendChild(o)});
+    if(selected>=0&&selected<sel.options.length)sel.selectedIndex=selected;
     list.querySelectorAll('[data-corso]').forEach(function(a){a.addEventListener('click',function(){sel.value=a.getAttribute('data-corso')})});
     watch(list);
-  }).catch(emptyMsg);
+  }
+  fetch('/api/corsi').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(cs){courses=cs;renderCourses(cs)}).catch(function(){courses=[];emptyMsg()});
+  window.addEventListener('chef-language-change',function(){
+    if(courses!==null)renderCourses(courses);
+    else list.textContent=t('Caricamento delle date…');
+    if(document.getElementById('sendBtn').disabled)document.getElementById('sendBtn').textContent=t('Invio in corso…');
+    if(fallbackData)showFallback(fallbackData);
+  });
 
   var f=document.getElementById('lead');
   f.addEventListener('submit',function(ev){
@@ -645,19 +670,24 @@ footer a:hover{color:#fff}
     document.getElementById('err').style.display=ok?'none':'block';
     if(!ok) return;
     var data={nome:v('nome'),tel:v('tel'),email:v('email'),corso:v('corso'),ruolo:v('ruolo'),anni:v('anni'),citta:v('citta'),note:v('note'),website:v('website')};
-    var btn=document.getElementById('sendBtn'); btn.disabled=true; btn.textContent='Invio in corso…';
+    var btn=document.getElementById('sendBtn'); btn.disabled=true; btn.textContent=t('Invio in corso…');
     function tracked(){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','generate_lead')}catch(e){}}
     fetch('/api/richieste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
       .then(function(r){if(!r.ok)throw 0; f.style.display='none'; document.getElementById('doneOk').style.display='block'; tracked();})
       .catch(function(){
-        var txt='Ciao Chef Angelo, vorrei ricevere informazioni sul corso Chef on Board.\n\nNome: '+data.nome+'\nTelefono: '+data.tel+'\nEmail: '+data.email+
-          (data.corso?'\nCorso: '+data.corso:'')+'\nLavoro attuale: '+data.ruolo+'\nEsperienza: '+data.anni+' anni'+(data.citta?'\nCittà: '+data.citta:'')+(data.note?'\nNote: '+data.note:'');
-        document.getElementById('msg').textContent=txt;
-        document.getElementById('mail').href='mailto:chef@angelosanna.com?subject='+encodeURIComponent('Richiesta info corso Chef on Board')+'&body='+encodeURIComponent(txt);
+        fallbackData=data;
+        showFallback(data);
         f.style.display='none'; document.getElementById('doneMail').style.display='block'; tracked();
-        document.getElementById('copy').onclick=function(){var b=this;try{navigator.clipboard.writeText(txt).then(function(){b.textContent='Copiato ✓'},function(){b.textContent='Seleziona e copia il testo sopra'})}catch(e){b.textContent='Seleziona e copia il testo sopra'}};
       });
   });
+  var fallbackData=null;
+  function showFallback(data){
+        var txt=t('Ciao Chef Angelo, vorrei ricevere informazioni sul corso Chef on Board.')+'\n\n'+t('Nome')+': '+data.nome+'\n'+t('Telefono')+': '+data.tel+'\nEmail: '+data.email+
+          (data.corso?'\n'+t('Corso')+': '+data.corso:'')+'\n'+t('Lavoro attuale')+': '+t(data.ruolo)+'\n'+t('Esperienza')+': '+t(data.anni)+' '+t('anni')+(data.citta?'\n'+t('Città')+': '+data.citta:'')+(data.note?'\n'+t('Note')+': '+data.note:'');
+        document.getElementById('msg').textContent=txt;
+        document.getElementById('mail').href='mailto:chef@angelosanna.com?subject='+encodeURIComponent(t('Richiesta info corso Chef on Board'))+'&body='+encodeURIComponent(txt);
+        document.getElementById('copy').onclick=function(){var b=this;try{navigator.clipboard.writeText(txt).then(function(){b.textContent=t('Copiato ✓')},function(){b.textContent=t('Seleziona e copia il testo sopra')})}catch(e){b.textContent=t('Seleziona e copia il testo sopra')}};
+  }
 })();
 </script>
 </body>
