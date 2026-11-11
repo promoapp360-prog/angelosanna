@@ -164,10 +164,27 @@ function serveStatic(req, res, pathname) {
   if (pathname === '/admin' || pathname === '/admin/') pathname = '/admin.html';
   const file = path.normalize(path.join(PUBLIC_DIR, decodeURIComponent(pathname)));
   if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
-  fs.readFile(file, (err, data) => {
-    if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Pagina non trovata'); }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' });
-    res.end(data);
+  fs.stat(file, (err, st) => {
+    if (err || !st.isFile()) { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Pagina non trovata'); }
+    const ext = path.extname(file).toLowerCase();
+    const head = {
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      'Accept-Ranges': 'bytes',
+      'Cache-Control': ext === '.html' || ext === '.js' ? 'no-cache' : 'public, max-age=86400',
+    };
+    // Richieste parziali (Range): servono a iPhone/Safari per riprodurre i video
+    const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+    if (m && (m[1] || m[2])) {
+      let start = m[1] ? parseInt(m[1], 10) : Math.max(0, st.size - parseInt(m[2], 10));
+      let end = m[1] && m[2] ? Math.min(parseInt(m[2], 10), st.size - 1) : st.size - 1;
+      if (start > end || start >= st.size) { res.writeHead(416, { 'Content-Range': 'bytes */' + st.size }); return res.end(); }
+      res.writeHead(206, { ...head, 'Content-Range': 'bytes ' + start + '-' + end + '/' + st.size, 'Content-Length': end - start + 1 });
+      if (req.method === 'HEAD') return res.end();
+      return fs.createReadStream(file, { start, end }).on('error', () => res.destroy()).pipe(res);
+    }
+    res.writeHead(200, { ...head, 'Content-Length': st.size });
+    if (req.method === 'HEAD') return res.end();
+    fs.createReadStream(file).on('error', () => res.destroy()).pipe(res);
   });
 }
 
