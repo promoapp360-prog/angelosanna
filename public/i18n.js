@@ -2,6 +2,50 @@
 (function () {
   'use strict';
   var en = {
+    "Corso online": "Online course",
+    "Acquista il corso online.": "Buy the online course.",
+    "Scegli il corso, aggiungilo al carrello e paga in modo sicuro in pochi minuti: con carta, con PayPal oppure a rate con Klarna.": "Choose the course, add it to your cart and pay securely in minutes: by card, with PayPal or in instalments with Klarna.",
+    "Il tuo carrello": "Your cart",
+    "Carrello": "Cart",
+    "Email *": "Email *",
+    "Telefono / WhatsApp": "Phone / WhatsApp",
+    "Accetto le condizioni di vendita e l'informativa sulla privacy.": "I accept the terms of sale and the privacy policy.",
+    "Procedi al pagamento": "Proceed to payment",
+    "Ordina su WhatsApp": "Order on WhatsApp",
+    "Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.": "Secure payment on Stripe: your card details never pass through our site.",
+    "Carta, Apple Pay e Google Pay": "Card, Apple Pay and Google Pay",
+    "Carte di credito e debito, anche con un tocco dal tuo smartphone.": "Credit and debit cards, even with a tap from your smartphone.",
+    "Klarna · Paga in 3 rate": "Klarna · Pay in 3",
+    "Dividi l'importo in 3 rate senza interessi*. Scegli Klarna nella pagina di pagamento: noi incassiamo subito, tu paghi a rate.": "Split the amount into 3 interest-free instalments*. Choose Klarna on the payment page: we are paid upfront, you pay in instalments.",
+    "PayPal": "PayPal",
+    "Paga con il tuo conto PayPal. Se disponibile per il tuo ordine, puoi scegliere anche il pagamento a rate di PayPal.": "Pay with your PayPal account. Where available for your order, you can also choose PayPal's instalment option.",
+    "Sicuro con Stripe": "Secure with Stripe",
+    "Il pagamento avviene sulla pagina protetta di Stripe. Dopo l'acquisto riceviamo il tuo ordine e ti scriviamo per l'accesso al corso.": "Payment takes place on Stripe's protected page. After your purchase we receive your order and write to you about course access.",
+    "*Il pagamento a rate è soggetto ad approvazione del fornitore (Klarna o PayPal), al suo limite di importo e alle sue condizioni. I metodi disponibili vengono mostrati nella pagina di pagamento in base all'importo dell'ordine.": "*Instalment payments are subject to the provider's approval (Klarna or PayPal), its amount limits and its terms. Available methods are shown on the payment page based on your order amount.",
+    "Caricamento…": "Loading…",
+    "Il corso online arriva presto": "The online course is coming soon",
+    "Lascia i tuoi dati nel modulo e sarai tra i primi a saperlo.": "Leave your details in the form and you will be among the first to know.",
+    "Avvisami": "Notify me",
+    "Pagamento unico": "One-time payment",
+    "Nel carrello · vai al pagamento": "In your cart · go to payment",
+    "Aggiungi al carrello": "Add to cart",
+    "Prezzo in arrivo": "Price coming soon",
+    "Avvisami quando è disponibile": "Notify me when available",
+    "Il carrello è vuoto.": "Your cart is empty.",
+    "Meno": "Less",
+    "Più": "More",
+    "Rimuovi": "Remove",
+    "Totale": "Total",
+    "Oppure 3 rate da circa {x} con Klarna*": "Or 3 instalments of about {x} with Klarna*",
+    "Ciao Chef Angelo, vorrei acquistare il corso online:": "Hello Chef Angelo, I would like to buy the online course:",
+    "I pagamenti online sono in attivazione: per ora puoi ordinare scrivendo su WhatsApp.": "Online payments are being set up: for now you can order by writing on WhatsApp.",
+    "Inserisci nome ed email.": "Please enter your name and email.",
+    "Devi accettare le condizioni per procedere.": "You must accept the terms to continue.",
+    "Ti porto al pagamento…": "Taking you to payment…",
+    "Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.": "Payment is not available right now. Please try again or write to us on WhatsApp.",
+    "Grazie {nome}! Il pagamento è andato a buon fine. Abbiamo ricevuto il tuo ordine e ti scriveremo presto per l'accesso al corso.": "Thank you {nome}! Your payment went through. We have received your order and will write to you soon about course access.",
+    "Stiamo confermando il pagamento… se non vedi aggiornamenti entro pochi minuti scrivici su WhatsApp.": "We are confirming your payment… if you see no update within a few minutes, write to us on WhatsApp.",
+    "Pagamento annullato: non è stato addebitato nulla. Il tuo carrello è ancora qui.": "Payment cancelled: nothing has been charged. Your cart is still here.",
     "Programma": "Programme",
     "Requisiti": "Requirements",
     "Prossimi corsi": "Upcoming courses",
@@ -248,7 +292,7 @@
   var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   while (walker.nextNode()) {
     var node = walker.currentNode;
-    if (!node.parentElement.closest('script, style, svg, #courseList') && node.nodeValue.trim()) {
+    if (!node.parentElement.closest('script, style, svg, #courseList, #shopMsg, #shopList, #cartItems, #cartTotals, #cErr') && node.nodeValue.trim()) {
       texts.push({node: node, original: node.nodeValue});
     }
   }

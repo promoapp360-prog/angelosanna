@@ -188,10 +188,188 @@ function serveStatic(req, res, pathname) {
   });
 }
 
+/* ---------------- Shop: prodotti, ordini, Stripe ---------------- */
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
+const STRIPE_API = process.env.STRIPE_API_BASE || 'https://api.stripe.com';
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+const ORDINE_STATI = ['in attesa', 'pagato', 'annullato', 'rimborsato'];
+const MAX_QTY = 10;
+
+// Prodotto di partenza: resta senza prezzo (non acquistabile) finché Angelo non lo imposta dall'admin.
+const DEFAULT_PRODOTTI = [{
+  id: 'corso-online', creato: new Date().toISOString(), pubblicato: true, prezzo: 0,
+  titolo: 'Chef on Board — Corso online',
+  descrizione: 'Il metodo di Chef Angelo Sanna per diventare Private Chef su yacht e ville di lusso, da seguire online quando vuoi.',
+  include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'],
+}];
+async function getProdotti() {
+  const list = await load('prodotti', null);
+  if (list) return list;
+  await save('prodotti', DEFAULT_PRODOTTI);
+  return DEFAULT_PRODOTTI;
+}
+function toCents(v) {
+  const n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n * 100), 10000000) : 0;
+}
+function cleanProdotto(b) {
+  const include = (Array.isArray(b.include) ? b.include : String(b.include || '').split('\n'))
+    .map(s => str(s, 160)).filter(Boolean).slice(0, 20);
+  return {
+    titolo: str(b.titolo, 140) || 'Chef on Board — Corso online',
+    descrizione: str(b.descrizione, 1500),
+    include,
+    prezzo: toCents(b.prezzo),
+    pubblicato: b.pubblicato !== false,
+  };
+}
+const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo });
+
+// Stripe vuole i parametri in form-encoding con parentesi quadre per oggetti e array.
+function formEncode(obj, prefix, out) {
+  out = out || [];
+  Object.keys(obj).forEach(k => {
+    const v = obj[k]; if (v == null) return;
+    const key = prefix ? prefix + '[' + k + ']' : k;
+    if (typeof v === 'object') formEncode(v, key, out);
+    else out.push(encodeURIComponent(key) + '=' + encodeURIComponent(v));
+  });
+  return out;
+}
+async function stripe(method, endpoint, params) {
+  if (!STRIPE_KEY) { const e = new Error('Pagamenti online non ancora attivi.'); e.code = 503; throw e; }
+  const body = params && method !== 'GET' ? formEncode(params).join('&') : undefined;
+  const qs = params && method === 'GET' ? '?' + formEncode(params).join('&') : '';
+  const r = await fetch(STRIPE_API + endpoint + qs, {
+    method,
+    headers: { Authorization: 'Bearer ' + STRIPE_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { console.error('Stripe errore', r.status, j.error && j.error.message); const e = new Error('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.'); e.code = 502; throw e; }
+  return j;
+}
+function siteUrl(req) {
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/+$/, '');
+  const proto = (req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
+  return proto + '://' + (req.headers['x-forwarded-host'] || req.headers.host || 'localhost');
+}
+async function setOrdine(id, patch, onlyFrom) {
+  const list = await load('ordini', []);
+  const o = list.find(x => x.id === id);
+  if (!o) return null;
+  if (onlyFrom && !onlyFrom.includes(o.stato)) return o;
+  Object.assign(o, patch);
+  await save('ordini', list);
+  return o;
+}
+function readRaw(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = []; let size = 0;
+    req.on('data', c => { size += c.length; if (size > 1024 * 1024) { reject(new Error('too_large')); req.destroy(); return; } chunks.push(c); });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+// Verifica firma Stripe-Signature: HMAC-SHA256 di "t.payload" con il segreto del webhook.
+function verifyStripeSig(raw, header) {
+  if (!WEBHOOK_SECRET || !header) return false;
+  const parts = {}; String(header).split(',').forEach(s => { const i = s.indexOf('='); if (i > 0) (parts[s.slice(0, i)] = parts[s.slice(0, i)] || []).push(s.slice(i + 1)); });
+  const t = (parts.t || [])[0]; if (!t || Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;
+  const exp = crypto.createHmac('sha256', WEBHOOK_SECRET).update(t + '.').update(raw).digest('hex');
+  return (parts.v1 || []).some(v => v.length === exp.length && crypto.timingSafeEqual(Buffer.from(v), Buffer.from(exp)));
+}
+async function applySession(s) {
+  const id = s.metadata && s.metadata.ordine_id; if (!id) return;
+  if (s.payment_status === 'paid') await setOrdine(id, { stato: 'pagato', pagato: new Date().toISOString() }, ['in attesa']);
+}
+
 /* ---------------- API ---------------- */
 async function api(req, res, url) {
   const p = url.pathname;
   const m = req.method;
+
+  // Pubblico: prodotti in vendita + se i pagamenti sono attivi
+  if (p === '/api/shop' && m === 'GET') {
+    const prodotti = (await getProdotti()).filter(x => x.pubblicato).map(publicProdotto);
+    return send(res, 200, { prodotti, pagamenti: !!STRIPE_KEY });
+  }
+
+  // Pubblico: crea l'ordine e la sessione di pagamento Stripe (carta, Klarna, PayPal, Apple/Google Pay)
+  if (p === '/api/checkout' && m === 'POST') {
+    const b = await readBody(req);
+    if (str(b.website)) return send(res, 200, { ok: true }); // trappola anti-spam
+    if (!STRIPE_KEY) return send(res, 503, { error: 'Pagamenti online non ancora attivi. Scrivici su WhatsApp per iscriverti.' });
+    const prodotti = await getProdotti();
+    const righe = [];
+    (Array.isArray(b.items) ? b.items : []).slice(0, 10).forEach(it => {
+      const pr = prodotti.find(x => x.id === it.id && x.pubblicato && x.prezzo > 0);
+      const qty = Math.min(MAX_QTY, Math.max(1, int(it.qty) || 1));
+      if (!pr) return;
+      const ex = righe.find(r => r.id === pr.id);
+      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + qty); else righe.push({ id: pr.id, titolo: pr.titolo, descrizione: pr.descrizione, prezzo: pr.prezzo, qty });
+    });
+    const nome = str(b.nome, 120), email = str(b.email, 160), tel = str(b.tel, 40);
+    if (!righe.length) return send(res, 400, { error: 'Il carrello è vuoto.' });
+    if (!nome || !/\S+@\S+\.\S+/.test(email)) return send(res, 400, { error: 'Inserisci nome ed email.' });
+    if (b.accetto !== true) return send(res, 400, { error: 'Devi accettare le condizioni per procedere.' });
+    const totale = righe.reduce((s, r) => s + r.prezzo * r.qty, 0);
+    const lang = b.lang === 'en' ? 'en' : 'it';
+    const ordine = {
+      id: crypto.randomUUID(), data: new Date().toISOString(), stato: 'in attesa', nome, email, tel, lang,
+      righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty })), totale,
+      stripeSessionId: '', metodo: '',
+    };
+    const base = siteUrl(req);
+    const params = {
+      mode: 'payment', locale: lang, customer_email: email, billing_address_collection: 'auto',
+      success_url: base + '/?ordine=ok&o=' + ordine.id + '&session_id={CHECKOUT_SESSION_ID}#shop',
+      cancel_url: base + '/?ordine=annullato#shop',
+      metadata: { ordine_id: ordine.id },
+      payment_intent_data: { description: 'Chef on Board — ordine ' + ordine.id.slice(0, 8), metadata: { ordine_id: ordine.id } },
+      line_items: righe.map(r => ({
+        quantity: r.qty,
+        price_data: { currency: 'eur', unit_amount: r.prezzo, product_data: { name: r.titolo, description: r.descrizione ? r.descrizione.slice(0, 300) : undefined } },
+      })),
+    };
+    const s = await stripe('POST', '/v1/checkout/sessions', params);
+    ordine.stripeSessionId = s.id;
+    const list = await load('ordini', []);
+    list.unshift(ordine);
+    await save('ordini', list.slice(0, 5000));
+    return send(res, 201, { url: s.url });
+  }
+
+  // Pubblico: al ritorno da Stripe verifica il pagamento (funziona anche senza webhook)
+  if (p === '/api/checkout/conferma' && m === 'GET') {
+    const id = str(url.searchParams.get('o'), 60), sid = str(url.searchParams.get('session_id'), 200);
+    const o = (await load('ordini', [])).find(x => x.id === id && x.stripeSessionId === sid);
+    if (!o) return send(res, 404, { error: 'Ordine non trovato' });
+    let cur = o;
+    if (o.stato === 'in attesa') {
+      const s = await stripe('GET', '/v1/checkout/sessions/' + encodeURIComponent(sid), { 'expand': ['payment_intent.payment_method'] });
+      if (s.payment_status === 'paid') {
+        const pm = s.payment_intent && s.payment_intent.payment_method && s.payment_intent.payment_method.type;
+        cur = await setOrdine(id, { stato: 'pagato', pagato: new Date().toISOString(), metodo: pm || '' }, ['in attesa']) || o;
+      }
+    }
+    return send(res, 200, { stato: cur.stato, nome: (cur.nome || '').split(' ')[0] });
+  }
+
+  // Webhook Stripe (firmato): conferma pagamenti anche se il cliente chiude la pagina
+  if (p === '/api/stripe/webhook' && m === 'POST') {
+    const raw = await readRaw(req);
+    if (!WEBHOOK_SECRET) return send(res, 503, { error: 'STRIPE_WEBHOOK_SECRET non impostato' });
+    if (!verifyStripeSig(raw, req.headers['stripe-signature'])) return send(res, 400, { error: 'Firma non valida' });
+    let ev; try { ev = JSON.parse(raw.toString('utf8')); } catch (e) { return send(res, 400, { error: 'JSON non valido' }); }
+    const s = ev.data && ev.data.object;
+    if (s && s.metadata && s.metadata.ordine_id) {
+      if (ev.type === 'checkout.session.completed') await applySession(s);
+      else if (ev.type === 'checkout.session.async_payment_succeeded') await applySession({ ...s, payment_status: 'paid' });
+      else if (ev.type === 'checkout.session.expired' || ev.type === 'checkout.session.async_payment_failed') await setOrdine(s.metadata.ordine_id, { stato: 'annullato' }, ['in attesa']);
+    }
+    return send(res, 200, { received: true });
+  }
 
   // Pubblico: corsi pubblicati e non ancora finiti
   if (p === '/api/corsi' && m === 'GET') {
@@ -271,6 +449,44 @@ async function api(req, res, url) {
       return send(res, 200, { ok: true });
     }
 
+    // Shop: prodotti in vendita
+    if (p === '/api/admin/prodotti' && m === 'GET') {
+      return send(res, 200, { prodotti: await getProdotti(), pagamenti: !!STRIPE_KEY, webhook: !!WEBHOOK_SECRET });
+    }
+    if (p === '/api/admin/prodotti' && m === 'POST') {
+      const pr = { id: crypto.randomUUID(), creato: new Date().toISOString(), ...cleanProdotto(await readBody(req)) };
+      const list = await getProdotti();
+      list.push(pr); await save('prodotti', list);
+      return send(res, 201, pr);
+    }
+    const mp = p.match(/^\/api\/admin\/prodotti\/([\w-]+)$/);
+    if (mp && m === 'PUT') {
+      const list = await getProdotti();
+      const i = list.findIndex(x => x.id === mp[1]);
+      if (i < 0) return send(res, 404, { error: 'Prodotto non trovato' });
+      list[i] = { ...list[i], ...cleanProdotto(await readBody(req)), id: list[i].id };
+      await save('prodotti', list);
+      return send(res, 200, list[i]);
+    }
+    if (mp && m === 'DELETE') {
+      await save('prodotti', (await getProdotti()).filter(x => x.id !== mp[1]));
+      return send(res, 200, { ok: true });
+    }
+
+    // Shop: ordini
+    if (p === '/api/admin/ordini' && m === 'GET') return send(res, 200, await load('ordini', []));
+    const mo = p.match(/^\/api\/admin\/ordini\/([\w-]+)$/);
+    if (mo && m === 'PUT') {
+      const b = await readBody(req);
+      if (!ORDINE_STATI.includes(b.stato)) return send(res, 400, { error: 'Stato non valido' });
+      const o = await setOrdine(mo[1], { stato: b.stato }, null);
+      return o ? send(res, 200, o) : send(res, 404, { error: 'Ordine non trovato' });
+    }
+    if (mo && m === 'DELETE') {
+      await save('ordini', (await load('ordini', [])).filter(x => x.id !== mo[1]));
+      return send(res, 200, { ok: true });
+    }
+
     // Contatti (richieste dal sito + contatti inseriti a mano)
     if (p === '/api/admin/richieste' && m === 'GET') {
       return send(res, 200, (await load('richieste', [])).map(normContatto));
@@ -325,7 +541,7 @@ http.createServer(async (req, res) => {
   if (url.pathname.startsWith('/api/')) {
     try { await api(req, res, url); }
     catch (e) {
-      if (e.code === 409) return send(res, 409, { error: e.message });
+      if (e.code === 409 || e.code === 502 || e.code === 503) return send(res, e.code, { error: e.message });
       send(res, e.message === 'too_large' ? 413 : 400, { error: 'Richiesta non valida' });
     }
     return;
@@ -334,4 +550,5 @@ http.createServer(async (req, res) => {
 }).listen(PORT, '0.0.0.0', () => {
   console.log('Chef on Board attivo sulla porta ' + PORT + (DB_URL ? ' (Replit Database)' : ' (file in ./data)'));
   if (!process.env.ADMIN_PASSWORD) console.log('ATTENZIONE: imposta ADMIN_PASSWORD nei Secrets per usare /admin');
+  if (!STRIPE_KEY) console.log('Pagamenti: imposta STRIPE_SECRET_KEY nei Secrets per attivare il carrello');
 });
