@@ -43,11 +43,11 @@ Il sito ha una sezione **Corso online** con carrello. Il cliente paga sulla pagi
 2. Nella dashboard Stripe, *Impostazioni → Metodi di pagamento*: attiva **Klarna** e **PayPal** (Stripe le mostra al cliente solo se l'importo è idoneo; Klarna Paga in 3 rate in Italia va da 1 a 1.500 €).
 3. Webhook: in Stripe, *Sviluppatori → Webhook → Aggiungi endpoint* `https://TUO-SITO/api/stripe/webhook`, evento `checkout.session.completed` (aggiungi anche `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`). Copia il segreto `whsec_…` nei Secrets come `STRIPE_WEBHOOK_SECRET`.
 4. (Facoltativo) `SITE_URL` con l'indirizzo pubblico, es. `https://angelosanna.com`, se i link di ritorno da Stripe non sono corretti.
-5. Riavvia. Da **/admin → Corso online** imposta **titolo, descrizione, cosa include e prezzo**: finché il prezzo è 0 il prodotto non è acquistabile.
+5. Riavvia. Da **/admin → Corso online** puoi modificare **titolo, descrizione, cosa include e prezzo**. Il prezzo iniziale del corso è **890 €**.
 
 Senza `STRIPE_SECRET_KEY` il carrello resta visibile ma il cliente può solo ordinare via WhatsApp.
 
-**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` e `SIMULATED_PRICE_EUR=890` nell'ambiente **Development** di Replit. Il server non contatta Stripe; registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
+**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. Il prezzo di 890 € è salvato come prezzo del corso; la modalità simulata non contatta Stripe, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
 
 **Ordini:** compaiono in **/admin → Corso online → Ordini** (in attesa, pagato, annullato, rimborsato, simulato). Il pagamento si conferma anche senza webhook quando il cliente torna sul sito; il webhook serve se chiude la pagina prima. I rimborsi si fanno dalla dashboard Stripe, poi segna l'ordine "Rimborsato".
 

@@ -196,30 +196,42 @@ const SIMULATED_PAYMENTS = process.env.PAYMENT_MODE === 'simulated';
 const ORDINE_STATI = ['in attesa', 'pagato', 'annullato', 'rimborsato', 'simulato'];
 const MAX_QTY = 10;
 
-// Prodotto di partenza: resta senza prezzo (non acquistabile) finché Angelo non lo imposta dall'admin.
+// Prezzo iniziale del corso online: 890 €.
+const COURSE_PRICE_MIGRATION_KEY = 'migrazione-prezzo-corso-online-890-v1';
 const DEFAULT_PRODOTTI = [{
-  id: 'corso-online', creato: new Date().toISOString(), pubblicato: true, prezzo: 0,
+  id: 'corso-online', creato: new Date().toISOString(), pubblicato: true, prezzo: 89000,
   titolo: 'Chef on Board — Corso online',
   descrizione: 'Il metodo di Chef Angelo Sanna per diventare Private Chef su yacht e ville di lusso, da seguire online quando vuoi.',
   include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'],
 }];
 async function getStoredProdotti() {
-  const list = await load('prodotti', null);
-  if (list) return list;
-  await save('prodotti', DEFAULT_PRODOTTI);
-  return DEFAULT_PRODOTTI;
+  let list = await load('prodotti', null);
+  if (!list) {
+    list = DEFAULT_PRODOTTI;
+    await save('prodotti', list);
+  }
+  if (!(await load(COURSE_PRICE_MIGRATION_KEY, false)) && Array.isArray(list)) {
+    const index = list.findIndex(p => p.id === 'corso-online');
+    if (index >= 0) {
+      list[index] = { ...list[index], prezzo: 89000 };
+      await save('prodotti', list);
+      const saved = await load('prodotti', null);
+      const savedCourse = Array.isArray(saved) && saved.find(p => p.id === 'corso-online');
+      if (!savedCourse || savedCourse.prezzo !== 89000) {
+        throw new Error('Impossibile salvare il prezzo del corso online.');
+      }
+      list = saved;
+      await save(COURSE_PRICE_MIGRATION_KEY, true);
+    }
+  }
+  return list;
 }
 async function getProdotti() {
-  return withSimulationPrice(await getStoredProdotti());
+  return getStoredProdotti();
 }
 function toCents(v) {
   const n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.'));
   return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n * 100), 10000000) : 0;
-}
-function withSimulationPrice(products) {
-  const cents = SIMULATED_PAYMENTS ? toCents(process.env.SIMULATED_PRICE_EUR) : 0;
-  if (!cents) return products;
-  return products.map(p => p.id === 'corso-online' && !p.prezzo ? { ...p, prezzo: cents } : p);
 }
 function cleanProdotto(b) {
   const include = (Array.isArray(b.include) ? b.include : String(b.include || '').split('\n'))
