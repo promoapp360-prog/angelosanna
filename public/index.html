@@ -672,7 +672,7 @@ footer a:hover{color:#fff}
           <button class="btn btn-gold" id="payBtn" type="submit">Procedi al pagamento</button>
           <a class="btn btn-navy" id="waOrder" href="#" target="_blank" rel="noopener noreferrer" style="display:none">Ordina su WhatsApp</a>
           <small id="cErr" style="color:var(--red);display:none;margin-top:10px"></small>
-          <div class="secure"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.</span></div>
+          <div class="secure"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="paymentNote">Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.</span></div>
         </form>
       </aside>
     </div>
@@ -902,7 +902,7 @@ footer a:hover{color:#fff}
 
   /* Corso online: prodotti, carrello e checkout Stripe */
   (function(){
-    var KEY='chef-cart', prods=[], pagamenti=false, loaded=false, cart=[], msg=null;
+    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, loaded=false, cart=[], msg=null;
     try{cart=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){cart=[]}
     if(!Array.isArray(cart))cart=[];
     var $=function(id){return document.getElementById(id)};
@@ -912,13 +912,18 @@ footer a:hover{color:#fff}
     function inCart(id){return cart.filter(function(l){return l.id===id})[0]}
     function total(){return cart.reduce(function(s,l){var p=find(l.id);return s+(p?p.prezzo*l.qty:0)},0)}
     function count(){return cart.reduce(function(s,l){return s+l.qty},0)}
+    function payButtonText(){return t(simulazione?'Simula pagamento':'Procedi al pagamento')}
 
     function renderMsg(){
-      var el=$('shopMsg'); if(!msg){el.innerHTML='';return}
-      var txt=msg.kind==='ok'?t('Grazie {nome}! Il pagamento è andato a buon fine. Abbiamo ricevuto il tuo ordine e ti scriveremo presto per l\'accesso al corso.',{nome:msg.nome||''}).replace('  ',' ')
+      var el=$('shopMsg');
+      var html=simulazione?'<div class="shopmsg warn">'+esc(t('Modalità di prova: nessun pagamento reale verrà effettuato.'))+'</div>':'';
+      if(!msg){el.innerHTML=html;return}
+      var txt=msg.kind==='simulated'?t('Prova completata: nessun addebito reale. Ordine simulato {id} registrato.',{id:msg.id||''})
+        :msg.kind==='ok'?t('Grazie {nome}! Il pagamento è andato a buon fine. Abbiamo ricevuto il tuo ordine e ti scriveremo presto per l\'accesso al corso.',{nome:msg.nome||''}).replace('  ',' ')
         :msg.kind==='wait'?t('Stiamo confermando il pagamento… se non vedi aggiornamenti entro pochi minuti scrivici su WhatsApp.')
         :t('Pagamento annullato: non è stato addebitato nulla. Il tuo carrello è ancora qui.');
-      el.innerHTML='<div class="shopmsg '+(msg.kind==='cancel'?'warn':'ok')+'">'+esc(txt)+'</div>';
+      html+='<div class="shopmsg '+(msg.kind==='cancel'?'warn':'ok')+'">'+esc(txt)+'</div>';
+      el.innerHTML=html;
     }
     function renderProds(){
       var box=$('shopList');
@@ -946,10 +951,13 @@ footer a:hover{color:#fff}
       $('cartTotals').innerHTML='<div class="tot"><span>'+esc(t('Totale'))+'</span><b>'+esc(eur(tot))+'</b></div>'+
         (tot>=3000&&tot<=150000?'<div class="rate">'+esc(t('Oppure 3 rate da circa {x} con Klarna*',{x:eur(rata)}))+'</div>':'');
       form.style.display='block';
+      $('payBtn').textContent=payButtonText();
       $('payBtn').style.display=pagamenti?'':'none';
       var wa=$('waOrder'); wa.style.display=pagamenti?'none':'';
       wa.href='https://wa.me/393208877838?text='+encodeURIComponent(t('Ciao Chef Angelo, vorrei acquistare il corso online:')+'\n'+rows.map(function(l){return '- '+find(l.id).titolo+' x'+l.qty}).join('\n')+'\n'+t('Totale')+': '+eur(tot));
+      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):pagamenti?t('Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.'):t('Per ora ordina tramite WhatsApp; nessun pagamento online.');
       if(!pagamenti){$('cErr').style.display='block';$('cErr').style.color='var(--muted)';$('cErr').textContent=t('I pagamenti online sono in attivazione: per ora puoi ordinare scrivendo su WhatsApp.')}
+      else $('cErr').style.display='none';
     }
     function renderAll(){renderMsg();renderProds();renderCart()}
 
@@ -973,15 +981,21 @@ footer a:hover{color:#fff}
       err.style.color='var(--red)';
       if(!v('cNome')||!/\S+@\S+\.\S+/.test(v('cEmail'))){err.textContent=t('Inserisci nome ed email.');err.style.display='block';return}
       if(!$('cAccetto').checked){err.textContent=t('Devi accettare le condizioni per procedere.');err.style.display='block';return}
-      err.style.display='none'; btn.disabled=true; btn.textContent=t('Ti porto al pagamento…');
-      function fail(m){btn.disabled=false;btn.textContent=t('Procedi al pagamento');err.textContent=m||t('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.');err.style.display='block'}
+      err.style.display='none'; btn.disabled=true; btn.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
+      function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=m||t('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.');err.style.display='block'}
       fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),accetto:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
         .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
-        .then(function(x){if(x.ok&&x.j.url){try{if(window.fbq)fbq('track','InitiateCheckout');if(window.gtag)gtag('event','begin_checkout')}catch(e){}location.href=x.j.url}else fail(x.j&&x.j.error)})
+        .then(function(x){
+          if(x.ok&&x.j.simulato){
+            msg={kind:'simulated',id:String(x.j.ordineId||'').slice(0,8)};cart=[];persist();btn.disabled=false;btn.textContent=payButtonText();renderAll();
+            $('shopMsg').scrollIntoView({behavior:'smooth',block:'start'});
+          }else if(x.ok&&x.j.url){try{if(window.fbq)fbq('track','InitiateCheckout');if(window.gtag)gtag('event','begin_checkout')}catch(e){}location.href=x.j.url}
+          else fail(x.j&&x.j.error);
+        })
         .catch(function(){fail()});
     });
     window.addEventListener('chef-language-change',function(){
-      renderAll(); var b=$('payBtn'); if(b.disabled)b.textContent=t('Ti porto al pagamento…');
+      renderAll(); var b=$('payBtn'); if(b.disabled)b.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
     });
 
     // Ritorno da Stripe
@@ -997,7 +1011,7 @@ footer a:hover{color:#fff}
       cleanUrl();
     }
     renderAll();
-    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
+    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
     if(msg)$('shop').scrollIntoView();
   })();
 

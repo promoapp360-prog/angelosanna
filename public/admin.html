@@ -120,6 +120,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
 .st-pagato{background:#e3f1e8;color:var(--green)}
 .st-in-attesa{background:#fff2dc;color:#8a5a00}
 .st-annullato,.st-rimborsato{background:#f0f1f3;color:var(--muted)}
+.st-simulato{background:#e6f1fb;color:#0d5a92}
 @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:640px){.grid{grid-template-columns:1fr}.course{grid-template-columns:1fr}.acts{justify-content:flex-start}header .t span{display:none}}
 </style>
@@ -446,9 +447,9 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   };
 
   /* ---------- Corso online: prodotti e ordini ---------- */
-  var prodotti=[], ordini=[], shopInfo={pagamenti:false,webhook:false}, editProd=null;
-  var ORD_STATI=['in attesa','pagato','annullato','rimborsato'];
-  var METODI={card:'Carta',klarna:'Klarna',paypal:'PayPal',link:'Link',sepa_debit:'SEPA'};
+  var prodotti=[], ordini=[], shopInfo={pagamenti:false,webhook:false,simulazione:false}, editProd=null;
+  var ORD_STATI=['in attesa','pagato','annullato','rimborsato','simulato'];
+  var METODI={card:'Carta',klarna:'Klarna',paypal:'PayPal',link:'Link',sepa_debit:'SEPA',simulato:'Pagamento simulato'};
   function eur(c){return (c/100).toLocaleString('it-IT',{style:'currency',currency:'EUR'})}
   function loadShop(){
     return Promise.all([api('GET','/api/admin/prodotti'),api('GET','/api/admin/ordini')]).then(function(r){
@@ -459,7 +460,9 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     var pagati=ordini.filter(function(o){return o.stato==='pagato'});
     var tot=pagati.reduce(function(s,o){return s+o.totale},0);
     var n=$('nOrd');n.textContent=pagati.length;n.style.display=pagati.length?'':'none';
-    $('payStatus').innerHTML=shopInfo.pagamenti
+    $('payStatus').innerHTML=shopInfo.simulazione
+      ? '<div class="warnbox"><b>Modalità simulata attiva.</b> I checkout di prova non effettuano addebiti e gli ordini “simulato” non vengono conteggiati negli incassi.</div>'
+      : shopInfo.pagamenti
       ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
       : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Il carrello è visibile ma i clienti possono solo ordinare via WhatsApp. Aggiungi <code>STRIPE_SECRET_KEY</code> nei Secrets di Replit (e poi <code>STRIPE_WEBHOOK_SECRET</code>), riavvia e attiva Klarna e PayPal dalla dashboard Stripe. Istruzioni nel README.</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){

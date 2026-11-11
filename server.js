@@ -192,7 +192,8 @@ function serveStatic(req, res, pathname) {
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_API = process.env.STRIPE_API_BASE || 'https://api.stripe.com';
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
-const ORDINE_STATI = ['in attesa', 'pagato', 'annullato', 'rimborsato'];
+const SIMULATED_PAYMENTS = process.env.PAYMENT_MODE === 'simulated';
+const ORDINE_STATI = ['in attesa', 'pagato', 'annullato', 'rimborsato', 'simulato'];
 const MAX_QTY = 10;
 
 // Prodotto di partenza: resta senza prezzo (non acquistabile) finché Angelo non lo imposta dall'admin.
@@ -202,15 +203,23 @@ const DEFAULT_PRODOTTI = [{
   descrizione: 'Il metodo di Chef Angelo Sanna per diventare Private Chef su yacht e ville di lusso, da seguire online quando vuoi.',
   include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'],
 }];
-async function getProdotti() {
+async function getStoredProdotti() {
   const list = await load('prodotti', null);
   if (list) return list;
   await save('prodotti', DEFAULT_PRODOTTI);
   return DEFAULT_PRODOTTI;
 }
+async function getProdotti() {
+  return withSimulationPrice(await getStoredProdotti());
+}
 function toCents(v) {
   const n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.'));
   return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n * 100), 10000000) : 0;
+}
+function withSimulationPrice(products) {
+  const cents = SIMULATED_PAYMENTS ? toCents(process.env.SIMULATED_PRICE_EUR) : 0;
+  if (!cents) return products;
+  return products.map(p => p.id === 'corso-online' && !p.prezzo ? { ...p, prezzo: cents } : p);
 }
 function cleanProdotto(b) {
   const include = (Array.isArray(b.include) ? b.include : String(b.include || '').split('\n'))
@@ -292,14 +301,14 @@ async function api(req, res, url) {
   // Pubblico: prodotti in vendita + se i pagamenti sono attivi
   if (p === '/api/shop' && m === 'GET') {
     const prodotti = (await getProdotti()).filter(x => x.pubblicato).map(publicProdotto);
-    return send(res, 200, { prodotti, pagamenti: !!STRIPE_KEY });
+    return send(res, 200, { prodotti, pagamenti: !!STRIPE_KEY || SIMULATED_PAYMENTS, simulazione: SIMULATED_PAYMENTS });
   }
 
   // Pubblico: crea l'ordine e la sessione di pagamento Stripe (carta, Klarna, PayPal, Apple/Google Pay)
   if (p === '/api/checkout' && m === 'POST') {
     const b = await readBody(req);
     if (str(b.website)) return send(res, 200, { ok: true }); // trappola anti-spam
-    if (!STRIPE_KEY) return send(res, 503, { error: 'Pagamenti online non ancora attivi. Scrivici su WhatsApp per iscriverti.' });
+    if (!STRIPE_KEY && !SIMULATED_PAYMENTS) return send(res, 503, { error: 'Pagamenti online non ancora attivi. Scrivici su WhatsApp per iscriverti.' });
     const prodotti = await getProdotti();
     const righe = [];
     (Array.isArray(b.items) ? b.items : []).slice(0, 10).forEach(it => {
@@ -316,10 +325,16 @@ async function api(req, res, url) {
     const totale = righe.reduce((s, r) => s + r.prezzo * r.qty, 0);
     const lang = b.lang === 'en' ? 'en' : 'it';
     const ordine = {
-      id: crypto.randomUUID(), data: new Date().toISOString(), stato: 'in attesa', nome, email, tel, lang,
+      id: crypto.randomUUID(), data: new Date().toISOString(), stato: SIMULATED_PAYMENTS ? 'simulato' : 'in attesa', nome, email, tel, lang,
       righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty })), totale,
-      stripeSessionId: '', metodo: '',
+      stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS,
     };
+    if (SIMULATED_PAYMENTS) {
+      const list = await load('ordini', []);
+      list.unshift(ordine);
+      await save('ordini', list.slice(0, 5000));
+      return send(res, 201, { simulato: true, ordineId: ordine.id });
+    }
     const base = siteUrl(req);
     const params = {
       mode: 'payment', locale: lang, customer_email: email, billing_address_collection: 'auto',
@@ -451,17 +466,17 @@ async function api(req, res, url) {
 
     // Shop: prodotti in vendita
     if (p === '/api/admin/prodotti' && m === 'GET') {
-      return send(res, 200, { prodotti: await getProdotti(), pagamenti: !!STRIPE_KEY, webhook: !!WEBHOOK_SECRET });
+      return send(res, 200, { prodotti: await getProdotti(), pagamenti: !!STRIPE_KEY, webhook: !!WEBHOOK_SECRET, simulazione: SIMULATED_PAYMENTS });
     }
     if (p === '/api/admin/prodotti' && m === 'POST') {
       const pr = { id: crypto.randomUUID(), creato: new Date().toISOString(), ...cleanProdotto(await readBody(req)) };
-      const list = await getProdotti();
+      const list = await getStoredProdotti();
       list.push(pr); await save('prodotti', list);
       return send(res, 201, pr);
     }
     const mp = p.match(/^\/api\/admin\/prodotti\/([\w-]+)$/);
     if (mp && m === 'PUT') {
-      const list = await getProdotti();
+      const list = await getStoredProdotti();
       const i = list.findIndex(x => x.id === mp[1]);
       if (i < 0) return send(res, 404, { error: 'Prodotto non trovato' });
       list[i] = { ...list[i], ...cleanProdotto(await readBody(req)), id: list[i].id };
@@ -469,7 +484,7 @@ async function api(req, res, url) {
       return send(res, 200, list[i]);
     }
     if (mp && m === 'DELETE') {
-      await save('prodotti', (await getProdotti()).filter(x => x.id !== mp[1]));
+      await save('prodotti', (await getStoredProdotti()).filter(x => x.id !== mp[1]));
       return send(res, 200, { ok: true });
     }
 
@@ -550,5 +565,6 @@ http.createServer(async (req, res) => {
 }).listen(PORT, '0.0.0.0', () => {
   console.log('Chef on Board attivo sulla porta ' + PORT + (DB_URL ? ' (Replit Database)' : ' (file in ./data)'));
   if (!process.env.ADMIN_PASSWORD) console.log('ATTENZIONE: imposta ADMIN_PASSWORD nei Secrets per usare /admin');
-  if (!STRIPE_KEY) console.log('Pagamenti: imposta STRIPE_SECRET_KEY nei Secrets per attivare il carrello');
+  if (SIMULATED_PAYMENTS) console.log('Pagamenti: modalità simulata attiva, nessun addebito reale');
+  else if (!STRIPE_KEY) console.log('Pagamenti: imposta STRIPE_SECRET_KEY nei Secrets per attivare il carrello');
 });

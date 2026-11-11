@@ -47,6 +47,8 @@ Il sito ha una sezione **Corso online** con carrello. Il cliente paga sulla pagi
 
 Senza `STRIPE_SECRET_KEY` il carrello resta visibile ma il cliente può solo ordinare via WhatsApp.
 
-**Ordini:** compaiono in **/admin → Corso online → Ordini** (in attesa, pagato, annullato, rimborsato). Il pagamento si conferma anche senza webhook quando il cliente torna sul sito; il webhook serve se chiude la pagina prima. I rimborsi si fanno dalla dashboard Stripe, poi segna l'ordine "Rimborsato".
+**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` e `SIMULATED_PRICE_EUR=890` nell'ambiente **Development** di Replit. Il server non contatta Stripe; registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
+
+**Ordini:** compaiono in **/admin → Corso online → Ordini** (in attesa, pagato, annullato, rimborsato, simulato). Il pagamento si conferma anche senza webhook quando il cliente torna sul sito; il webhook serve se chiude la pagina prima. I rimborsi si fanno dalla dashboard Stripe, poi segna l'ordine "Rimborsato".
 
 **Da completare prima di incassare:** pagine legali (condizioni di vendita, diritto di recesso per contenuti digitali, privacy) e fatturazione: il sito non le genera.
