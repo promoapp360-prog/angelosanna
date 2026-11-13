@@ -48,6 +48,8 @@ Il pagamento avviene su **Stripe Checkout**. La sola presenza di `STRIPE_SECRET_
 
 I controlli automatici della sandbox si eseguono con `node --test tests/stripe-sandbox.test.js`: usano chiavi fittizie e non contattano Stripe.
 
+**Account corretto:** per Chef on Board usare esclusivamente lo Stripe di Angelo Sanna. Prima di attivare la sandbox, eseguire `node scripts/check-stripe-account.js`: effettua soltanto una lettura dell'identità dell'account associato alla chiave locale, senza stampare la chiave e mostrando l'email mascherata. Il checkout usa il Secret del progetto, non i connettori Stripe autorizzati in Replit; un connettore di un altro progetto non va riutilizzato.
+
 **Ordini:** compaiono in **/admin → Shop e prodotti → Ordini** (in attesa, pagato, annullato, rimborsato, simulato), con nome, email, telefono e codice fiscale del cliente. Quando un prodotto richiede la spedizione, nell'ordine viene salvato anche l'indirizzo in Italia. I rimborsi si gestiscono nella dashboard Stripe, poi si aggiorna lo stato dell'ordine nell'admin.
 
 Nell'admin, spunta **Richiede indirizzo di spedizione** per i prodotti fisici; per gli altri prodotti il cliente non deve inserire un indirizzo. Il sito non calcola le spese di spedizione e non gestisce corrieri, tracking o evasione degli ordini.
