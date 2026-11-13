@@ -22,7 +22,16 @@ body{font-family:'Poppins',system-ui,sans-serif;color:#fff;background:var(--abys
 .top{display:flex;align-items:center;gap:14px;padding:26px clamp(20px,5vw,64px)}
 .logo{width:46px;height:46px;border:1.5px solid #fff;border-radius:50%;display:grid;place-items:center;font:400 1.35rem 'Playfair Display',serif}
 .top span{font-weight:500;letter-spacing:.02em}
-.main{flex:1;display:flex;align-items:center;padding:20px clamp(20px,5vw,64px) 40px}
+.main{flex:1;display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,5vw,72px);padding:20px clamp(20px,5vw,64px) 40px}
+.angelo{flex:none;width:min(34vw,400px);position:relative}
+.angelo img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:60% 30%;border-radius:26px;border:1px solid rgba(255,255,255,.35);box-shadow:0 30px 70px rgba(0,0,0,.45)}
+.angelo figcaption{position:absolute;left:16px;right:16px;bottom:16px;background:rgba(1,42,87,.82);backdrop-filter:blur(6px);border-radius:14px;padding:12px 16px;font-size:.88rem;line-height:1.4}
+.angelo figcaption b{display:block;font-size:1rem}
+.wa{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:#25d366;display:grid;place-items:center;box-shadow:0 10px 28px rgba(0,0,0,.4);z-index:20;transition:transform .15s}
+.wa:hover{transform:scale(1.07)}
+.wa::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid #25d366;animation:ping 2.4s ease-out infinite}
+@keyframes ping{from{transform:scale(1);opacity:.7}to{transform:scale(1.6);opacity:0}}
+@media(max-width:900px){.main{flex-direction:column-reverse;align-items:flex-start}.angelo{width:min(78vw,340px)}}
 .box{max-width:780px}
 .eyebrow{color:var(--sky2);font-weight:600;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:18px}
 h1{font-size:clamp(2.1rem,6vw,4rem);line-height:1.08;font-weight:700;letter-spacing:-.02em}
@@ -46,7 +55,10 @@ button:disabled{opacity:.6;cursor:wait}
 .foot a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.4)}
 /* ?img=1 → versione immagine da condividere sui social (senza modulo) */
 .img form,.img .foot{display:none}
-.img .main{align-items:flex-end;padding-bottom:150px}
+.img .main{flex-direction:column-reverse;align-items:flex-start;justify-content:flex-start;gap:34px;padding-bottom:130px}
+.img .angelo{width:250px}
+.img .angelo img{aspect-ratio:1;border-radius:50%;object-position:60% 25%}
+.img .angelo figcaption,.img .wa{display:none}
 .img .box{max-width:900px}
 .img h1{font-size:4.4rem}
 .img .lead{font-size:1.4rem;max-width:760px}
@@ -76,13 +88,16 @@ button:disabled{opacity:.6;cursor:wait}
       <button id="b" type="submit">Avvisami al lancio</button>
       <div class="msg" id="m" role="status"></div>
     </form>
-  </div></div>
+  </div>
+  <figure class="angelo"><img src="/assets/angelo.jpg" alt="Chef Angelo Sanna a bordo di uno yacht" width="1000" height="1245"><figcaption><b>Chef Angelo Sanna</b>Private Chef su yacht e ville di lusso</figcaption></figure>
+  </div>
   <div class="foot">
     <a href="https://wa.me/393208877838" target="_blank" rel="noopener noreferrer">WhatsApp +39 320 887 7838</a>
     <a href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener noreferrer">@angelosannachef</a>
     <a href="mailto:chef@angelosanna.com">chef@angelosanna.com</a>
   </div>
 </div>
+<a class="wa" href="https://wa.me/393208877838?text=Ciao%20Chef%20Angelo%2C%20vorrei%20info%20sulla%20nuova%20piattaforma%20dei%20corsi" target="_blank" rel="noopener noreferrer" aria-label="Scrivici su WhatsApp"><svg width="32" height="32" viewBox="0 0 32 32" fill="#fff" aria-hidden="true"><path d="M16.04 3C9.4 3 4 8.38 4 15.01c0 2.12.55 4.19 1.6 6.01L4 29l8.2-1.56a12.03 12.03 0 0 0 3.84.62C22.68 28.06 28 22.67 28 16.04 28 9.4 22.68 3 16.04 3zm0 22.03c-1.2 0-2.38-.3-3.42-.87l-.5-.28-4.87.93.95-4.74-.3-.52a9.95 9.95 0 0 1-1.5-5.28c0-5.5 4.5-9.97 10.03-9.97 5.53 0 9.97 4.47 9.97 9.97 0 5.5-4.44 9.76-10.36 10.76zm5.46-7.46c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.88.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z"/></svg></a>
 <script>
 if(/[?&]img=1/.test(location.search))document.getElementById('hero').classList.add('img'),document.body.classList.add('img');
 var f=document.getElementById('f'),m=document.getElementById('m'),b=document.getElementById('b');

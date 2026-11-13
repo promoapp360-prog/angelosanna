@@ -15,7 +15,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 // COMING_SOON=1 → online c'è SOLO la pagina "stiamo arrivando" (public/presto.html); il resto del sito resta nascosto.
 // /admin continua a funzionare. Togli la variabile (o mettila a 0) per mostrare il sito completo.
 const COMING_SOON = /^(1|true|on|si)$/i.test(process.env.COMING_SOON || '');
-const CS_STATIC = ['/', '/admin', '/admin/', '/admin.html', '/presto.html', '/assets/hero-yacht.jpeg'];
+const CS_STATIC = ['/', '/admin', '/admin/', '/admin.html', '/presto.html', '/assets/hero-yacht.jpeg', '/assets/angelo.jpg'];
 const CS_API = ['/api/login', '/api/richieste', '/api/stripe/webhook'];
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_URL = process.env.REPLIT_DB_URL || '';
