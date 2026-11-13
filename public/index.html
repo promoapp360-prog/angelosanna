@@ -648,13 +648,13 @@ footer a:hover{color:#fff}
   </div>
 </section>
 
-<!-- CORSO ONLINE: CARRELLO E PAGAMENTI (prodotti gestiti dall'admin, pagamenti con Stripe) -->
+<!-- CORSO ONLINE: CARRELLO E PAGAMENTI (checkout Shopify) -->
 <section class="shop" id="shop">
   <div class="wrap">
     <div class="reveal">
       <div class="eyebrow">Corso online</div>
       <h2>Acquista il corso online.</h2>
-      <p class="lead">Scegli il corso, aggiungilo al carrello e paga in modo sicuro in pochi minuti: con carta, con PayPal oppure a rate con Klarna.</p>
+      <p class="lead">Scegli il corso, aggiungilo al carrello e completa il pagamento nel checkout sicuro di Shopify.</p>
     </div>
     <div id="shopMsg" role="status" aria-live="polite"></div>
     <div class="shopgrid">
@@ -672,7 +672,7 @@ footer a:hover{color:#fff}
           <button class="btn btn-gold" id="payBtn" type="submit">Procedi al pagamento</button>
           <a class="btn btn-navy" id="waOrder" href="#" target="_blank" rel="noopener noreferrer" style="display:none">Ordina su WhatsApp</a>
           <small id="cErr" style="color:var(--red);display:none;margin-top:10px"></small>
-          <div class="secure"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="paymentNote">Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.</span></div>
+          <div class="secure"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="paymentNote">Pagamento sicuro nel checkout Shopify; i dati di pagamento non passano dal nostro sito.</span></div>
         </form>
       </aside>
     </div>
@@ -680,26 +680,26 @@ footer a:hover{color:#fff}
     <div class="paygrid">
       <div class="pay reveal">
         <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></svg></div>
-        <h3>Carta, Apple Pay e Google Pay</h3>
-        <p>Carte di credito e debito, anche con un tocco dal tuo smartphone.</p>
+        <h3>Pagamento protetto da Shopify</h3>
+        <p>Completa il pagamento nel checkout Shopify; i dati di pagamento non passano dal nostro sito.</p>
       </div>
       <div class="pay hl reveal">
         <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></div>
-        <h3>Klarna · Paga in 3 rate</h3>
-        <p>Dividi l'importo in 3 rate senza interessi*. Scegli Klarna nella pagina di pagamento: noi incassiamo subito, tu paghi a rate.</p>
+        <h3>Metodi disponibili al checkout</h3>
+        <p>Shopify mostra le opzioni di pagamento disponibili per lo store e per il tuo ordine.</p>
       </div>
       <div class="pay reveal">
         <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 20 9.5 5h6a3.5 3.5 0 0 1 0 7H11"/><path d="M4.5 20 7 8"/></svg></div>
-        <h3>PayPal</h3>
-        <p>Paga con il tuo conto PayPal. Se disponibile per il tuo ordine, puoi scegliere anche il pagamento a rate di PayPal.</p>
+        <h3>Ordine registrato su Shopify</h3>
+        <p>Shopify gestisce il pagamento e invia la ricevuta all'indirizzo email indicato.</p>
       </div>
       <div class="pay reveal">
         <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
-        <h3>Sicuro con Stripe</h3>
-        <p>Il pagamento avviene sulla pagina protetta di Stripe. Dopo l'acquisto riceviamo il tuo ordine e ti scriviamo per l'accesso al corso.</p>
+        <h3>Accesso al corso</h3>
+        <p>Dopo l'acquisto ti contattiamo per inviarti le istruzioni di accesso.</p>
       </div>
     </div>
-    <p class="paynote">*Il pagamento a rate è soggetto ad approvazione del fornitore (Klarna o PayPal), al suo limite di importo e alle sue condizioni. I metodi disponibili vengono mostrati nella pagina di pagamento in base all'importo dell'ordine.</p>
+    <p class="paynote">I metodi disponibili e le relative condizioni vengono mostrati nel checkout Shopify prima del pagamento.</p>
   </div>
 </section>
 
@@ -900,9 +900,9 @@ footer a:hover{color:#fff}
     if(requestData)showRequestActions(requestData);
   });
 
-  /* Corso online: prodotti, carrello e checkout Stripe */
+  /* Corso online: prodotti, carrello e checkout Shopify */
   (function(){
-    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, loaded=false, cart=[], msg=null;
+    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, provider='shopify', loaded=false, cart=[], msg=null;
     try{cart=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){cart=[]}
     if(!Array.isArray(cart))cart=[];
     var $=function(id){return document.getElementById(id)};
@@ -947,15 +947,14 @@ footer a:hover{color:#fff}
         return '<div class="ci"><b>'+esc(p.titolo)+'</b><span class="amt">'+esc(eur(p.prezzo*l.qty))+'</span>'+
           '<div class="ctl"><div class="qty"><button type="button" data-dec="'+esc(l.id)+'" aria-label="'+esc(t('Meno'))+'">−</button><span>'+l.qty+'</span><button type="button" data-inc="'+esc(l.id)+'" aria-label="'+esc(t('Più'))+'">+</button></div>'+
           '<button type="button" class="rm" data-del="'+esc(l.id)+'">'+esc(t('Rimuovi'))+'</button></div></div>'}).join('');
-      var tot=total(), rata=Math.ceil(tot/3);
-      $('cartTotals').innerHTML='<div class="tot"><span>'+esc(t('Totale'))+'</span><b>'+esc(eur(tot))+'</b></div>'+
-        (tot>=3000&&tot<=150000?'<div class="rate">'+esc(t('Oppure 3 rate da circa {x} con Klarna*',{x:eur(rata)}))+'</div>':'');
+      var tot=total();
+      $('cartTotals').innerHTML='<div class="tot"><span>'+esc(t('Totale'))+'</span><b>'+esc(eur(tot))+'</b></div>';
       form.style.display='block';
       $('payBtn').textContent=payButtonText();
       $('payBtn').style.display=pagamenti?'':'none';
       var wa=$('waOrder'); wa.style.display=pagamenti?'none':'';
       wa.href='https://wa.me/393208877838?text='+encodeURIComponent(t('Ciao Chef Angelo, vorrei acquistare il corso online:')+'\n'+rows.map(function(l){return '- '+find(l.id).titolo+' x'+l.qty}).join('\n')+'\n'+t('Totale')+': '+eur(tot));
-      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):pagamenti?t('Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.'):t('Per ora ordina tramite WhatsApp; nessun pagamento online.');
+      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):pagamenti&&provider==='shopify'?t('Pagamento sicuro nel checkout Shopify; i dati di pagamento non passano dal nostro sito.'):t('Per ora ordina tramite WhatsApp; nessun pagamento online.');
       if(!pagamenti){$('cErr').style.display='block';$('cErr').style.color='var(--muted)';$('cErr').textContent=t('I pagamenti online sono in attivazione: per ora puoi ordinare scrivendo su WhatsApp.')}
       else $('cErr').style.display='none';
     }
@@ -998,7 +997,7 @@ footer a:hover{color:#fff}
       renderAll(); var b=$('payBtn'); if(b.disabled)b.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
     });
 
-    // Ritorno da Stripe
+    // L'esito del pagamento Shopify e la ricevuta sono gestiti dal checkout Shopify.
     var qs=new URLSearchParams(location.search), st=qs.get('ordine');
     function cleanUrl(){['ordine','o','session_id'].forEach(function(k){qs.delete(k)});var s=qs.toString();try{history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash)}catch(e){}}
     if(st==='annullato'){msg={kind:'cancel'};cleanUrl()}
@@ -1011,7 +1010,7 @@ footer a:hover{color:#fff}
       cleanUrl();
     }
     renderAll();
-    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
+    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;provider=s.provider||'shopify';loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
     if(msg)$('shop').scrollIntoView();
   })();
 

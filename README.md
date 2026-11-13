@@ -34,22 +34,15 @@ Il pannello si apre da `tuo-sito/admin` (link "Admin" in fondo alla pagina).
 - `public/assets/video/`: video testimonianze (`t1`–`t5`) e video di gruppo, con le relative copertine `.jpg`.
 - Per aggiungere una testimonianza: copiare il video in `public/assets/video/`, creare la copertina e duplicare un pulsante `.tcard` in `public/index.html`.
 
-## Corso online, carrello e pagamenti (Stripe)
+## Corso online, carrello e pagamenti (Shopify)
 
-Il sito ha una sezione **Corso online** con carrello. Il cliente paga sulla pagina protetta di **Stripe Checkout**: carta, Apple Pay / Google Pay, **Klarna (Paga in 3 rate)** e **PayPal**. I dati della carta non passano mai dal nostro server.
+Il sito ha una sezione **Corso online** con carrello e collegamento al checkout ospitato da Shopify. Il prezzo previsto è **890 €**. Il prodotto Shopify è predisposto ma resta in bozza finché la valuta dello store non sarà impostata su **EUR**. Shopify gestirà pagamento, ricevuta e ordine. I dati di pagamento non passano dal server del sito.
 
-**Attivazione (una volta sola):**
-1. Su Stripe prendi la chiave segreta (`sk_live_…`, oppure `sk_test_…` per provare) e mettila nei **Secrets di Replit** come `STRIPE_SECRET_KEY`.
-2. Nella dashboard Stripe, *Impostazioni → Metodi di pagamento*: attiva **Klarna** e **PayPal** (Stripe le mostra al cliente solo se l'importo è idoneo; Klarna Paga in 3 rate in Italia va da 1 a 1.500 €).
-3. Webhook: in Stripe, *Sviluppatori → Webhook → Aggiungi endpoint* `https://TUO-SITO/api/stripe/webhook`, evento `checkout.session.completed` (aggiungi anche `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`). Copia il segreto `whsec_…` nei Secrets come `STRIPE_WEBHOOK_SECRET`.
-4. (Facoltativo) `SITE_URL` con l'indirizzo pubblico, es. `https://angelosanna.com`, se i link di ritorno da Stripe non sono corretti.
-5. Riavvia. Da **/admin → Corso online** puoi modificare **titolo, descrizione, cosa include e prezzo**. Il prezzo iniziale del corso è **890 €**.
+Per completare l'attivazione, rivendica lo store dal link ricevuto da Shopify, imposta la valuta su **EUR**, conferma il prezzo di **890 €** e pubblica il prodotto nel canale Replit. Configura Shopify Payments e gli altri metodi che vuoi offrire nella dashboard Shopify. Fuori dalla modalità simulata, gli aggiornamenti al corso da **/admin → Corso online** vengono sincronizzati su Shopify; la sincronizzazione rifiuta una valuta diversa da EUR.
 
-Senza `STRIPE_SECRET_KEY` il carrello resta visibile ma il cliente può solo ordinare via WhatsApp.
+**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. Il prezzo di 890 € è salvato come prezzo del corso; la modalità simulata non contatta Shopify, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
 
-**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. Il prezzo di 890 € è salvato come prezzo del corso; la modalità simulata non contatta Stripe, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
-
-**Ordini:** compaiono in **/admin → Corso online → Ordini** (in attesa, pagato, annullato, rimborsato, simulato). Il pagamento si conferma anche senza webhook quando il cliente torna sul sito; il webhook serve se chiude la pagina prima. I rimborsi si fanno dalla dashboard Stripe, poi segna l'ordine "Rimborsato".
+**Ordini:** gli acquisti Shopify e i relativi stati si gestiscono nella dashboard Shopify. La tabella ordini del pannello **/admin** mostra gli ordini locali e simulati, non importa automaticamente gli ordini Shopify.
 
 **Da completare prima di incassare:** pagine legali (condizioni di vendita, diritto di recesso per contenuti digitali, privacy) e fatturazione: il sito non le genera.
 

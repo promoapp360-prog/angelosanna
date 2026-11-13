@@ -462,9 +462,11 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     var n=$('nOrd');n.textContent=pagati.length;n.style.display=pagati.length?'':'none';
     $('payStatus').innerHTML=shopInfo.simulazione
       ? '<div class="warnbox"><b>Modalità simulata attiva.</b> I checkout di prova non effettuano addebiti e gli ordini “simulato” non vengono conteggiati negli incassi.</div>'
+      : shopInfo.pagamenti&&shopInfo.provider==='shopify'
+      ? '<div class="okbox">✓ Checkout Shopify attivo. Shopify gestisce pagamenti, ricevute e ordini; qui sono mostrati solo gli ordini locali o simulati.</div>'
       : shopInfo.pagamenti
-      ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
-      : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Il carrello è visibile ma i clienti possono solo ordinare via WhatsApp. Aggiungi <code>STRIPE_SECRET_KEY</code> nei Secrets di Replit (e poi <code>STRIPE_WEBHOOK_SECRET</code>), riavvia e attiva Klarna e PayPal dalla dashboard Stripe. Istruzioni nel README.</div>';
+      ? '<div class="okbox">✓ Pagamenti simulati attivi. Nessun addebito reale viene effettuato.</div>'
+      : '<div class="warnbox"><b>Checkout Shopify non ancora disponibile.</b> Verifica che lo store sia stato rivendicato e che il prodotto del corso sia pubblicato nel canale Replit. Nel frattempo i clienti possono ordinare via WhatsApp.</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+'</h3>'+
         '<div class="meta"><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span></div>'+
