@@ -19,9 +19,10 @@ html,body{min-height:100%}
 body{font-family:'Poppins',system-ui,sans-serif;color:#fff;background:var(--abyss)}
 .hero{min-height:100vh;min-height:100svh;position:relative;display:flex;flex-direction:column;
   background:linear-gradient(180deg,rgba(1,42,87,.55) 0%,rgba(1,42,87,.78) 55%,rgba(1,26,56,.95) 100%),url(/assets/hero-yacht.jpeg) center/cover}
-.top{display:flex;align-items:center;gap:14px;padding:26px clamp(20px,5vw,64px)}
-.logo{width:46px;height:46px;border:1.5px solid #fff;border-radius:50%;display:grid;place-items:center;font:400 1.35rem 'Playfair Display',serif}
-.top span{font-weight:500;letter-spacing:.02em}
+.top{display:flex;align-items:center;gap:20px;padding:30px clamp(20px,5vw,64px) 6px}
+.logo{flex:none;width:clamp(76px,10vw,104px);height:clamp(76px,10vw,104px);border:2px solid #fff;border-radius:50%;display:grid;place-items:center;font:400 clamp(2.2rem,4.4vw,3.2rem) 'Playfair Display',serif;background:rgba(1,42,87,.45);box-shadow:0 0 0 6px rgba(255,255,255,.14),0 14px 34px rgba(0,0,0,.35)}
+.brand b{display:block;font-weight:700;font-size:clamp(1.35rem,3.4vw,2.1rem);letter-spacing:.16em;text-transform:uppercase;line-height:1.1}
+.brand span{display:block;margin-top:6px;font-weight:500;font-size:clamp(.78rem,1.6vw,.95rem);letter-spacing:.28em;text-transform:uppercase;color:var(--sky2)}
 .main{flex:1;display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,5vw,72px);padding:20px clamp(20px,5vw,64px) 40px}
 .angelo{flex:none;width:min(34vw,400px);position:relative}
 .angelo img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:60% 30%;border-radius:26px;border:1px solid rgba(255,255,255,.35);box-shadow:0 30px 70px rgba(0,0,0,.45)}
@@ -68,7 +69,7 @@ button:disabled{opacity:.6;cursor:wait}
 </head>
 <body>
 <div class="hero" id="hero">
-  <div class="top"><div class="logo">AS</div><span>Chef Angelo Sanna · Chef on Board</span></div>
+  <div class="top"><div class="logo">AS</div><div class="brand"><b>Angelo Sanna</b><span>Chef on Board</span></div></div>
   <div class="main"><div class="box">
     <div class="eyebrow">Novità in arrivo</div>
     <h1>Stiamo costruendo la <em>nuova piattaforma</em> dei corsi.</h1>
