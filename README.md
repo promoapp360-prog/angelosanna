@@ -36,7 +36,7 @@ Il pannello si apre da `tuo-sito/admin` (link "Admin" in fondo alla pagina).
 
 ## Shop, prodotti e pagamenti (Stripe)
 
-La sezione **Shop** mostra tutti i prodotti pubblicati. Da **/admin → Shop e prodotti** si possono aggiungere, modificare, pubblicare o nascondere prodotti con titolo, descrizione, prezzo e contenuti inclusi. Il prodotto iniziale è il corso online a **890 €**.
+La sezione **Shop** è divisa in **Corsi** e **Prodotti**. Da **/admin → Shop e prodotti** si possono aggiungere, modificare, pubblicare o nascondere articoli e assegnarli a una categoria, con titolo, descrizione, prezzo e dettagli. Il prodotto iniziale è il corso online a **890 €**.
 
 Il pagamento avviene su **Stripe Checkout**. Per attivare gli addebiti reali, aggiungi la chiave `STRIPE_SECRET_KEY` nei Secrets di Replit; per le conferme automatiche via webhook aggiungi `STRIPE_WEBHOOK_SECRET`. Klarna e PayPal vanno abilitati nella dashboard Stripe.
 

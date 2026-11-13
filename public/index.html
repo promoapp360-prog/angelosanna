@@ -234,6 +234,10 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .cartbox .country-value{padding:11px 0 0;font-weight:500}
 .cartbox .order-data-note{display:block;margin-top:12px;color:var(--muted);font-size:.78rem;line-height:1.5}
 .cartbox .consent{display:flex}
+.shop-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 18px}
+.shop-tab{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:10px 20px;font:600 .92rem var(--sans);cursor:pointer}
+.shop-tab[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.shop-tab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .cartbox .btn{width:100%;justify-content:center;margin-top:18px}
 .cartbox .btn[disabled]{opacity:.6;cursor:wait}
 .secure{display:flex;gap:8px;align-items:center;justify-content:center;font-size:.8rem;color:var(--muted);margin-top:14px;text-align:center}
@@ -660,6 +664,10 @@ footer a:hover{color:#fff}
       <h2>Lo shop di Chef Angelo Sanna.</h2>
       <p class="lead">Scopri i prodotti e acquistali in modo sicuro con Stripe.</p>
     </div>
+    <div class="shop-tabs" id="shopTabs" role="group" aria-label="Categorie shop">
+      <button class="shop-tab" type="button" data-shop-category="corso" aria-pressed="true">Corsi</button>
+      <button class="shop-tab" type="button" data-shop-category="prodotto" aria-pressed="false">Prodotti</button>
+    </div>
     <div id="shopMsg" role="status" aria-live="polite"></div>
     <div class="shopgrid">
       <div id="shopList"></div>
@@ -920,7 +928,7 @@ footer a:hover{color:#fff}
 
   /* Shop: prodotti, carrello e checkout Stripe */
   (function(){
-    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, loaded=false, cart=[], msg=null;
+    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, loaded=false, cart=[], msg=null, categoria='corso';
     try{cart=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){cart=[]}
     if(!Array.isArray(cart))cart=[];
     var $=function(id){return document.getElementById(id)};
@@ -947,8 +955,9 @@ footer a:hover{color:#fff}
     function renderProds(){
       var box=$('shopList');
       if(!loaded){box.innerHTML='<div class="empty">'+esc(t('Caricamento…'))+'</div>';return}
-       if(!prods.length){box.innerHTML='<div class="empty"><h3 style="margin-bottom:8px">'+esc(t('Nuovi prodotti in arrivo'))+'</h3>'+esc(t('Lascia i tuoi dati nel modulo e sarai tra i primi a saperlo.'))+'<div style="margin-top:18px"><a class="btn btn-navy" href="#iscriviti">'+esc(t('Avvisami'))+'</a></div></div>';return}
-      box.innerHTML=prods.map(function(p){
+      var filtered=prods.filter(function(p){return (p.categoria||(p.id==='corso-online'?'corso':'prodotto'))===categoria});
+      if(!filtered.length){var empty=categoria==='corso'?'Nuovi corsi nello shop in arrivo':'Nuovi prodotti in arrivo';box.innerHTML='<div class="empty"><h3 style="margin-bottom:8px">'+esc(t(empty))+'</h3>'+esc(t('Lascia i tuoi dati nel modulo e sarai tra i primi a saperlo.'))+'<div style="margin-top:18px"><a class="btn btn-navy" href="#iscriviti">'+esc(t('Avvisami'))+'</a></div></div>';return}
+      box.innerHTML=filtered.map(function(p){
         var inc=(p.include&&p.include.length)?'<ul>'+p.include.map(function(i){return '<li>'+esc(i)+'</li>'}).join('')+'</ul>':'';
         if(p.richiedeSpedizione)inc+='<p class="shipping-note">'+esc(t('Indirizzo di consegna in Italia richiesto'))+'</p>';
         var buy=p.prezzo>0
@@ -981,6 +990,12 @@ footer a:hover{color:#fff}
     }
     function renderAll(){renderMsg();renderProds();renderCart()}
 
+    $('shopTabs').addEventListener('click',function(e){
+      var b=e.target.closest('[data-shop-category]');if(!b)return;
+      categoria=b.getAttribute('data-shop-category');
+      $('shopTabs').querySelectorAll('[data-shop-category]').forEach(function(tab){tab.setAttribute('aria-pressed',String(tab===b))});
+      renderProds();
+    });
     $('shopList').addEventListener('click',function(e){
       var b=e.target.closest('[data-add]'); if(!b)return;
       var id=b.getAttribute('data-add');

@@ -210,13 +210,25 @@ const DEFAULT_PRODOTTI = [{
   id: 'corso-online', creato: new Date().toISOString(), pubblicato: true, prezzo: 89000,
   titolo: 'Chef on Board — Corso online',
   descrizione: 'Il metodo di Chef Angelo Sanna per diventare Private Chef su yacht e ville di lusso, da seguire online quando vuoi.',
-  include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'], richiedeSpedizione: false,
+  include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'],
+  categoria: 'corso', richiedeSpedizione: false,
 }];
 async function getStoredProdotti() {
   let list = await load('prodotti', null);
   if (!list) {
     list = DEFAULT_PRODOTTI;
     await save('prodotti', list);
+  }
+  if (Array.isArray(list)) {
+    let changed = false;
+    list = list.map(p => {
+      const categoria = p.categoria === 'corso' || p.categoria === 'prodotto'
+        ? p.categoria : p.id === 'corso-online' ? 'corso' : 'prodotto';
+      const richiedeSpedizione = p.richiedeSpedizione === true;
+      if (p.categoria !== categoria || p.richiedeSpedizione !== richiedeSpedizione) changed = true;
+      return { ...p, categoria, richiedeSpedizione };
+    });
+    if (changed) await save('prodotti', list);
   }
   if (!(await load(COURSE_PRICE_MIGRATION_KEY, false)) && Array.isArray(list)) {
     const index = list.findIndex(p => p.id === 'corso-online');
@@ -249,11 +261,12 @@ function cleanProdotto(b) {
     descrizione: str(b.descrizione, 1500),
     include,
     prezzo: toCents(b.prezzo),
+    categoria: b.categoria === 'corso' ? 'corso' : 'prodotto',
     richiedeSpedizione: b.richiedeSpedizione === true,
     pubblicato: b.pubblicato !== false,
   };
 }
-const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, richiedeSpedizione: p.richiedeSpedizione === true });
+const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true });
 
 // Stripe vuole i parametri in form-encoding con parentesi quadre per oggetti e array.
 function formEncode(obj, prefix, out) {

@@ -241,6 +241,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   <form class="sheet" id="pform">
     <h2 id="pTitle">Nuovo prodotto</h2>
     <div class="grid" style="margin-top:14px">
+      <div class="full"><label for="pCategoria">Categoria</label><select id="pCategoria"><option value="prodotto">Prodotto</option><option value="corso">Corso</option></select></div>
       <div class="full"><label for="pTitolo">Titolo</label><input type="text" id="pTitolo" placeholder="Es. Felpa Chef on Board" required></div>
       <div><label for="pPrezzo">Prezzo in euro <small>(0 = non acquistabile)</small></label><input type="text" id="pPrezzo" inputmode="decimal" placeholder="Es. 490 oppure 490,50"></div>
       <div class="full"><label for="pDesc">Descrizione</label><textarea id="pDesc" rows="3"></textarea></div>
@@ -469,7 +470,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     $('payStatus').innerHTML+='<div class="okbox">Il checkout richiede il codice fiscale per ogni ordine e l’indirizzo in Italia solo per i prodotti contrassegnati come fisici. Il sito non calcola le spese né gestisce corrieri o tracciamento.</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+'</h3>'+
-        '<div class="meta"><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Indirizzo richiesto · Italia':'Digitale / senza consegna')+'</span></div>'+
+        '<div class="meta"><span>'+(p.categoria==='corso'?'Corso':'Prodotto')+'</span><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Indirizzo richiesto · Italia':'Senza spedizione')+'</span></div>'+
         (p.descrizione?'<div class="note">'+esc(p.descrizione)+'</div>':'')+
         (p.include&&p.include.length?'<div class="chips">'+p.include.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+'</div>'+
         '<div class="acts"><button class="btn btn-line btn-sm" data-pedit="'+p.id+'">Modifica</button><button class="btn btn-red btn-sm" data-pdel="'+p.id+'">Elimina</button></div></div>';
@@ -489,6 +490,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   }
   function openProd(p){
     editProd=p?p.id:null;$('pTitle').textContent=p?'Modifica prodotto':'Nuovo prodotto';$('perr').textContent='';
+    $('pCategoria').value=p&&p.categoria==='corso'?'corso':'prodotto';
     $('pTitolo').value=p?p.titolo:'';$('pPrezzo').value=p&&p.prezzo?String(p.prezzo/100).replace('.',','):'';
     $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;$('pShip').checked=!!(p&&p.richiedeSpedizione);
     $('mProd').classList.add('open');$('pTitolo').focus();
@@ -504,7 +506,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   });
   $('pform').addEventListener('submit',function(e){
     e.preventDefault();
-    var d={titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked};
+    var d={categoria:$('pCategoria').value,titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked};
     if(!d.titolo.trim()){$('perr').textContent='Inserisci il titolo.';return}
     $('pSave').disabled=true;
     api(editProd?'PUT':'POST','/api/admin/prodotti'+(editProd?'/'+editProd:''),d).then(function(){$('mProd').classList.remove('open');toast('Prodotto salvato');loadShop()})
