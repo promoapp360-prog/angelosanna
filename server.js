@@ -15,7 +15,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 // COMING_SOON=1 → online c'è SOLO la pagina "stiamo arrivando" (public/presto.html); il resto del sito resta nascosto.
 // /admin continua a funzionare. Togli la variabile (o mettila a 0) per mostrare il sito completo.
 const COMING_SOON = /^(1|true|on|si)$/i.test(process.env.COMING_SOON || '');
-const CS_STATIC = ['/', '/admin', '/admin/', '/admin.html', '/presto.html', '/assets/hero-yacht.jpeg', '/assets/angelo.jpg'];
+const CS_STATIC = ['/', '/admin', '/admin/', '/admin.html', '/privacy', '/privacy.html', '/cookies', '/cookies.html', '/legal.css', '/legal.js', '/presto.html', '/assets/hero-yacht.jpeg', '/assets/angelo.jpg'];
 const CS_API = ['/api/login', '/api/richieste', '/api/stripe/webhook'];
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_URL = process.env.REPLIT_DB_URL || '';
@@ -170,6 +170,8 @@ function serveStatic(req, res, pathname) {
   }
   if (pathname === '/') pathname = COMING_SOON ? '/presto.html' : '/index.html';
   if (pathname === '/admin' || pathname === '/admin/') pathname = '/admin.html';
+  if (pathname === '/privacy') pathname = '/privacy.html';
+  if (pathname === '/cookies') pathname = '/cookies.html';
   const file = path.normalize(path.join(PUBLIC_DIR, decodeURIComponent(pathname)));
   if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
   fs.stat(file, (err, st) => {
@@ -342,6 +344,7 @@ async function api(req, res, url) {
   if (p === '/api/checkout' && m === 'POST') {
     const b = await readBody(req);
     if (str(b.website)) return send(res, 200, { ok: true }); // trappola anti-spam
+    if (b.maggiorenne !== true) return send(res, 400, { error: 'Per acquistare devi avere almeno 18 anni.' });
     if (!STRIPE_KEY && !SIMULATED_PAYMENTS) return send(res, 503, { error: 'Pagamenti online non ancora attivi. Scrivici su WhatsApp per iscriverti.' });
     const prodotti = await getProdotti();
     const righe = [];
@@ -366,7 +369,6 @@ async function api(req, res, url) {
     if (richiedeSpedizione && (!spedizione.via || !/^\d{5}$/.test(spedizione.cap) || !spedizione.citta || !spedizione.provincia)) {
       return send(res, 400, { error: 'Inserisci un indirizzo di consegna completo in Italia.' });
     }
-    if (b.accetto !== true) return send(res, 400, { error: 'Devi accettare le condizioni per procedere.' });
     const totale = righe.reduce((s, r) => s + r.prezzo * r.qty, 0);
     const lang = b.lang === 'en' ? 'en' : 'it';
     const ordine = {
@@ -445,6 +447,7 @@ async function api(req, res, url) {
   if (p === '/api/richieste' && m === 'POST') {
     const b = await readBody(req);
     if (str(b.website)) return send(res, 200, { ok: true }); // campo trappola anti-spam
+    if (b.consensoPrivacy !== true) return send(res, 400, { error: 'Acconsenti al trattamento per essere ricontattato.' });
     const corsi = await load('corsi', []);
     const corsoId = corsi.some(c => c.id === b.corsoId) ? b.corsoId : '';
     const r = {

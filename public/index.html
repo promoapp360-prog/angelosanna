@@ -282,9 +282,11 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .contacts a:hover{opacity:1;text-decoration:underline}
 
 footer{background:#010f22;color:rgba(255,255,255,.6);padding:36px 0 40px;font-size:.88rem}
-footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center}
+footer .wrap{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
 footer a{color:rgba(255,255,255,.45);text-decoration:none}
 footer a:hover{color:#fff}
+.footer-meta{grid-column:1/-1;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;font-size:.78rem}
+@media(max-width:680px){footer .wrap{grid-template-columns:1fr}.footer-meta{grid-column:auto}}
 
 .mcta{display:none}
 .whatsapp-float{position:fixed;right:22px;bottom:22px;z-index:70;width:58px;height:58px;display:grid;place-items:center;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:transform .15s ease,background .15s}
@@ -694,7 +696,8 @@ footer a:hover{color:#fff}
           </div>
           <small class="order-data-note">Il codice fiscale sarà salvato con l'ordine. Per i prodotti fisici raccogliamo anche l'indirizzo di consegna in Italia; spese e corriere non sono gestiti dal sito.</small>
           <input class="hp" id="cWeb" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <label class="consent"><input type="checkbox" id="cAccetto"> Accetto le condizioni di vendita e l'informativa sulla privacy.</label>
+          <label class="consent"><input type="checkbox" id="cAccetto" required> Dichiaro di avere almeno 18 anni.</label>
+          <small class="order-data-note">Consulta l'<a href="/privacy">informativa privacy</a> per sapere come trattiamo i tuoi dati.</small>
           <button class="btn btn-gold" id="payBtn" type="submit">Procedi al pagamento</button>
           <a class="btn btn-navy" id="waOrder" href="#" target="_blank" rel="noopener noreferrer" style="display:none">Ordina su WhatsApp</a>
           <small id="cErr" style="color:var(--red);display:none;margin-top:10px"></small>
@@ -824,7 +827,7 @@ footer a:hover{color:#fff}
         <label for="citta">Città</label><input id="citta" name="citta" autocomplete="address-level2">
         <label for="note">Domande o note</label><textarea id="note" name="note" rows="3"></textarea>
         <input class="hp" id="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <label class="consent"><input type="checkbox" id="privacy" required> Acconsento al trattamento dei miei dati per essere ricontattato riguardo al corso.</label>
+        <label class="consent"><input type="checkbox" id="privacy" required> Acconsento al trattamento dei miei dati per essere ricontattato riguardo al corso. <a href="/privacy">Informativa privacy</a>.</label>
         <button class="btn btn-gold" type="submit" id="sendBtn">Voglio ricevere le info</button>
         <small id="err" style="color:var(--red);display:none;margin-top:10px">Compila nome, telefono, email e accetta il consenso.</small>
       </form>
@@ -856,6 +859,10 @@ footer a:hover{color:#fff}
   <div class="wrap">
     <div style="display:flex;align-items:center;gap:12px"><svg width="34" height="28" style="color:#fff"><use href="#as"/></svg> © <span id="y"></span> Chef Angelo Sanna · Chef on Board</div>
     <div>chef@angelosanna.com · @angelosannachef · <a href="/admin">Admin</a></div>
+    <div class="footer-meta">
+      <span>Ditta individuale SANNA ANGELO · P.IVA 03079060905 · S.V. Prunizzedda Serra Secca n. 14, 07100 Sassari (SS), Italia</span>
+      <span><a href="/privacy">Privacy</a> · <a href="/cookies">Cookie</a> · <a href="mailto:yachtchefangelosanna@gmail.com">Contatti privacy</a></span>
+    </div>
   </div>
 </footer>
 
@@ -1019,10 +1026,10 @@ footer a:hover{color:#fff}
       if(!/^(?:[A-Z0-9]{16}|\d{11})$/.test(cf)){err.textContent=t('Inserisci un codice fiscale valido.');err.style.display='block';return}
       var shipping=requiresShipping();
       if(shipping&&(!v('cVia')||!/^\d{5}$/.test(v('cCap'))||!v('cCity')||!v('cProvince'))){err.textContent=t('Inserisci un indirizzo di consegna completo in Italia.');err.style.display='block';return}
-      if(!$('cAccetto').checked){err.textContent=t('Devi accettare le condizioni per procedere.');err.style.display='block';return}
+      if(!$('cAccetto').checked){err.textContent=t('Per acquistare devi avere almeno 18 anni.');err.style.display='block';return}
       err.style.display='none'; btn.disabled=true; btn.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
       function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=m||t('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.');err.style.display='block'}
-      fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),codiceFiscale:cf,spedizione:shipping?{via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince'),paese:'IT'}:null,accetto:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
+      fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),codiceFiscale:cf,spedizione:shipping?{via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince'),paese:'IT'}:null,maggiorenne:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
         .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
         .then(function(x){
           if(x.ok&&x.j.simulato){
@@ -1077,7 +1084,7 @@ footer a:hover{color:#fff}
     var ok=v('nome')&&v('tel')&&/\S+@\S+\.\S+/.test(v('email'))&&document.getElementById('privacy').checked;
     document.getElementById('err').style.display=ok?'none':'block';
     if(!ok) return;
-    var data={nome:v('nome'),tel:v('tel'),email:v('email'),corsoId:v('corso'),corso:(sel.value?sel.options[sel.selectedIndex].textContent:''),ruolo:v('ruolo'),anni:v('anni'),citta:v('citta'),note:v('note'),website:v('website')};
+    var data={nome:v('nome'),tel:v('tel'),email:v('email'),corsoId:v('corso'),corso:(sel.value?sel.options[sel.selectedIndex].textContent:''),ruolo:v('ruolo'),anni:v('anni'),citta:v('citta'),note:v('note'),consensoPrivacy:true,website:v('website')};
     var btn=document.getElementById('sendBtn'); btn.disabled=true; btn.textContent=t('Invio in corso…');
     function tracked(){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','generate_lead')}catch(e){}}
     fetch('/api/richieste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})

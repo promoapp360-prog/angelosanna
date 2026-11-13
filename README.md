@@ -46,7 +46,9 @@ Il pagamento avviene su **Stripe Checkout**. Per attivare gli addebiti reali, ag
 
 Nell'admin, spunta **Richiede indirizzo di spedizione** per i prodotti fisici; per gli altri prodotti il cliente non deve inserire un indirizzo. Il sito non calcola le spese di spedizione e non gestisce corrieri, tracking o evasione degli ordini.
 
-**Da completare prima di incassare:** pagine legali (condizioni di vendita, diritto di recesso per contenuti digitali, privacy) e fatturazione: il sito non le genera.
+Le pagine **/privacy** e **/cookies** sono disponibili in italiano e inglese; sono bozze informative da far verificare. Lo shop accetta solo acquirenti maggiorenni e il server verifica la dichiarazione prima di creare un ordine.
+
+**Da completare prima di incassare:** condizioni di vendita, diritto di recesso e regole per i contenuti digitali, oltre alla fatturazione: il sito non le genera. Aggiornare l'informativa prima di attivare strumenti pubblicitari o analytics.
 
 ## Pubblicare solo la pagina "stiamo arrivando"
 
