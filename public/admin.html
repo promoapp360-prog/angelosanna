@@ -247,6 +247,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       <div class="full"><label for="pDesc">Descrizione</label><textarea id="pDesc" rows="3"></textarea></div>
       <div class="full"><label for="pInc">Dettagli / caratteristiche <small>(uno per riga)</small></label><textarea id="pInc" rows="5" placeholder="Es. Materiale&#10;Taglie disponibili"></textarea></div>
       <div class="full"><label class="check"><input type="checkbox" id="pShip"> Richiede indirizzo di spedizione</label><small>Spunta per i prodotti fisici da consegnare in Italia.</small></div>
+      <div class="full"><label class="check"><input type="checkbox" id="pExample"> Scheda di esempio, non acquistabile</label><small>Togli la spunta solo dopo avere verificato descrizione, prezzo e disponibilità del prodotto reale.</small></div>
       <div class="full"><label class="check"><input type="checkbox" id="pPub" checked> Visibile sul sito</label></div>
     </div>
     <div class="ferr" id="perr"></div>
@@ -470,8 +471,9 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
       : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Il salvataggio di una chiave non abilita gli addebiti: occorre configurare una modalità esplicita. Istruzioni nel README.</div>';
     $('payStatus').innerHTML+='<div class="okbox">Il checkout richiede il codice fiscale per ogni ordine e l’indirizzo in Italia solo per i prodotti contrassegnati come fisici. Il sito non calcola le spese né gestisce corrieri o tracciamento.</div>';
+    $('payStatus').innerHTML+='<div class="'+(shopInfo.emailOrdini?'okbox':'warnbox')+'">'+(shopInfo.emailOrdini?'Servizio email ordini configurato. Le conferme vengono inviate solo per nuovi acquisti reali con pagamento verificato.':'Email ordini non ancora configurate: servono il servizio di invio e un mittente verificato. Gli incassi reali restano bloccati finché la configurazione è incompleta.')+'</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
-      return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+'</h3>'+
+      return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+(p.esempio?'<span class="tag draft">Esempio · non acquistabile</span>':'')+'</h3>'+
         '<div class="meta"><span>'+(p.categoria==='corso'?'Corso':'Prodotto')+'</span><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Indirizzo richiesto · Italia':'Senza spedizione')+'</span></div>'+
         (p.descrizione?'<div class="note">'+esc(p.descrizione)+'</div>':'')+
         (p.include&&p.include.length?'<div class="chips">'+p.include.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+'</div>'+
@@ -480,6 +482,9 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     $('ordList').innerHTML=ordini.length?'<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Articoli</th><th>Totale</th><th>Stato</th><th></th></tr></thead><tbody>'+
       ordini.map(function(o){
         var s=o.spedizione||{}, address=[s.via,s.cap,s.citta,s.provincia].filter(Boolean).join(', ');
+        var emails=o.emailOrdine||{}, emailLabels={inviata:'Accettata dal servizio',errore:'Da riprovare','in attesa':'In attesa'};
+        var emailStatus=o.emailRichiesta&&o.stato==='pagato'?'<div class="src">Email Angelo: '+esc(emailLabels[(emails.angelo||{}).stato]||'In attesa')+'<br>Email cliente: '+esc(emailLabels[(emails.cliente||{}).stato]||'In attesa')+'</div>':'';
+        var retryEmail=o.emailRichiesta&&o.stato==='pagato'&&(!emails.angelo||emails.angelo.stato!=='inviata'||!emails.cliente||emails.cliente.stato!=='inviata');
         return '<tr><td>'+new Date(o.data).toLocaleDateString('it-IT')+'<div class="src">'+new Date(o.data).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</div></td>'+
           '<td><b>'+esc(o.nome)+'</b><div class="src"><a href="mailto:'+esc(o.email)+'">'+esc(o.email)+'</a>'+(o.tel?' · '+esc(o.tel):'')+'</div>'+
           (o.codiceFiscale?'<div class="src"><b>Codice fiscale:</b> '+esc(o.codiceFiscale)+'</div>':'')+
@@ -487,14 +492,14 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
           '<td>'+o.righe.map(function(r){return esc(r.titolo)+' × '+r.qty}).join('<br>')+'</td>'+
           '<td><b>'+eur(o.totale)+'</b>'+(o.metodo?'<div class="src">'+esc(METODI[o.metodo]||o.metodo)+'</div>':'')+'</td>'+
           '<td>'+(o.sandbox?'<div class="src"><b>Sandbox · nessun incasso reale</b></div>':'')+'<select class="'+stCls(o.stato)+'" data-ostato="'+o.id+'">'+ORD_STATI.map(function(s){return '<option value="'+s+'"'+(s===o.stato?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+'</select></td>'+
-          '<td><button class="link" data-odel="'+o.id+'">Elimina</button></td></tr>';
+          '<td>'+emailStatus+(retryEmail?'<button class="btn btn-line btn-sm" data-email="'+esc(o.id)+'">Riprova email mancanti</button><br>':'')+'<button class="link" data-odel="'+o.id+'">Elimina</button></td></tr>';
       }).join('')+'</tbody></table></div>':'<div class="empty">Nessun ordine ancora.</div>';
   }
   function openProd(p){
     editProd=p?p.id:null;$('pTitle').textContent=p?'Modifica prodotto':'Nuovo prodotto';$('perr').textContent='';
     $('pCategoria').value=p&&p.categoria==='corso'?'corso':'prodotto';
     $('pTitolo').value=p?p.titolo:'';$('pPrezzo').value=p&&p.prezzo?String(p.prezzo/100).replace('.',','):'';
-    $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;$('pShip').checked=!!(p&&p.richiedeSpedizione);
+    $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;$('pShip').checked=!!(p&&p.richiedeSpedizione);$('pExample').checked=!!(p&&p.esempio);
     $('mProd').classList.add('open');$('pTitolo').focus();
   }
   $('addProd').onclick=function(){openProd(null)};
@@ -508,7 +513,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   });
   $('pform').addEventListener('submit',function(e){
     e.preventDefault();
-    var d={categoria:$('pCategoria').value,titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked};
+    var d={categoria:$('pCategoria').value,titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked,esempio:$('pExample').checked};
     if(!d.titolo.trim()){$('perr').textContent='Inserisci il titolo.';return}
     $('pSave').disabled=true;
     api(editProd?'PUT':'POST','/api/admin/prodotti'+(editProd?'/'+editProd:''),d).then(function(){$('mProd').classList.remove('open');toast('Prodotto salvato');loadShop()})
@@ -519,6 +524,8 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     api('PUT','/api/admin/ordini/'+s.dataset.ostato,{stato:s.value}).then(function(){toast('Ordine aggiornato');loadShop()}).catch(function(err){toast(err.message);loadShop()});
   });
   $('ordList').addEventListener('click',function(e){
+    var retry=e.target.closest('button[data-email]');
+    if(retry){retry.disabled=true;api('POST','/api/admin/ordini/'+retry.dataset.email+'/email',{}).then(function(){toast('Email mancanti accettate dal servizio');loadShop()}).catch(function(err){toast(err.message);loadShop()});return}
     var b=e.target.closest('button[data-odel]');if(!b)return;
     if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Conferma';setTimeout(function(){if(b.isConnected){b.dataset.confirm='';b.textContent='Elimina'}},3500);return}
     api('DELETE','/api/admin/ordini/'+b.dataset.odel).then(function(){toast('Ordine eliminato');loadShop()}).catch(function(err){toast(err.message)});

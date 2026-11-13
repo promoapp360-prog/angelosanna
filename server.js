@@ -9,6 +9,9 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { createOrderMailer, emailValid } = require('./order-emails');
+const { createOrderNotifications } = require('./order-notifications');
+const { SAMPLE_PRODUCTS_KEY, SAMPLE_PRODUCTS } = require('./sample-products');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -224,14 +227,19 @@ const WEBHOOK_SECRET = PAYMENT_MODE === 'live'
   ? process.env.STRIPE_LIVE_WEBHOOK_SECRET || ''
   : process.env.STRIPE_WEBHOOK_SECRET || '';
 const STRIPE_LIVE_ACCOUNT_ID = process.env.STRIPE_LIVE_ACCOUNT_ID || '';
+const ORDER_MAILER = createOrderMailer({
+  apiKey: process.env.ORDER_EMAIL_RESEND_API_KEY || '',
+  from: process.env.ORDER_EMAIL_FROM || '',
+  transport: (url, options) => fetch(url, options),
+});
 // Una chiave salvata non abilita da sola gli addebiti. Il modo live richiede una scelta esplicita.
 const STRIPE_READY = (STRIPE_SANDBOX && STRIPE_KEY.startsWith('sk_test_')) ||
   (PAYMENT_MODE === 'live' && STRIPE_KEY.startsWith('sk_live_') &&
-    WEBHOOK_SECRET.startsWith('whsec_') && /^acct_[A-Za-z0-9]+$/.test(STRIPE_LIVE_ACCOUNT_ID) && !!DB_URL);
+    WEBHOOK_SECRET.startsWith('whsec_') && /^acct_[A-Za-z0-9]+$/.test(STRIPE_LIVE_ACCOUNT_ID) && !!DB_URL && ORDER_MAILER.ready);
 const PAYMENTS_READY = SIMULATED_PAYMENTS || STRIPE_READY;
 const PAYMENT_UNAVAILABLE = STRIPE_SANDBOX
   ? 'Sandbox Stripe non disponibile: verifica la chiave segreta di test nei Secrets.'
-  : 'Pagamenti online non ancora attivi. Scrivici su WhatsApp per iscriverti.';
+  : 'Pagamenti online non ancora attivi. Riprova dopo l’attivazione del checkout.';
 const ORDINE_STATI = ['in attesa', 'pagato', 'annullato', 'rimborsato', 'simulato'];
 const MAX_QTY = 10;
 
@@ -275,6 +283,14 @@ async function getStoredProdotti() {
       await save(COURSE_PRICE_MIGRATION_KEY, true);
     }
   }
+  if (Array.isArray(list) && !(await load(SAMPLE_PRODUCTS_KEY, false))) {
+    const missing = SAMPLE_PRODUCTS.filter(example => !list.some(p => p.id === example.id));
+    if (missing.length) {
+      list = list.concat(missing.map(p => ({ ...p, creato: new Date().toISOString() })));
+      await save('prodotti', list);
+    }
+    await save(SAMPLE_PRODUCTS_KEY, true);
+  }
   return list;
 }
 async function getProdotti() {
@@ -294,10 +310,11 @@ function cleanProdotto(b) {
     prezzo: toCents(b.prezzo),
     categoria: b.categoria === 'corso' ? 'corso' : 'prodotto',
     richiedeSpedizione: b.richiedeSpedizione === true,
+      esempio: b.esempio === true,
     pubblicato: b.pubblicato !== false,
   };
 }
-const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true });
+const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true, esempio: p.esempio === true });
 
 // Stripe vuole i parametri in form-encoding con parentesi quadre per oggetti e array.
 function formEncode(obj, prefix, out) {
@@ -327,7 +344,7 @@ async function verifyLiveAccount() {
         if (!response.ok || account.id !== STRIPE_LIVE_ACCOUNT_ID || account.charges_enabled !== true) throw new Error();
         liveAccountCheckUntil = Date.now() + 300000;
       } catch (_) {
-        const error = new Error('Account di pagamento non disponibile. Scrivici su WhatsApp.');
+        const error = new Error('Account di pagamento non disponibile. Riprova più tardi.');
         error.code = 503;
         throw error;
       }
@@ -347,7 +364,7 @@ async function stripe(method, endpoint, params) {
     signal: AbortSignal.timeout(20000),
   });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) { console.error('Stripe errore HTTP', r.status); const e = new Error('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.'); e.code = 502; throw e; }
+  if (!r.ok) { console.error('Stripe errore HTTP', r.status); const e = new Error('Pagamento non disponibile al momento. Riprova più tardi o contattaci via email.'); e.code = 502; throw e; }
   if (STRIPE_SANDBOX && j.livemode !== false) {
     const e = new Error('Sessione Stripe rifiutata: la sandbox accetta solo operazioni di test.');
     e.code = 502; throw e;
@@ -374,7 +391,7 @@ async function storeOrdine(ordine) {
   return withOrderWrite(async () => {
     const list = await load('ordini', []);
     list.unshift(ordine);
-    await save('ordini', list.slice(0, 5000));
+    await save('ordini', PAYMENT_MODE === 'live' ? list : list.slice(0, 5000));
   });
 }
 async function setOrdine(id, patch, onlyFrom) {
@@ -423,6 +440,11 @@ async function applySession(s) {
   }
   return o;
 }
+const ORDER_NOTIFICATIONS = createOrderNotifications({
+  mailer: ORDER_MAILER, enabled: PAYMENT_MODE === 'live',
+  loadOrders: () => load('ordini', []),
+  updateOrder: (id, patch) => setOrdine(id, patch),
+});
 
 /* ---------------- API ---------------- */
 async function api(req, res, url) {
@@ -442,6 +464,9 @@ async function api(req, res, url) {
     if (b.maggiorenne !== true) return send(res, 400, { error: 'Per acquistare devi avere almeno 18 anni.' });
     if (!PAYMENTS_READY) return send(res, 503, { error: PAYMENT_UNAVAILABLE });
     const prodotti = await getProdotti();
+    if ((Array.isArray(b.items) ? b.items : []).some(it => prodotti.some(p => p.id === it.id && p.esempio))) {
+      return send(res, 400, { error: 'I prodotti di esempio non sono ancora acquistabili.' });
+    }
     const righe = [];
     (Array.isArray(b.items) ? b.items : []).slice(0, 10).forEach(it => {
       const pr = prodotti.find(x => x.id === it.id && x.pubblicato && x.prezzo > 0);
@@ -459,7 +484,7 @@ async function api(req, res, url) {
       citta: str(indirizzo.citta, 100), provincia: str(indirizzo.provincia, 80), paese: 'IT',
     } : null;
     if (!righe.length) return send(res, 400, { error: 'Il carrello è vuoto.' });
-    if (!nome || !/\S+@\S+\.\S+/.test(email) || tel.length < 5) return send(res, 400, { error: 'Inserisci nome, email e telefono.' });
+    if (!nome || !emailValid(email) || tel.length < 5) return send(res, 400, { error: 'Inserisci nome, email e telefono.' });
     if (!/^(?:[A-Z0-9]{16}|\d{11})$/.test(codiceFiscale)) return send(res, 400, { error: 'Inserisci un codice fiscale valido.' });
     if (richiedeSpedizione && (!spedizione.via || !/^\d{5}$/.test(spedizione.cap) || !spedizione.citta || !spedizione.provincia)) {
       return send(res, 400, { error: 'Inserisci un indirizzo di consegna completo in Italia.' });
@@ -471,6 +496,7 @@ async function api(req, res, url) {
       nome, email, tel, codiceFiscale, spedizione, lang,
       righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty, richiedeSpedizione: r.richiedeSpedizione })), totale,
       stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX,
+      emailRichiesta: PAYMENT_MODE === 'live',
     };
     if (SIMULATED_PAYMENTS) {
       await storeOrdine(ordine);
@@ -514,7 +540,12 @@ async function api(req, res, url) {
       verifyOrderSession(o, s);
       cur = await applySession(s) || o;
     }
-    return send(res, 200, { stato: cur.stato, nome: (cur.nome || '').split(' ')[0], sandbox: cur.sandbox === true });
+    let emailInAttesa = false;
+    if (cur.stato === 'pagato') {
+      try { emailInAttesa = !(await ORDER_NOTIFICATIONS.send(cur.id)).ok; }
+      catch (_) { emailInAttesa = true; console.error('Email ordine in attesa di un nuovo tentativo.'); }
+    }
+    return send(res, 200, { stato: cur.stato, nome: (cur.nome || '').split(' ')[0], sandbox: cur.sandbox === true, emailInAttesa });
   }
 
   // Webhook Stripe (firmato): conferma pagamenti anche se il cliente chiude la pagina
@@ -528,8 +559,11 @@ async function api(req, res, url) {
     if (PAYMENT_MODE === 'live' && ev.livemode !== true) return send(res, 400, { error: 'Evento di pagamento non valido.' });
     const s = ev.data && ev.data.object;
     if (s && s.metadata && s.metadata.ordine_id) {
-      if (ev.type === 'checkout.session.completed') await applySession(s);
-      else if (ev.type === 'checkout.session.async_payment_succeeded') await applySession(s);
+      if (ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') {
+        await applySession(s);
+        const delivery = await ORDER_NOTIFICATIONS.send(s.metadata.ordine_id);
+        if (!delivery.ok) return send(res, 503, { error: 'Ordine ricevuto; notifiche email in attesa di un nuovo tentativo.' });
+      }
       else if (ev.type === 'checkout.session.expired' || ev.type === 'checkout.session.async_payment_failed') {
         const o = (await load('ordini', [])).find(x => x.id === s.metadata.ordine_id);
         if (o) { verifyOrderSession(o, s); await setOrdine(o.id, { stato: 'annullato' }, ['in attesa']); }
@@ -619,7 +653,7 @@ async function api(req, res, url) {
 
     // Shop: prodotti in vendita
     if (p === '/api/admin/prodotti' && m === 'GET') {
-      return send(res, 200, { prodotti: await getProdotti(), pagamenti: STRIPE_READY, webhook: !!WEBHOOK_SECRET, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
+      return send(res, 200, { prodotti: await getProdotti(), pagamenti: STRIPE_READY, webhook: !!WEBHOOK_SECRET, emailOrdini: ORDER_MAILER.ready, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
     }
     if (p === '/api/admin/prodotti' && m === 'POST') {
       const pr = { id: crypto.randomUUID(), creato: new Date().toISOString(), ...cleanProdotto(await readBody(req)) };
@@ -632,7 +666,10 @@ async function api(req, res, url) {
       const list = await getStoredProdotti();
       const i = list.findIndex(x => x.id === mp[1]);
       if (i < 0) return send(res, 404, { error: 'Prodotto non trovato' });
-      list[i] = { ...list[i], ...cleanProdotto(await readBody(req)), id: list[i].id };
+      const body = await readBody(req);
+      const cleaned = cleanProdotto(body);
+      if (!Object.prototype.hasOwnProperty.call(body, 'esempio')) cleaned.esempio = list[i].esempio === true;
+      list[i] = { ...list[i], ...cleaned, id: list[i].id };
       await save('prodotti', list);
       return send(res, 200, list[i]);
     }
@@ -643,6 +680,13 @@ async function api(req, res, url) {
 
     // Shop: ordini
     if (p === '/api/admin/ordini' && m === 'GET') return send(res, 200, await load('ordini', []));
+    const me = p.match(/^\/api\/admin\/ordini\/([\w-]+)\/email$/);
+    if (me && m === 'POST') {
+      if (!ORDER_MAILER.ready || PAYMENT_MODE !== 'live') return send(res, 503, { error: 'Servizio email ordini non configurato.' });
+      const result = await ORDER_NOTIFICATIONS.send(me[1], true);
+      if (result.skipped) return send(res, 400, { error: 'Email disponibili solo per nuovi ordini reali con pagamento verificato.' });
+      return send(res, result.ok ? 200 : 503, result.ok ? { ok: true } : { error: 'Email ancora in attesa: verifica il servizio di invio.' });
+    }
     const mo = p.match(/^\/api\/admin\/ordini\/([\w-]+)$/);
     if (mo && m === 'PUT') {
       const b = await readBody(req);
@@ -723,4 +767,5 @@ http.createServer(async (req, res) => {
   if (SIMULATED_PAYMENTS) console.log('Pagamenti: modalità simulata attiva, nessun addebito reale');
   else if (STRIPE_SANDBOX) console.log(STRIPE_READY ? 'Pagamenti: checkout Stripe sandbox, nessun addebito reale' : 'Pagamenti: sandbox bloccata, è necessaria una chiave segreta di test');
   else if (!STRIPE_READY) console.log('Pagamenti: disattivati; configurare una modalità esplicita prima di usare Stripe');
+  ORDER_NOTIFICATIONS.start();
 });

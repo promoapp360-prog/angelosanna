@@ -14,18 +14,22 @@ const buyer = { items: [{ id: product.id, qty: 1 }], nome: 'Cliente Test', email
 
 function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripeResponse, stripeStatus = 200,
   liveKey = '', liveWebhook = '', liveAccountId = '', accountResponse, accountStatus = 200,
-  databaseUrl = 'https://database.invalid', readStatus = 200, writeStatus = 200 } = {}) {
+  databaseUrl = 'https://database.invalid', readStatus = 200, writeStatus = 200,
+  seedExamples = false, mailKey = 're_unit_fake', mailFrom = 'orders@example.com', mailStatus = 200 } = {}) {
   const store = new Map([['prodotti', [product]], ['migrazione-prezzo-corso-online-890-v1', true]]);
-  const calls = [], errors = [];
+  if (!seedExamples) store.set('shop-cinque-esempi-inseriti-v1', true);
+  const calls = [], mailCalls = [], errors = [];
   let handler;
   const env = { PAYMENT_MODE: mode, STRIPE_SECRET_KEY: key, STRIPE_WEBHOOK_SECRET: 'whsec_fake_unit_test',
     STRIPE_LIVE_SECRET_KEY: liveKey, STRIPE_LIVE_WEBHOOK_SECRET: liveWebhook, STRIPE_LIVE_ACCOUNT_ID: liveAccountId,
+    ORDER_EMAIL_RESEND_API_KEY: mailKey, ORDER_EMAIL_FROM: mailFrom,
     ADMIN_PASSWORD: 'unit-test-only', REPLIT_DB_URL: databaseUrl };
   vm.runInNewContext(source, {
     __dirname: root, Buffer, URL, AbortSignal, process: { env },
     console: { log() {}, error(...args) { errors.push(args.join(' ')); } },
     require(name) {
       if (name === 'http') return { createServer(fn) { handler = fn; return { listen() {} }; } };
+      if (name.startsWith('./')) return require(path.join(root, name));
       return require(name);
     },
     async fetch(url, options = {}) {
@@ -39,6 +43,12 @@ function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripe
         const key = decodeURIComponent(new URL(url).pathname.slice(1));
         return store.has(key) ? new Response(JSON.stringify(store.get(key))) : new Response('', { status: 404 });
       }
+      if (url === 'https://api.resend.com/emails') {
+        mailCalls.push({ url, options });
+        return new Response(JSON.stringify({ id: 'email_unit_' + mailCalls.length }),
+          { status: typeof mailStatus === 'function' ? mailStatus(mailCalls.length) : mailStatus });
+      }
+      assert.ok(url.startsWith('https://api.stripe.com/'), 'Nessuna chiamata esterna inattesa');
       calls.push({ url, options });
       if (url.endsWith('/v1/account')) return new Response(JSON.stringify(accountResponse ||
         { id: 'acct_clientunit', charges_enabled: true }), { status: accountStatus });
@@ -63,7 +73,7 @@ function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripe
       handler(req, res).catch(reject);
     });
   }
-  return { request, store, calls, errors };
+  return { request, store, calls, mailCalls, errors };
 }
 
 test('la sandbox rifiuta chiavi live o mancanti prima di contattare Stripe', async () => {
@@ -195,6 +205,7 @@ test('il live richiede chiave dedicata, webhook e account atteso: nessun ripiego
   for (const missing of [
     { liveKey: '' }, { liveKey: 'sk_test_wrong_mode' }, { liveWebhook: '' },
     { liveAccountId: '' }, { liveAccountId: 'invalid' },
+    { mailKey: '' }, { mailFrom: '' },
   ]) {
     const a = app({ ...liveConfig, key: 'sk_live_other_project', ...missing });
     assert.equal((await a.request('GET', '/api/shop')).body.pagamenti, false);
@@ -315,4 +326,95 @@ test('ordini contemporanei non si sovrascrivono nell’archivio', async () => {
   const results = await Promise.all(Array.from({ length: 4 }, () => a.request('POST', '/api/checkout', buyer)));
   assert.ok(results.every(r => r.status === 201));
   assert.equal(a.store.get('ordini').length, 4);
+});
+
+test('dopo un pagamento live partono solo due email, anche con webhook e ritorno ripetuti', async () => {
+  const a = app(liveConfig);
+  await a.request('POST', '/api/checkout', buyer);
+  const order = a.store.get('ordini')[0], event = paymentEvent(order);
+  assert.equal((await signedEvent(a, event)).status, 200);
+  assert.equal(a.mailCalls.length, 2);
+  const payloads = a.mailCalls.map(c => JSON.parse(c.options.body));
+  assert.deepEqual(payloads.map(p => p.to[0]), ['yachtchefangelosanna@gmail.com', buyer.email]);
+  assert.ok(payloads.every(p => p.text.includes('890,00') && p.text.includes('Corso di prova')));
+  assert.equal((await signedEvent(a, event)).status, 200);
+  const confirmation = await a.request('GET', '/api/checkout/conferma?o=' + order.id + '&session_id=' + order.stripeSessionId);
+  assert.equal(confirmation.body.stato, 'pagato');
+  assert.equal(confirmation.body.emailInAttesa, false);
+  assert.equal(a.mailCalls.length, 2);
+});
+
+test('un problema email non annulla il pagamento e permette un nuovo tentativo', async () => {
+  const a = app({ ...liveConfig, mailStatus: 503 });
+  await a.request('POST', '/api/checkout', buyer);
+  const order = a.store.get('ordini')[0];
+  assert.equal((await signedEvent(a, paymentEvent(order))).status, 503);
+  assert.equal(a.store.get('ordini')[0].stato, 'pagato');
+  assert.equal(a.store.get('ordini')[0].emailOrdine.cliente.stato, 'errore');
+  const confirmation = await a.request('GET', '/api/checkout/conferma?o=' + order.id + '&session_id=' + order.stripeSessionId);
+  assert.equal(confirmation.body.stato, 'pagato');
+  assert.equal(confirmation.body.emailInAttesa, true);
+  assert.equal(a.mailCalls.length, 2);
+});
+
+test('la sandbox non invia email reali', async () => {
+  const a = app();
+  await a.request('POST', '/api/checkout', buyer);
+  const order = a.store.get('ordini')[0];
+  await a.request('GET', '/api/checkout/conferma?o=' + order.id + '&session_id=' + order.stripeSessionId);
+  assert.equal(a.mailCalls.length, 0);
+});
+
+test('cinque esempi vengono aggiunti una sola volta e sono modificabili, nascondibili ed eliminabili dall’admin', async () => {
+  const a = app({ seedExamples: true });
+  const first = await a.request('GET', '/api/shop');
+  assert.equal(first.body.prodotti.filter(p => p.esempio).length, 5);
+  assert.ok(first.body.prodotti.some(p => p.id === product.id && p.prezzo === 89000));
+  assert.equal((await a.request('GET', '/api/shop')).body.prodotti.length, 6);
+  assert.equal((await a.request('PUT', '/api/admin/prodotti/esempio-pinza', {})).status, 401);
+  const login = await a.request('POST', '/api/login', { password: 'unit-test-only' });
+  const headers = { authorization: 'Bearer ' + login.body.token };
+  const stillExample = await a.request('PUT', '/api/admin/prodotti/esempio-tagliere',
+    { titolo: 'Tagliere modificato', prezzo: '49', pubblicato: true }, headers);
+  assert.equal(stillExample.body.esempio, true);
+  const edited = await a.request('PUT', '/api/admin/prodotti/esempio-pinza',
+    { titolo: 'Pinza reale', prezzo: '24,90', categoria: 'prodotto', richiedeSpedizione: true, pubblicato: true, esempio: false }, headers);
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.prezzo, 2490);
+  assert.equal(edited.body.esempio, false);
+  await a.request('PUT', '/api/admin/prodotti/esempio-telo', { titolo: 'Nascosto', pubblicato: false, esempio: true }, headers);
+  await a.request('DELETE', '/api/admin/prodotti/esempio-grembiule', null, headers);
+  const latest = await a.request('GET', '/api/shop');
+  assert.equal(latest.body.prodotti.some(p => p.id === 'esempio-telo' || p.id === 'esempio-grembiule'), false);
+  assert.equal(a.store.get('prodotti').filter(p => p.id === 'esempio-grembiule').length, 0);
+  const added = await a.request('POST', '/api/admin/prodotti', { titolo: 'Nuovo prodotto', prezzo: '15', categoria: 'prodotto' }, headers);
+  assert.equal(added.status, 201);
+  assert.equal((await a.request('GET', '/api/admin/prodotti', null, headers)).body.prodotti.some(p => p.id === added.body.id), true);
+});
+
+test('gli esempi visibili non possono essere acquistati e il checkout non usa WhatsApp', async () => {
+  const a = app({ seedExamples: true });
+  const result = await a.request('POST', '/api/checkout', { ...buyer, items: [{ id: 'esempio-pinza', qty: 1 }] });
+  assert.equal(result.status, 400);
+  assert.match(result.body.error, /esempio/);
+  assert.equal(a.calls.length, 0);
+  const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
+  const shopCode = html.split('/* Shop:')[1].split('// Ritorno da Stripe')[0];
+  assert.doesNotMatch(shopCode, /waOrder|wa\.me|ordina tramite WhatsApp/);
+  assert.match(html, /<footer[\s\S]*?href="\/admin"/);
+  assert.equal((await a.request('POST', '/api/admin/ordini/fake/email', {})).status, 401);
+});
+
+test('l’admin può riprovare solo le email mancanti dopo un errore del servizio', async () => {
+  const a = app({ ...liveConfig, mailStatus: n => n <= 2 ? 503 : 200 });
+  await a.request('POST', '/api/checkout', buyer);
+  const order = a.store.get('ordini')[0];
+  await signedEvent(a, paymentEvent(order));
+  const login = await a.request('POST', '/api/login', { password: 'unit-test-only' });
+  const headers = { authorization: 'Bearer ' + login.body.token };
+  assert.equal((await a.request('POST', '/api/admin/ordini/' + order.id + '/email', {}, headers)).status, 200);
+  assert.equal(a.mailCalls.length, 4);
+  assert.equal(a.store.get('ordini')[0].emailOrdine.cliente.stato, 'inviata');
+  await a.request('POST', '/api/admin/ordini/' + order.id + '/email', {}, headers);
+  assert.equal(a.mailCalls.length, 4);
 });

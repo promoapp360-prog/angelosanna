@@ -723,7 +723,6 @@ footer a:hover{color:#fff}
           <label class="consent"><input type="checkbox" id="cAccetto" required> Dichiaro di avere almeno 18 anni.</label>
           <small class="order-data-note">Consulta l'<a href="/privacy">informativa privacy</a> per sapere come trattiamo i tuoi dati.</small>
           <button class="btn btn-gold" id="payBtn" type="submit">Procedi al pagamento</button>
-          <a class="btn btn-navy" id="waOrder" href="#" target="_blank" rel="noopener noreferrer" style="display:none">Ordina su WhatsApp</a>
           <small id="cErr" style="color:var(--red);display:none;margin-top:10px"></small>
           <div class="secure"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="paymentNote">Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.</span></div>
         </form>
@@ -882,7 +881,7 @@ footer a:hover{color:#fff}
 <footer id="site-footer">
   <div class="wrap">
     <div style="display:flex;align-items:center;gap:12px"><svg width="34" height="28" style="color:#fff"><use href="#as"/></svg> © <span id="y"></span> Chef Angelo Sanna · Chef on Board</div>
-    <div><a href="mailto:yachtchefangelosanna@gmail.com">yachtchefangelosanna@gmail.com</a> · @angelosannachef · <a href="/admin">Admin</a></div>
+    <div><a href="mailto:yachtchefangelosanna@gmail.com">yachtchefangelosanna@gmail.com</a> · @angelosannachef · <a href="/admin" aria-label="Accedi al pannello amministratore">Admin</a></div>
     <div class="footer-meta">
       <span>Ditta individuale SANNA ANGELO · P.IVA 03079060905 · S.V. Prunizzedda Serra Secca n. 14, 07100 Sassari (SS), Italia</span>
       <span><a href="/privacy">Privacy</a> · <a href="/cookies">Cookie</a> · <a href="mailto:yachtchefangelosanna@gmail.com">Contatti privacy</a></span>
@@ -988,7 +987,7 @@ footer a:hover{color:#fff}
       if(!msg){el.innerHTML=html;return}
       var txt=msg.kind==='simulated'?t('Prova completata: nessun addebito reale. Ordine simulato {id} registrato.',{id:msg.id||''})
         :msg.kind==='sandbox'?t('Pagamento di prova completato. Nessun addebito reale; ordine sandbox registrato.')
-        :msg.kind==='ok'?t('Grazie {nome}! Il pagamento è andato a buon fine. Abbiamo ricevuto il tuo ordine.',{nome:msg.nome||''}).replace('  ',' ')
+        :msg.kind==='ok'?t('Grazie {nome}! Il pagamento è andato a buon fine. Riceverai la conferma dell’ordine via email.',{nome:msg.nome||''}).replace('  ',' ')
         :msg.kind==='wait'?t('Stiamo confermando il pagamento… se non vedi aggiornamenti entro pochi minuti scrivici su WhatsApp.')
         :t('Pagamento annullato: non è stato addebitato nulla. Il tuo carrello è ancora qui.');
       html+='<div class="shopmsg '+(msg.kind==='cancel'?'warn':'ok')+'">'+esc(txt)+'</div>';
@@ -1002,7 +1001,9 @@ footer a:hover{color:#fff}
       box.innerHTML=filtered.map(function(p){
         var inc=(p.include&&p.include.length)?'<ul>'+p.include.map(function(i){return '<li>'+esc(i)+'</li>'}).join('')+'</ul>':'';
         if(p.richiedeSpedizione)inc+='<p class="shipping-note">'+esc(t('Indirizzo di consegna in Italia richiesto'))+'</p>';
-        var buy=p.prezzo>0
+        var buy=p.esempio
+          ? '<div class="price">'+esc(eur(p.prezzo))+'</div><button type="button" class="btn btn-navy" disabled>'+esc(t('Esempio · non acquistabile'))+'</button>'
+          : p.prezzo>0
           ? '<div class="price">'+esc(eur(p.prezzo))+'<small>'+esc(t('Pagamento unico'))+'</small></div>'+
             '<button type="button" class="btn btn-gold" data-add="'+esc(p.id)+'">'+esc(inCart(p.id)?t('Nel carrello · vai al pagamento'):t('Aggiungi al carrello'))+'</button>'
           : '<div class="price" style="font-size:1.2rem">'+esc(t('Prezzo in arrivo'))+'</div><a class="btn btn-navy" href="#iscriviti">'+esc(t('Avvisami quando è disponibile'))+'</a>';
@@ -1024,10 +1025,8 @@ footer a:hover{color:#fff}
       form.style.display='block';
       $('payBtn').textContent=payButtonText();
       $('payBtn').style.display=pagamenti?'':'none';
-      var wa=$('waOrder'); wa.style.display=pagamenti?'none':'';
-      wa.href='https://wa.me/393208877838?text='+encodeURIComponent(t('Ciao Chef Angelo, vorrei acquistare questi prodotti:')+'\n'+rows.map(function(l){return '- '+find(l.id).titolo+' x'+l.qty}).join('\n')+'\n'+t('Totale')+': '+eur(tot));
-      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):sandbox&&pagamenti?t('Pagamento di prova su Stripe: nessun addebito reale.'):pagamenti?t('Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.'):t('Per ora ordina tramite WhatsApp; nessun pagamento online.');
-      if(!pagamenti){$('cErr').style.display='block';$('cErr').style.color='var(--muted)';$('cErr').textContent=t('I pagamenti online sono in attivazione: per ora puoi ordinare scrivendo su WhatsApp.')}
+      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):sandbox&&pagamenti?t('Pagamento di prova su Stripe: nessun addebito reale.'):pagamenti?t('Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.'):t('Gli acquisti saranno disponibili quando il checkout sarà attivo.');
+      if(!pagamenti){$('cErr').style.display='block';$('cErr').style.color='var(--muted)';$('cErr').textContent=t('Acquisti temporaneamente non disponibili. Gli ordini si effettuano esclusivamente dal checkout del sito.')}
       else $('cErr').style.display='none';
     }
     function renderAll(){renderMsg();renderProds();renderCart()}
@@ -1041,6 +1040,7 @@ footer a:hover{color:#fff}
     $('shopList').addEventListener('click',function(e){
       var b=e.target.closest('[data-add]'); if(!b)return;
       var id=b.getAttribute('data-add');
+      if(!find(id)||find(id).esempio)return;
       if(!inCart(id)){cart.push({id:id,qty:1});persist();renderAll()}
       $('cartPanel').scrollIntoView({behavior:'smooth',block:'center'});
     });
@@ -1055,6 +1055,7 @@ footer a:hover{color:#fff}
     $('cartForm').addEventListener('submit',function(ev){
       ev.preventDefault();
       var v=function(id){return ($(id).value||'').trim()}, err=$('cErr'), btn=$('payBtn');
+      if(!pagamenti){err.textContent=t('Acquisti temporaneamente non disponibili. Gli ordini si effettuano esclusivamente dal checkout del sito.');err.style.display='block';return}
       err.style.color='var(--red)';
       if(!v('cNome')||!/\S+@\S+\.\S+/.test(v('cEmail'))||!v('cTel')){err.textContent=t('Inserisci nome, email e telefono.');err.style.display='block';return}
       var cf=v('cCF').replace(/\s/g,'').toUpperCase();
@@ -1063,7 +1064,7 @@ footer a:hover{color:#fff}
       if(shipping&&(!v('cVia')||!/^\d{5}$/.test(v('cCap'))||!v('cCity')||!v('cProvince'))){err.textContent=t('Inserisci un indirizzo di consegna completo in Italia.');err.style.display='block';return}
       if(!$('cAccetto').checked){err.textContent=t('Per acquistare devi avere almeno 18 anni.');err.style.display='block';return}
       err.style.display='none'; btn.disabled=true; btn.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
-      function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=t(m||'Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.');err.style.display='block'}
+      function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=t(m||'Pagamento non disponibile al momento. Riprova più tardi o contattaci via email.');err.style.display='block'}
       fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),codiceFiscale:cf,spedizione:shipping?{via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince'),paese:'IT'}:null,maggiorenne:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
         .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
         .then(function(x){
@@ -1092,7 +1093,7 @@ footer a:hover{color:#fff}
       cleanUrl();
     }
     renderAll();
-    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;sandbox=!!s.sandbox;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
+    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;sandbox=!!s.sandbox;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0&&!p.esempio});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
     if(msg)$('shop').scrollIntoView();
   })();
 
