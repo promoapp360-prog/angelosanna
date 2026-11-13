@@ -290,6 +290,7 @@ footer a:hover{color:#fff}
 @media(max-width:680px){footer .wrap{grid-template-columns:1fr}.footer-meta{grid-column:auto}}
 
 .mcta{display:none}
+.mcta[hidden]{display:none!important}
 .whatsapp-float{position:fixed;right:22px;bottom:22px;z-index:70;width:58px;height:58px;display:grid;place-items:center;border-radius:50%;background:#25d366;color:#fff;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:transform .15s ease,background .15s}
 .whatsapp-float:hover{background:#1ebd5a;transform:translateY(-2px)}
 .whatsapp-float:focus-visible{outline:3px solid var(--navy);outline-offset:4px}
@@ -805,7 +806,7 @@ footer a:hover{color:#fff}
         <div><b>Ti risponde Angelo, di persona</b><span>Ogni richiesta viene letta e seguita direttamente dallo chef.</span></div>
       </div>
       <div class="contacts">
-        <a href="mailto:chef@angelosanna.com"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> chef@angelosanna.com</a>
+        <a href="mailto:yachtchefangelosanna@gmail.com"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> yachtchefangelosanna@gmail.com</a>
         <a href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg> @angelosannachef — scrivi in DM</a>
         <a href="https://www.angelosanna.com" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> www.angelosanna.com</a>
       </div>
@@ -856,10 +857,10 @@ footer a:hover{color:#fff}
   </div>
 </section>
 
-<footer>
+<footer id="site-footer">
   <div class="wrap">
     <div style="display:flex;align-items:center;gap:12px"><svg width="34" height="28" style="color:#fff"><use href="#as"/></svg> © <span id="y"></span> Chef Angelo Sanna · Chef on Board</div>
-    <div>chef@angelosanna.com · @angelosannachef · <a href="/admin">Admin</a></div>
+    <div><a href="mailto:yachtchefangelosanna@gmail.com">yachtchefangelosanna@gmail.com</a> · @angelosannachef · <a href="/admin">Admin</a></div>
     <div class="footer-meta">
       <span>Ditta individuale SANNA ANGELO · P.IVA 03079060905 · S.V. Prunizzedda Serra Secca n. 14, 07100 Sassari (SS), Italia</span>
       <span><a href="/privacy">Privacy</a> · <a href="/cookies">Cookie</a> · <a href="mailto:yachtchefangelosanna@gmail.com">Contatti privacy</a></span>
@@ -883,6 +884,15 @@ footer a:hover{color:#fff}
   var nav=document.getElementById('nav');
   function onS(){nav.classList.toggle('solid',window.scrollY>40)}
   window.addEventListener('scroll',onS,{passive:true});onS();
+  // La barra mobile resta disponibile durante la navigazione, ma non copre il footer.
+  var mobileDatesCta=document.querySelector('.mcta'), siteFooter=document.getElementById('site-footer');
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){mobileDatesCta.hidden=entries[0].isIntersecting}).observe(siteFooter);
+  }else{
+    var syncFooterCta=function(){mobileDatesCta.hidden=siteFooter.getBoundingClientRect().top<=window.innerHeight};
+    window.addEventListener('scroll',syncFooterCta,{passive:true});
+    window.addEventListener('resize',syncFooterCta);syncFooterCta();
+  }
   var io=('IntersectionObserver' in window)?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.1}):null;
   function watch(root){(root||document).querySelectorAll('.reveal:not(.in)').forEach(function(el){io?io.observe(el):el.classList.add('in')})}
   watch();
@@ -1106,7 +1116,7 @@ footer a:hover{color:#fff}
         document.getElementById('whatsappOk').href=whatsappHref;
         document.getElementById('msg').textContent=txt;
         document.getElementById('whatsappMail').href=whatsappHref;
-        document.getElementById('mail').href='mailto:chef@angelosanna.com?subject='+encodeURIComponent(t('Richiesta info corso Chef on Board'))+'&body='+encodeURIComponent(txt);
+        document.getElementById('mail').href='mailto:yachtchefangelosanna@gmail.com?subject='+encodeURIComponent(t('Richiesta info corso Chef on Board'))+'&body='+encodeURIComponent(txt);
         document.getElementById('copy').onclick=function(){var b=this;try{navigator.clipboard.writeText(txt).then(function(){b.textContent=t('Copiato ✓')},function(){b.textContent=t('Seleziona e copia il testo sopra')})}catch(e){b.textContent=t('Seleziona e copia il testo sopra')}};
   }
 })();
