@@ -21,11 +21,18 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DB_URL = process.env.REPLIT_DB_URL || '';
 
 /* ---------------- Archivio ---------------- */
+function storageUnavailable() {
+  const error = new Error('Archivio non disponibile. Riprova più tardi.');
+  error.code = 503;
+  return error;
+}
 async function load(key, fallback) {
   try {
+    if (PAYMENT_MODE === 'live' && !DB_URL) throw storageUnavailable();
     if (DB_URL) {
-      const r = await fetch(DB_URL + '/' + encodeURIComponent(key));
+      const r = await fetch(DB_URL + '/' + encodeURIComponent(key), { signal: AbortSignal.timeout(15000) });
       if (r.status === 404) return fallback;
+      if (!r.ok) throw storageUnavailable();
       const t = await r.text();
       return t ? JSON.parse(t) : fallback;
     }
@@ -33,18 +40,24 @@ async function load(key, fallback) {
     if (!fs.existsSync(f)) return fallback;
     return JSON.parse(fs.readFileSync(f, 'utf8'));
   } catch (e) {
-    console.error('Errore lettura', key, e.message);
+    console.error('Errore lettura', key);
+    if (PAYMENT_MODE === 'live') throw storageUnavailable();
     return fallback;
   }
 }
 async function save(key, value) {
+  if (PAYMENT_MODE === 'live' && !DB_URL) throw storageUnavailable();
   const json = JSON.stringify(value);
   if (DB_URL) {
-    await fetch(DB_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: encodeURIComponent(key) + '=' + encodeURIComponent(json),
-    });
+    try {
+      const response = await fetch(DB_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: encodeURIComponent(key) + '=' + encodeURIComponent(json),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!response.ok) throw storageUnavailable();
+    } catch (_) { throw storageUnavailable(); }
     return;
   }
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -199,15 +212,22 @@ function serveStatic(req, res, pathname) {
 }
 
 /* ---------------- Shop: prodotti, ordini, Stripe ---------------- */
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
-const STRIPE_API = process.env.STRIPE_API_BASE || 'https://api.stripe.com';
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const PAYMENT_MODE = process.env.PAYMENT_MODE || '';
 const SIMULATED_PAYMENTS = PAYMENT_MODE === 'simulated';
 const STRIPE_SANDBOX = PAYMENT_MODE === 'stripe_test';
+// Le credenziali reali sono separate dalla chiave sandbox già presente nel progetto.
+const STRIPE_KEY = PAYMENT_MODE === 'live'
+  ? process.env.STRIPE_LIVE_SECRET_KEY || ''
+  : process.env.STRIPE_SECRET_KEY || '';
+const STRIPE_API = process.env.STRIPE_API_BASE || 'https://api.stripe.com';
+const WEBHOOK_SECRET = PAYMENT_MODE === 'live'
+  ? process.env.STRIPE_LIVE_WEBHOOK_SECRET || ''
+  : process.env.STRIPE_WEBHOOK_SECRET || '';
+const STRIPE_LIVE_ACCOUNT_ID = process.env.STRIPE_LIVE_ACCOUNT_ID || '';
 // Una chiave salvata non abilita da sola gli addebiti. Il modo live richiede una scelta esplicita.
 const STRIPE_READY = (STRIPE_SANDBOX && STRIPE_KEY.startsWith('sk_test_')) ||
-  (PAYMENT_MODE === 'live' && STRIPE_KEY.startsWith('sk_live_'));
+  (PAYMENT_MODE === 'live' && STRIPE_KEY.startsWith('sk_live_') &&
+    WEBHOOK_SECRET.startsWith('whsec_') && /^acct_[A-Za-z0-9]+$/.test(STRIPE_LIVE_ACCOUNT_ID) && !!DB_URL);
 const PAYMENTS_READY = SIMULATED_PAYMENTS || STRIPE_READY;
 const PAYMENT_UNAVAILABLE = STRIPE_SANDBOX
   ? 'Sandbox Stripe non disponibile: verifica la chiave segreta di test nei Secrets.'
@@ -290,20 +310,50 @@ function formEncode(obj, prefix, out) {
   });
   return out;
 }
+let liveAccountCheck, liveAccountCheckUntil = 0;
+async function verifyLiveAccount() {
+  if (PAYMENT_MODE !== 'live') return;
+  if (!liveAccountCheck || Date.now() >= liveAccountCheckUntil) {
+    // Riusa i controlli riusciti per cinque minuti, gli errori per trenta secondi.
+    // Le richieste contemporanee condividono la stessa verifica.
+    liveAccountCheckUntil = Date.now() + 30000;
+    liveAccountCheck = (async () => {
+      try {
+        const response = await fetch(STRIPE_API + '/v1/account', {
+          headers: { Authorization: 'Bearer ' + STRIPE_KEY },
+          signal: AbortSignal.timeout(15000),
+        });
+        const account = await response.json();
+        if (!response.ok || account.id !== STRIPE_LIVE_ACCOUNT_ID || account.charges_enabled !== true) throw new Error();
+        liveAccountCheckUntil = Date.now() + 300000;
+      } catch (_) {
+        const error = new Error('Account di pagamento non disponibile. Scrivici su WhatsApp.');
+        error.code = 503;
+        throw error;
+      }
+    })();
+  }
+  await liveAccountCheck;
+}
 async function stripe(method, endpoint, params) {
   if (!STRIPE_READY) { const e = new Error(PAYMENT_UNAVAILABLE); e.code = 503; throw e; }
+  await verifyLiveAccount();
   const body = params && method !== 'GET' ? formEncode(params).join('&') : undefined;
   const qs = params && method === 'GET' ? '?' + formEncode(params).join('&') : '';
   const r = await fetch(STRIPE_API + endpoint + qs, {
     method,
     headers: { Authorization: 'Bearer ' + STRIPE_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
+    signal: AbortSignal.timeout(20000),
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { console.error('Stripe errore HTTP', r.status); const e = new Error('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.'); e.code = 502; throw e; }
   if (STRIPE_SANDBOX && j.livemode !== false) {
     const e = new Error('Sessione Stripe rifiutata: la sandbox accetta solo operazioni di test.');
     e.code = 502; throw e;
+  }
+  if (PAYMENT_MODE === 'live' && j.livemode !== true) {
+    const e = new Error('Sessione di pagamento non valida.'); e.code = 502; throw e;
   }
   return j;
 }
@@ -312,14 +362,31 @@ function siteUrl(req) {
   const proto = (req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
   return proto + '://' + (req.headers['x-forwarded-host'] || req.headers.host || 'localhost');
 }
+// Una sola coda di scrittura nella Reserved VM impedisce agli aggiornamenti
+// contemporanei (nuovo ordine, webhook, admin) di sovrascriversi.
+let orderWrites = Promise.resolve();
+function withOrderWrite(action) {
+  const operation = orderWrites.then(action);
+  orderWrites = operation.catch(() => {});
+  return operation;
+}
+async function storeOrdine(ordine) {
+  return withOrderWrite(async () => {
+    const list = await load('ordini', []);
+    list.unshift(ordine);
+    await save('ordini', list.slice(0, 5000));
+  });
+}
 async function setOrdine(id, patch, onlyFrom) {
-  const list = await load('ordini', []);
-  const o = list.find(x => x.id === id);
-  if (!o) return null;
-  if (onlyFrom && !onlyFrom.includes(o.stato)) return o;
-  Object.assign(o, patch);
-  await save('ordini', list);
-  return o;
+  return withOrderWrite(async () => {
+    const list = await load('ordini', []);
+    const o = list.find(x => x.id === id);
+    if (!o) return null;
+    if (onlyFrom && !onlyFrom.includes(o.stato)) return o;
+    Object.assign(o, patch);
+    await save('ordini', list);
+    return o;
+  });
 }
 function readRaw(req) {
   return new Promise((resolve, reject) => {
@@ -333,13 +400,28 @@ function readRaw(req) {
 function verifyStripeSig(raw, header) {
   if (!WEBHOOK_SECRET || !header) return false;
   const parts = {}; String(header).split(',').forEach(s => { const i = s.indexOf('='); if (i > 0) (parts[s.slice(0, i)] = parts[s.slice(0, i)] || []).push(s.slice(i + 1)); });
-  const t = (parts.t || [])[0]; if (!t || Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;
+  const t = (parts.t || [])[0]; if (!t || !/^\d+$/.test(t) || Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;
   const exp = crypto.createHmac('sha256', WEBHOOK_SECRET).update(t + '.').update(raw).digest('hex');
-  return (parts.v1 || []).some(v => v.length === exp.length && crypto.timingSafeEqual(Buffer.from(v), Buffer.from(exp)));
+  return (parts.v1 || []).some(v => /^[a-f0-9]{64}$/.test(v) && crypto.timingSafeEqual(Buffer.from(v), Buffer.from(exp)));
+}
+function verifyOrderSession(o, s) {
+  if (s.id !== o.stripeSessionId || !s.metadata || s.metadata.ordine_id !== o.id ||
+      s.amount_total !== o.totale || s.currency !== 'eur' || s.livemode !== (o.sandbox !== true)) {
+    const error = new Error('Il pagamento non corrisponde all’ordine.');
+    error.code = 400;
+    throw error;
+  }
 }
 async function applySession(s) {
   const id = s.metadata && s.metadata.ordine_id; if (!id) return;
-  if (s.payment_status === 'paid') await setOrdine(id, { stato: 'pagato', pagato: new Date().toISOString() }, ['in attesa']);
+  const o = (await load('ordini', [])).find(x => x.id === id);
+  if (!o) return;
+  verifyOrderSession(o, s);
+  if (s.payment_status === 'paid') {
+    const pm = s.payment_intent && s.payment_intent.payment_method && s.payment_intent.payment_method.type;
+    return await setOrdine(id, { stato: 'pagato', pagato: new Date().toISOString(), metodo: pm || o.metodo || '' }, ['in attesa']);
+  }
+  return o;
 }
 
 /* ---------------- API ---------------- */
@@ -391,9 +473,7 @@ async function api(req, res, url) {
       stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX,
     };
     if (SIMULATED_PAYMENTS) {
-      const list = await load('ordini', []);
-      list.unshift(ordine);
-      await save('ordini', list.slice(0, 5000));
+      await storeOrdine(ordine);
       return send(res, 201, { simulato: true, ordineId: ordine.id });
     }
     const base = siteUrl(req);
@@ -409,13 +489,17 @@ async function api(req, res, url) {
       })),
     };
     const s = await stripe('POST', '/v1/checkout/sessions', params);
-    if (!s.id || !s.url || (STRIPE_SANDBOX && !s.id.startsWith('cs_test_'))) {
+    if (!s.id || !s.url || !s.id.startsWith(STRIPE_SANDBOX ? 'cs_test_' : 'cs_live_')) {
       const e = new Error('Sessione di pagamento non valida.'); e.code = 502; throw e;
     }
     ordine.stripeSessionId = s.id;
-    const list = await load('ordini', []);
-    list.unshift(ordine);
-    await save('ordini', list.slice(0, 5000));
+    try { await storeOrdine(ordine); }
+    catch (error) {
+      // Non restituire un checkout utilizzabile se l'ordine non è stato archiviato.
+      try { await stripe('POST', '/v1/checkout/sessions/' + encodeURIComponent(s.id) + '/expire'); }
+      catch (_) { console.error('Impossibile chiudere la sessione non archiviata.'); }
+      throw error;
+    }
     return send(res, 201, { url: s.url });
   }
 
@@ -427,10 +511,8 @@ async function api(req, res, url) {
     let cur = o;
     if (o.stato === 'in attesa') {
       const s = await stripe('GET', '/v1/checkout/sessions/' + encodeURIComponent(sid), { 'expand': ['payment_intent.payment_method'] });
-      if (s.payment_status === 'paid') {
-        const pm = s.payment_intent && s.payment_intent.payment_method && s.payment_intent.payment_method.type;
-        cur = await setOrdine(id, { stato: 'pagato', pagato: new Date().toISOString(), metodo: pm || '' }, ['in attesa']) || o;
-      }
+      verifyOrderSession(o, s);
+      cur = await applySession(s) || o;
     }
     return send(res, 200, { stato: cur.stato, nome: (cur.nome || '').split(' ')[0], sandbox: cur.sandbox === true });
   }
@@ -438,15 +520,20 @@ async function api(req, res, url) {
   // Webhook Stripe (firmato): conferma pagamenti anche se il cliente chiude la pagina
   if (p === '/api/stripe/webhook' && m === 'POST') {
     const raw = await readRaw(req);
+    if (!STRIPE_READY) return send(res, 503, { error: 'Pagamenti non configurati.' });
     if (!WEBHOOK_SECRET) return send(res, 503, { error: 'STRIPE_WEBHOOK_SECRET non impostato' });
     if (!verifyStripeSig(raw, req.headers['stripe-signature'])) return send(res, 400, { error: 'Firma non valida' });
     let ev; try { ev = JSON.parse(raw.toString('utf8')); } catch (e) { return send(res, 400, { error: 'JSON non valido' }); }
     if (STRIPE_SANDBOX && ev.livemode !== false) return send(res, 400, { error: 'La sandbox accetta solo eventi di test.' });
+    if (PAYMENT_MODE === 'live' && ev.livemode !== true) return send(res, 400, { error: 'Evento di pagamento non valido.' });
     const s = ev.data && ev.data.object;
     if (s && s.metadata && s.metadata.ordine_id) {
       if (ev.type === 'checkout.session.completed') await applySession(s);
-      else if (ev.type === 'checkout.session.async_payment_succeeded') await applySession({ ...s, payment_status: 'paid' });
-      else if (ev.type === 'checkout.session.expired' || ev.type === 'checkout.session.async_payment_failed') await setOrdine(s.metadata.ordine_id, { stato: 'annullato' }, ['in attesa']);
+      else if (ev.type === 'checkout.session.async_payment_succeeded') await applySession(s);
+      else if (ev.type === 'checkout.session.expired' || ev.type === 'checkout.session.async_payment_failed') {
+        const o = (await load('ordini', [])).find(x => x.id === s.metadata.ordine_id);
+        if (o) { verifyOrderSession(o, s); await setOrdine(o.id, { stato: 'annullato' }, ['in attesa']); }
+      }
     }
     return send(res, 200, { received: true });
   }
@@ -564,7 +651,7 @@ async function api(req, res, url) {
       return o ? send(res, 200, o) : send(res, 404, { error: 'Ordine non trovato' });
     }
     if (mo && m === 'DELETE') {
-      await save('ordini', (await load('ordini', [])).filter(x => x.id !== mo[1]));
+      await withOrderWrite(async () => save('ordini', (await load('ordini', [])).filter(x => x.id !== mo[1])));
       return send(res, 200, { ok: true });
     }
 
