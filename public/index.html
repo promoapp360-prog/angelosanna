@@ -47,7 +47,7 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 /* NAV */
 .nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .25s,box-shadow .25s}
 .nav.solid{background:rgba(1,26,54,.94);box-shadow:0 4px 20px rgba(0,0,0,.2);backdrop-filter:blur(8px)}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px;position:relative}
 .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
 .brand .mono{width:44px;height:44px;border:1px solid rgba(255,255,255,.55);border-radius:50%;display:grid;place-items:center}
 .brand span{font-family:var(--sans);font-weight:500;font-size:1rem;letter-spacing:.02em}
@@ -61,8 +61,23 @@ section:not(.program):not(.req):not(.cta) .btn-gold,.formcard .btn-gold,.course 
 .language-switch button{border:0;background:transparent;color:#fff;font:600 .76rem var(--sans);padding:5px 8px;border-radius:999px;cursor:pointer}
 .language-switch button[aria-pressed="true"]{background:#fff;color:var(--navy)}
 .language-switch button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.nav.menu-open{background:rgba(1,26,54,.98);z-index:90}
+.menu-toggle{width:44px;height:44px;flex:none;border:1px solid rgba(255,255,255,.5);border-radius:50%;background:transparent;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.menu-toggle span{display:block;width:18px;height:2px;background:currentColor;transition:transform .18s,opacity .18s}
+.menu-toggle[aria-expanded="true"] span:first-child{transform:translateY(7px) rotate(45deg)}
+.menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.menu-toggle[aria-expanded="true"] span:last-child{transform:translateY(-7px) rotate(-45deg)}
+.menu-toggle:focus-visible,.menu-panel a:focus-visible{outline:3px solid var(--gold2);outline-offset:3px}
+.menu-panel{position:absolute;top:calc(100% + 10px);right:22px;width:min(360px,calc(100vw - 44px));padding:16px;background:var(--abyss);border:1px solid rgba(255,255,255,.18);border-radius:18px;box-shadow:0 18px 44px rgba(0,0,0,.28);max-height:calc(100svh - 110px);overflow-y:auto;overscroll-behavior:contain}
+.menu-panel[hidden]{display:none!important}
+.menu-heading{padding:4px 12px 12px;color:var(--gold2);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+.menu-panel a{display:flex;align-items:center;min-height:46px;padding:11px 12px;color:#fff;text-decoration:none;border-radius:10px;font-size:.95rem}
+.menu-panel a:hover{background:rgba(255,255,255,.1)}
+.menu-panel .menu-shop{background:rgba(79,168,220,.18);font-weight:600}
+section[id]{scroll-margin-top:82px}
 @media(max-width:600px){.nav .links{gap:10px}.nav .brand{gap:8px}.nav .brand span{font-size:.78rem}.nav .brand .mono{width:34px;height:34px}.nav .btn{padding:9px 12px;font-size:.75rem}.language-switch button{padding:5px 6px}}
-@media(max-width:370px){.nav .links>.btn{display:none}}
+@media(max-width:370px){.nav .links>.btn{display:none}.nav .links{gap:6px}.nav .brand span{max-width:100px;white-space:normal;line-height:1.25}.nav .brand .mono{width:30px;height:30px}}
+@media(max-width:420px){.nav.has-cart .brand span{display:none}}
 
 /* HERO — cielo, orizzonte e mare */
 .hero{--seaH:270px;position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:space-between;color:#fff;overflow:hidden;
@@ -385,24 +400,31 @@ footer a:hover{color:#fff}
   </symbol>
 </svg>
 
-<nav class="nav" id="nav">
+<nav class="nav" id="nav" aria-label="Navigazione principale">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="Chef Angelo Sanna">
       <div class="mono"><svg width="30" height="26" style="color:#fff"><use href="#as"/></svg></div>
       <span>Chef Angelo Sanna</span>
     </a>
     <div class="links">
-      <a class="l" href="#programma">Programma</a>
-      <a class="l" href="#requisiti">Requisiti</a>
-      <a class="l" href="#testimonianze">Testimonianze</a>
-      <a class="l" href="#corsi">Prossimi corsi</a>
-      <a class="l" href="#shop">Shop</a>
       <a class="cartbtn" id="navCart" href="#shop" aria-label="Carrello"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg><span id="navCartN">0</span></a>
       <a class="btn btn-gold" href="#iscriviti">Richiedi info</a>
       <div class="language-switch" role="group" aria-label="Lingua">
         <button type="button" data-language="it" lang="it" aria-label="Italiano" aria-pressed="true">IT</button>
         <button type="button" data-language="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
       </div>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Apri menu" aria-expanded="false" aria-controls="siteMenu"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>
+    </div>
+    <div class="menu-panel" id="siteMenu" hidden>
+      <div class="menu-heading">Esplora Chef on Board</div>
+      <a class="menu-shop" href="#shop">Shop</a>
+      <a href="#corsi">Prossimi corsi</a>
+      <a href="#programma">Programma</a>
+      <a href="#requisiti">Requisiti</a>
+      <a href="#chi-sono">Chi è Angelo</a>
+      <a href="#testimonianze">Testimonianze</a>
+      <a href="#faq">FAQ</a>
+      <a href="#iscriviti">Contatti</a>
     </div>
   </div>
 </nav>
@@ -876,6 +898,7 @@ footer a:hover{color:#fff}
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Anteprima"><button type="button" class="x" id="lbx" aria-label="Chiudi">×</button></div>
 
 <script src="/i18n.js"></script>
+<script src="/navigation.js"></script>
 <script>
 (function(){
   var t=window.ChefI18n.t;
@@ -987,7 +1010,7 @@ footer a:hover{color:#fff}
       }).join('');
     }
     function renderCart(){
-      var n=count(), nc=$('navCart'); $('navCartN').textContent=n; nc.classList.toggle('on',n>0);
+      var n=count(), nc=$('navCart'); $('navCartN').textContent=n; nc.classList.toggle('on',n>0);nav.classList.toggle('has-cart',n>0);
       var items=$('cartItems'), form=$('cartForm');
       var rows=cart.filter(function(l){return find(l.id)});
       if(!rows.length){items.innerHTML='<p class="none">'+esc(t('Il carrello è vuoto.'))+'</p>';form.style.display='none';return}
