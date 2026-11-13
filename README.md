@@ -42,9 +42,9 @@ Il pagamento avviene su **Stripe Checkout**. Per attivare gli addebiti reali, ag
 
 **Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. La modalità simulata non contatta Stripe, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
 
-**Ordini:** compaiono in **/admin → Shop e prodotti → Ordini** (in attesa, pagato, annullato, rimborsato, simulato). I rimborsi si gestiscono nella dashboard Stripe, poi si aggiorna lo stato dell'ordine nell'admin.
+**Ordini:** compaiono in **/admin → Shop e prodotti → Ordini** (in attesa, pagato, annullato, rimborsato, simulato), con nome, email, telefono e codice fiscale del cliente. Quando un prodotto richiede la spedizione, nell'ordine viene salvato anche l'indirizzo in Italia. I rimborsi si gestiscono nella dashboard Stripe, poi si aggiorna lo stato dell'ordine nell'admin.
 
-Il checkout attuale non gestisce spedizioni o evasione degli ordini fisici: prima di vendere prodotti che richiedono spedizione, aggiungere e configurare questi passaggi.
+Nell'admin, spunta **Richiede indirizzo di spedizione** per i prodotti fisici; per gli altri prodotti il cliente non deve inserire un indirizzo. Il sito non calcola le spese di spedizione e non gestisce corrieri, tracking o evasione degli ordini.
 
 **Da completare prima di incassare:** pagine legali (condizioni di vendita, diritto di recesso per contenuti digitali, privacy) e fatturazione: il sito non le genera.
 

@@ -210,7 +210,7 @@ const DEFAULT_PRODOTTI = [{
   id: 'corso-online', creato: new Date().toISOString(), pubblicato: true, prezzo: 89000,
   titolo: 'Chef on Board — Corso online',
   descrizione: 'Il metodo di Chef Angelo Sanna per diventare Private Chef su yacht e ville di lusso, da seguire online quando vuoi.',
-  include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'],
+  include: ['Accesso al corso online', 'Materiali e dispense', 'Supporto di Chef Angelo'], richiedeSpedizione: false,
 }];
 async function getStoredProdotti() {
   let list = await load('prodotti', null);
@@ -249,10 +249,11 @@ function cleanProdotto(b) {
     descrizione: str(b.descrizione, 1500),
     include,
     prezzo: toCents(b.prezzo),
+    richiedeSpedizione: b.richiedeSpedizione === true,
     pubblicato: b.pubblicato !== false,
   };
 }
-const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo });
+const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, richiedeSpedizione: p.richiedeSpedizione === true });
 
 // Stripe vuole i parametri in form-encoding con parentesi quadre per oggetti e array.
 function formEncode(obj, prefix, out) {
@@ -336,17 +337,29 @@ async function api(req, res, url) {
       const qty = Math.min(MAX_QTY, Math.max(1, int(it.qty) || 1));
       if (!pr) return;
       const ex = righe.find(r => r.id === pr.id);
-      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + qty); else righe.push({ id: pr.id, titolo: pr.titolo, descrizione: pr.descrizione, prezzo: pr.prezzo, qty });
+      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + qty); else righe.push({ id: pr.id, titolo: pr.titolo, descrizione: pr.descrizione, prezzo: pr.prezzo, qty, richiedeSpedizione: pr.richiedeSpedizione === true });
     });
     const nome = str(b.nome, 120), email = str(b.email, 160), tel = str(b.tel, 40);
+    const codiceFiscale = str(b.codiceFiscale, 32).replace(/\s/g, '').toUpperCase();
+    const indirizzo = b.spedizione && typeof b.spedizione === 'object' ? b.spedizione : {};
+    const richiedeSpedizione = righe.some(r => r.richiedeSpedizione);
+    const spedizione = richiedeSpedizione ? {
+      via: str(indirizzo.via, 180), cap: str(indirizzo.cap, 5),
+      citta: str(indirizzo.citta, 100), provincia: str(indirizzo.provincia, 80), paese: 'IT',
+    } : null;
     if (!righe.length) return send(res, 400, { error: 'Il carrello è vuoto.' });
-    if (!nome || !/\S+@\S+\.\S+/.test(email)) return send(res, 400, { error: 'Inserisci nome ed email.' });
+    if (!nome || !/\S+@\S+\.\S+/.test(email) || tel.length < 5) return send(res, 400, { error: 'Inserisci nome, email e telefono.' });
+    if (!/^(?:[A-Z0-9]{16}|\d{11})$/.test(codiceFiscale)) return send(res, 400, { error: 'Inserisci un codice fiscale valido.' });
+    if (richiedeSpedizione && (!spedizione.via || !/^\d{5}$/.test(spedizione.cap) || !spedizione.citta || !spedizione.provincia)) {
+      return send(res, 400, { error: 'Inserisci un indirizzo di consegna completo in Italia.' });
+    }
     if (b.accetto !== true) return send(res, 400, { error: 'Devi accettare le condizioni per procedere.' });
     const totale = righe.reduce((s, r) => s + r.prezzo * r.qty, 0);
     const lang = b.lang === 'en' ? 'en' : 'it';
     const ordine = {
-      id: crypto.randomUUID(), data: new Date().toISOString(), stato: SIMULATED_PAYMENTS ? 'simulato' : 'in attesa', nome, email, tel, lang,
-      righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty })), totale,
+      id: crypto.randomUUID(), data: new Date().toISOString(), stato: SIMULATED_PAYMENTS ? 'simulato' : 'in attesa',
+      nome, email, tel, codiceFiscale, spedizione, lang,
+      righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty, richiedeSpedizione: r.richiedeSpedizione })), totale,
       stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS,
     };
     if (SIMULATED_PAYMENTS) {

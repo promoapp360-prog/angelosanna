@@ -245,6 +245,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       <div><label for="pPrezzo">Prezzo in euro <small>(0 = non acquistabile)</small></label><input type="text" id="pPrezzo" inputmode="decimal" placeholder="Es. 490 oppure 490,50"></div>
       <div class="full"><label for="pDesc">Descrizione</label><textarea id="pDesc" rows="3"></textarea></div>
       <div class="full"><label for="pInc">Dettagli / caratteristiche <small>(uno per riga)</small></label><textarea id="pInc" rows="5" placeholder="Es. Materiale&#10;Taglie disponibili"></textarea></div>
+      <div class="full"><label class="check"><input type="checkbox" id="pShip"> Richiede indirizzo di spedizione</label><small>Spunta per i prodotti fisici da consegnare in Italia.</small></div>
       <div class="full"><label class="check"><input type="checkbox" id="pPub" checked> Visibile sul sito</label></div>
     </div>
     <div class="ferr" id="perr"></div>
@@ -465,18 +466,21 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       : shopInfo.pagamenti
       ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
       : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Puoi continuare a usare la modalità simulata; per gli addebiti reali aggiungi <code>STRIPE_SECRET_KEY</code> nei Secrets di Replit. Istruzioni nel README.</div>';
-    $('payStatus').innerHTML+='<div class="warnbox"><b>Prodotti fisici:</b> lo shop non raccoglie ancora l’indirizzo di spedizione né gestisce l’evasione degli ordini. Configura questi passaggi prima di venderli.</div>';
+    $('payStatus').innerHTML+='<div class="okbox">Il checkout richiede il codice fiscale per ogni ordine e l’indirizzo in Italia solo per i prodotti contrassegnati come fisici. Il sito non calcola le spese né gestisce corrieri o tracciamento.</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+'</h3>'+
-        '<div class="meta"><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span></div>'+
+        '<div class="meta"><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Indirizzo richiesto · Italia':'Digitale / senza consegna')+'</span></div>'+
         (p.descrizione?'<div class="note">'+esc(p.descrizione)+'</div>':'')+
         (p.include&&p.include.length?'<div class="chips">'+p.include.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+'</div>'+
         '<div class="acts"><button class="btn btn-line btn-sm" data-pedit="'+p.id+'">Modifica</button><button class="btn btn-red btn-sm" data-pdel="'+p.id+'">Elimina</button></div></div>';
     }).join(''):'<div class="empty">Nessun prodotto. Clicca "+ Nuovo prodotto".</div>';
     $('ordList').innerHTML=ordini.length?'<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Articoli</th><th>Totale</th><th>Stato</th><th></th></tr></thead><tbody>'+
       ordini.map(function(o){
+        var s=o.spedizione||{}, address=[s.via,s.cap,s.citta,s.provincia].filter(Boolean).join(', ');
         return '<tr><td>'+new Date(o.data).toLocaleDateString('it-IT')+'<div class="src">'+new Date(o.data).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</div></td>'+
-          '<td><b>'+esc(o.nome)+'</b><div class="src"><a href="mailto:'+esc(o.email)+'">'+esc(o.email)+'</a>'+(o.tel?' · '+esc(o.tel):'')+'</div></td>'+
+          '<td><b>'+esc(o.nome)+'</b><div class="src"><a href="mailto:'+esc(o.email)+'">'+esc(o.email)+'</a>'+(o.tel?' · '+esc(o.tel):'')+'</div>'+
+          (o.codiceFiscale?'<div class="src"><b>Codice fiscale:</b> '+esc(o.codiceFiscale)+'</div>':'')+
+          (address?'<div class="src"><b>Consegna:</b> '+esc(address)+(s.paese==='IT'?' · Italia':'')+'</div>':'')+'</td>'+
           '<td>'+o.righe.map(function(r){return esc(r.titolo)+' × '+r.qty}).join('<br>')+'</td>'+
           '<td><b>'+eur(o.totale)+'</b>'+(o.metodo?'<div class="src">'+esc(METODI[o.metodo]||o.metodo)+'</div>':'')+'</td>'+
           '<td><select class="'+stCls(o.stato)+'" data-ostato="'+o.id+'">'+ORD_STATI.map(function(s){return '<option value="'+s+'"'+(s===o.stato?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+'</select></td>'+
@@ -486,7 +490,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   function openProd(p){
     editProd=p?p.id:null;$('pTitle').textContent=p?'Modifica prodotto':'Nuovo prodotto';$('perr').textContent='';
     $('pTitolo').value=p?p.titolo:'';$('pPrezzo').value=p&&p.prezzo?String(p.prezzo/100).replace('.',','):'';
-    $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;
+    $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;$('pShip').checked=!!(p&&p.richiedeSpedizione);
     $('mProd').classList.add('open');$('pTitolo').focus();
   }
   $('addProd').onclick=function(){openProd(null)};
@@ -500,7 +504,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   });
   $('pform').addEventListener('submit',function(e){
     e.preventDefault();
-    var d={titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked};
+    var d={titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked};
     if(!d.titolo.trim()){$('perr').textContent='Inserisci il titolo.';return}
     $('pSave').disabled=true;
     api(editProd?'PUT':'POST','/api/admin/prodotti'+(editProd?'/'+editProd:''),d).then(function(){$('mProd').classList.remove('open');toast('Prodotto salvato');loadShop()})
