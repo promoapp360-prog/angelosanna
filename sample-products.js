@@ -2,6 +2,7 @@
 
 // Esempi editoriali, non offerte reali: l'admin deve disattivare il flag esempio.
 const SAMPLE_PRODUCTS_KEY = 'shop-cinque-esempi-inseriti-v1';
+const SAMPLE_IMAGES_KEY = 'shop-foto-esempi-inserite-v1';
 const SAMPLE_PRODUCTS = [
   { id: 'esempio-grembiule', titolo: 'Esempio — Grembiule da cucina', prezzo: 2900,
     descrizione: 'Esempio di scheda per un grembiule da cucina. Angelo può sostituire titolo, descrizione e prezzo dall’admin.' },
@@ -14,6 +15,7 @@ const SAMPLE_PRODUCTS = [
   { id: 'esempio-telo', titolo: 'Esempio — Telo da cucina', prezzo: 1200,
     descrizione: 'Esempio di accessorio per la cucina. Angelo può modificarlo, nasconderlo o eliminarlo liberamente.' },
 ].map(product => ({ ...product, categoria: 'prodotto', richiedeSpedizione: true,
+  immagine: '/assets/shop/' + product.id + '.webp',
   pubblicato: true, esempio: true, include: ['Scheda dimostrativa: non ancora acquistabile'] }));
 
-module.exports = { SAMPLE_PRODUCTS_KEY, SAMPLE_PRODUCTS };
+module.exports = { SAMPLE_PRODUCTS_KEY, SAMPLE_IMAGES_KEY, SAMPLE_PRODUCTS };

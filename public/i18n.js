@@ -5,6 +5,7 @@
     "Corso online": "Online course",
     "Acquista il corso online.": "Buy the online course.",
     "Shop": "Shop",
+    "Immagine dimostrativa generata con AI": "AI-generated illustrative image",
     "Spedizione per pezzo": "Shipping per item",
     "Spedizione": "Shipping",
     "Subtotale articoli": "Items subtotal",

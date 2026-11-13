@@ -476,6 +476,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+(p.esempio?'<span class="tag draft">Esempio · non acquistabile</span>':'')+'</h3>'+
         '<div class="meta"><span>'+(p.categoria==='corso'?'Corso':'Prodotto')+'</span><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Italia · Spedizione '+eur(p.costoSpedizione||0)+' / pezzo':'Senza spedizione')+'</span></div>'+
+        (p.immagine&&/^\/assets\/[\w/.-]+\.(webp|png|jpe?g)$/i.test(p.immagine)?'<img src="'+esc(p.immagine)+'" alt="'+esc(p.titolo)+'" width="110" height="110" loading="lazy" style="object-fit:contain;border-radius:10px;margin-top:10px">':'')+
         (p.descrizione?'<div class="note">'+esc(p.descrizione)+'</div>':'')+
         (p.include&&p.include.length?'<div class="chips">'+p.include.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+'</div>'+
         '<div class="acts"><button class="btn btn-line btn-sm" data-pedit="'+p.id+'">Modifica</button><button class="btn btn-red btn-sm" data-pdel="'+p.id+'">Elimina</button></div></div>';

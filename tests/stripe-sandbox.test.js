@@ -16,9 +16,10 @@ const delivery = { via: 'Via Esempio 1', cap: '07100', citta: 'Sassari', provinc
 function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripeResponse, stripeStatus = 200,
   liveKey = '', liveWebhook = '', liveAccountId = '', accountResponse, accountStatus = 200,
   databaseUrl = 'https://database.invalid', readStatus = 200, writeStatus = 200,
-  seedExamples = false, mailKey = 're_unit_fake', mailFrom = 'orders@example.com', mailStatus = 200 } = {}) {
+  seedExamples = false, seedImages = false, mailKey = 're_unit_fake', mailFrom = 'orders@example.com', mailStatus = 200 } = {}) {
   const store = new Map([['prodotti', [product]], ['migrazione-prezzo-corso-online-890-v1', true]]);
   if (!seedExamples) store.set('shop-cinque-esempi-inseriti-v1', true);
+  if (!seedImages) store.set('shop-foto-esempi-inserite-v1', true);
   const calls = [], mailCalls = [], errors = [];
   let handler;
   const env = { PAYMENT_MODE: mode, STRIPE_SECRET_KEY: key, STRIPE_WEBHOOK_SECRET: 'whsec_fake_unit_test',
@@ -370,6 +371,10 @@ test('cinque esempi vengono aggiunti una sola volta e sono modificabili, nascond
   const a = app({ seedExamples: true });
   const first = await a.request('GET', '/api/shop');
   assert.equal(first.body.prodotti.filter(p => p.esempio).length, 5);
+  for (const p of first.body.prodotti.filter(p => p.esempio)) {
+    assert.match(p.immagine, /^\/assets\/shop\/esempio-[a-z]+\.webp$/);
+    assert.ok(fs.statSync(path.join(root, 'public', p.immagine)).size > 0);
+  }
   assert.ok(first.body.prodotti.some(p => p.id === product.id && p.prezzo === 89000));
   assert.equal((await a.request('GET', '/api/shop')).body.prodotti.length, 6);
   assert.equal((await a.request('PUT', '/api/admin/prodotti/esempio-pinza', {})).status, 401);
@@ -391,6 +396,31 @@ test('cinque esempi vengono aggiunti una sola volta e sono modificabili, nascond
   const added = await a.request('POST', '/api/admin/prodotti', { titolo: 'Nuovo prodotto', prezzo: '15', categoria: 'prodotto' }, headers);
   assert.equal(added.status, 201);
   assert.equal((await a.request('GET', '/api/admin/prodotti', null, headers)).body.prodotti.some(p => p.id === added.body.id), true);
+});
+
+test('le foto vengono aggiunte una sola volta agli esempi esistenti senza cambiare prodotti personalizzati o eliminati', async () => {
+  const a = app({ seedImages: true });
+  const samples = require('../sample-products').SAMPLE_PRODUCTS.map(p => {
+    const copy = { ...p }; delete copy.immagine; return copy;
+  });
+  samples[1].titolo = 'Utensili personalizzati';
+  samples[2].esempio = false;
+  samples[3].immagine = '/assets/foto-personale.jpg';
+  samples.pop();
+  a.store.set('prodotti', [product, ...samples]);
+  const shop = await a.request('GET', '/api/shop');
+  assert.equal(shop.body.prodotti.find(p => p.id === samples[0].id).immagine, '/assets/shop/esempio-grembiule.webp');
+  assert.equal(shop.body.prodotti.find(p => p.id === samples[1].id).immagine, '');
+  assert.equal(shop.body.prodotti.find(p => p.id === samples[2].id).immagine, '');
+  assert.equal(shop.body.prodotti.find(p => p.id === samples[3].id).immagine, '/assets/foto-personale.jpg');
+  assert.equal(shop.body.prodotti.some(p => p.id === 'esempio-telo'), false);
+  const saved = a.store.get('prodotti').map(p => ({ ...p, immagine: '' }));
+  a.store.set('prodotti', saved);
+  await a.request('GET', '/api/shop');
+  assert.equal(a.store.get('prodotti').every(p => !p.immagine), true);
+  const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
+  assert.match(html, /class="product-photo"/);
+  assert.match(html, /Immagine dimostrativa generata con AI/);
 });
 
 test('gli esempi visibili non possono essere acquistati e il checkout non usa WhatsApp', async () => {

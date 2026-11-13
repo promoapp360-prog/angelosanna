@@ -222,6 +222,9 @@ section[id]{scroll-margin-top:82px}
 .prod .top .eyebrow{color:var(--gold2);margin-bottom:6px}
 .prod .body{padding:22px 26px;display:grid;gap:16px}
 .prod .body p{color:var(--muted)}
+.prod .product-photo{margin:0;background:#f5f3ed}
+.prod .product-photo img{display:block;width:100%;height:260px;object-fit:contain}
+.prod .product-photo figcaption{padding:0 20px 12px;font-size:.78rem;color:var(--muted);text-align:center}
 .prod ul{list-style:none;display:grid;gap:8px}
 .prod li{padding-left:28px;position:relative;font-size:.96rem}
 .prod li::before{content:"";position:absolute;left:3px;top:.45em;width:13px;height:7px;border-left:2px solid var(--sea2);border-bottom:2px solid var(--sea2);transform:rotate(-45deg)}
@@ -1009,7 +1012,8 @@ footer a:hover{color:#fff}
           ? '<div class="price">'+esc(eur(p.prezzo))+'<small>'+esc(t('Pagamento unico'))+'</small></div>'+
             '<button type="button" class="btn btn-gold" data-add="'+esc(p.id)+'">'+esc(inCart(p.id)?t('Nel carrello · vai al pagamento'):t('Aggiungi al carrello'))+'</button>'
           : '<div class="price" style="font-size:1.2rem">'+esc(t('Prezzo in arrivo'))+'</div><a class="btn btn-navy" href="#iscriviti">'+esc(t('Avvisami quando è disponibile'))+'</a>';
-        return '<article class="prod reveal in"><div class="top"><div class="eyebrow">'+esc(t('Shop'))+'</div><h3>'+esc(p.titolo)+'</h3></div><div class="body">'+(p.descrizione?'<p>'+esc(p.descrizione)+'</p>':'')+inc+buy+'</div></article>';
+        var photo=p.immagine?'<figure class="product-photo"><img src="'+esc(p.immagine)+'" alt="'+esc(p.titolo)+'" width="640" height="640" loading="lazy">'+(p.esempio?'<figcaption>'+esc(t('Immagine dimostrativa generata con AI'))+'</figcaption>':'')+'</figure>':'';
+        return '<article class="prod reveal in"><div class="top"><div class="eyebrow">'+esc(t('Shop'))+'</div><h3>'+esc(p.titolo)+'</h3></div>'+photo+'<div class="body">'+(p.descrizione?'<p>'+esc(p.descrizione)+'</p>':'')+inc+buy+'</div></article>';
       }).join('');
     }
     function renderCart(){

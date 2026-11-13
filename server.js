@@ -11,7 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { createOrderMailer, emailValid } = require('./order-emails');
 const { createOrderNotifications } = require('./order-notifications');
-const { SAMPLE_PRODUCTS_KEY, SAMPLE_PRODUCTS } = require('./sample-products');
+const { SAMPLE_PRODUCTS_KEY, SAMPLE_IMAGES_KEY, SAMPLE_PRODUCTS } = require('./sample-products');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -291,6 +291,17 @@ async function getStoredProdotti() {
     }
     await save(SAMPLE_PRODUCTS_KEY, true);
   }
+  if (Array.isArray(list) && !(await load(SAMPLE_IMAGES_KEY, false))) {
+    let changed = false;
+    list = list.map(p => {
+      const example = SAMPLE_PRODUCTS.find(sample => sample.id === p.id && sample.titolo === p.titolo);
+      if (!example || !p.esempio || p.immagine) return p;
+      changed = true;
+      return { ...p, immagine: example.immagine };
+    });
+    if (changed) await save('prodotti', list);
+    await save(SAMPLE_IMAGES_KEY, true);
+  }
   return list;
 }
 async function getProdotti() {
@@ -316,7 +327,8 @@ function cleanProdotto(b) {
     pubblicato: b.pubblicato !== false,
   };
 }
-const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true, costoSpedizione: shippingCost(p), esempio: p.esempio === true });
+const productImage = p => /^\/assets\/[\w/.-]+\.(webp|png|jpe?g)$/i.test(p.immagine || '') ? p.immagine : '';
+const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true, costoSpedizione: shippingCost(p), esempio: p.esempio === true, immagine: productImage(p) });
 
 // Stripe vuole i parametri in form-encoding con parentesi quadre per oggetti e array.
 function formEncode(obj, prefix, out) {
