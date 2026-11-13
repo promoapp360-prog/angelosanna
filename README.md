@@ -34,15 +34,17 @@ Il pannello si apre da `tuo-sito/admin` (link "Admin" in fondo alla pagina).
 - `public/assets/video/`: video testimonianze (`t1`–`t5`) e video di gruppo, con le relative copertine `.jpg`.
 - Per aggiungere una testimonianza: copiare il video in `public/assets/video/`, creare la copertina e duplicare un pulsante `.tcard` in `public/index.html`.
 
-## Corso online, carrello e pagamenti (Shopify)
+## Shop, prodotti e pagamenti (Stripe)
 
-Il sito ha una sezione **Corso online** con carrello e collegamento al checkout ospitato da Shopify. Il prezzo previsto è **890 €**. Il prodotto Shopify è predisposto ma resta in bozza finché la valuta dello store non sarà impostata su **EUR**. Shopify gestirà pagamento, ricevuta e ordine. I dati di pagamento non passano dal server del sito.
+La sezione **Shop** mostra tutti i prodotti pubblicati. Da **/admin → Shop e prodotti** si possono aggiungere, modificare, pubblicare o nascondere prodotti con titolo, descrizione, prezzo e contenuti inclusi. Il prodotto iniziale è il corso online a **890 €**.
 
-Per completare l'attivazione, rivendica lo store dal link ricevuto da Shopify, imposta la valuta su **EUR**, conferma il prezzo di **890 €** e pubblica il prodotto nel canale Replit. Configura Shopify Payments e gli altri metodi che vuoi offrire nella dashboard Shopify. Fuori dalla modalità simulata, gli aggiornamenti al corso da **/admin → Corso online** vengono sincronizzati su Shopify; la sincronizzazione rifiuta una valuta diversa da EUR.
+Il pagamento avviene su **Stripe Checkout**. Per attivare gli addebiti reali, aggiungi la chiave `STRIPE_SECRET_KEY` nei Secrets di Replit; per le conferme automatiche via webhook aggiungi `STRIPE_WEBHOOK_SECRET`. Klarna e PayPal vanno abilitati nella dashboard Stripe.
 
-**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. Il prezzo di 890 € è salvato come prezzo del corso; la modalità simulata non contatta Shopify, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
+**Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. La modalità simulata non contatta Stripe, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
 
-**Ordini:** gli acquisti Shopify e i relativi stati si gestiscono nella dashboard Shopify. La tabella ordini del pannello **/admin** mostra gli ordini locali e simulati, non importa automaticamente gli ordini Shopify.
+**Ordini:** compaiono in **/admin → Shop e prodotti → Ordini** (in attesa, pagato, annullato, rimborsato, simulato). I rimborsi si gestiscono nella dashboard Stripe, poi si aggiorna lo stato dell'ordine nell'admin.
+
+Il checkout attuale non gestisce spedizioni o evasione degli ordini fisici: prima di vendere prodotti che richiedono spedizione, aggiungere e configurare questi passaggi.
 
 **Da completare prima di incassare:** pagine legali (condizioni di vendita, diritto di recesso per contenuti digitali, privacy) e fatturazione: il sito non le genera.
 

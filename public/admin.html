@@ -145,7 +145,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     <div class="tabs">
       <button id="tCorsi" class="on">Corsi</button>
       <button id="tCont">Contatti<span class="count" id="nNew" style="display:none"></span></button>
-      <button id="tShop">Corso online<span class="count" id="nOrd" style="display:none"></span></button>
+      <button id="tShop">Shop<span class="count" id="nOrd" style="display:none"></span></button>
     </div>
     <div style="display:flex;gap:8px"><a class="btn btn-line btn-sm" href="/" target="_blank">Vedi sito</a><button class="btn btn-line btn-sm" id="logout">Esci</button></div>
   </div></header>
@@ -172,9 +172,9 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       <div id="contList"></div>
     </div>
 
-    <!-- CORSO ONLINE: prodotti e ordini -->
+    <!-- SHOP: prodotti e ordini -->
     <div id="vShop" style="display:none">
-      <div class="bar"><h2>Corso online</h2><button class="btn btn-navy" id="addProd">+ Nuovo prodotto</button></div>
+      <div class="bar"><h2>Shop e prodotti</h2><button class="btn btn-navy" id="addProd">+ Nuovo prodotto</button></div>
       <div id="payStatus"></div>
       <div id="prodList"></div>
       <div class="bar" style="margin-top:34px"><h2>Ordini</h2></div>
@@ -241,10 +241,10 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   <form class="sheet" id="pform">
     <h2 id="pTitle">Nuovo prodotto</h2>
     <div class="grid" style="margin-top:14px">
-      <div class="full"><label for="pTitolo">Titolo</label><input type="text" id="pTitolo" required></div>
+      <div class="full"><label for="pTitolo">Titolo</label><input type="text" id="pTitolo" placeholder="Es. Felpa Chef on Board" required></div>
       <div><label for="pPrezzo">Prezzo in euro <small>(0 = non acquistabile)</small></label><input type="text" id="pPrezzo" inputmode="decimal" placeholder="Es. 490 oppure 490,50"></div>
       <div class="full"><label for="pDesc">Descrizione</label><textarea id="pDesc" rows="3"></textarea></div>
-      <div class="full"><label for="pInc">Cosa include <small>(uno per riga)</small></label><textarea id="pInc" rows="5" placeholder="Accesso al corso online&#10;Materiali e dispense"></textarea></div>
+      <div class="full"><label for="pInc">Dettagli / caratteristiche <small>(uno per riga)</small></label><textarea id="pInc" rows="5" placeholder="Es. Materiale&#10;Taglie disponibili"></textarea></div>
       <div class="full"><label class="check"><input type="checkbox" id="pPub" checked> Visibile sul sito</label></div>
     </div>
     <div class="ferr" id="perr"></div>
@@ -462,11 +462,10 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     var n=$('nOrd');n.textContent=pagati.length;n.style.display=pagati.length?'':'none';
     $('payStatus').innerHTML=shopInfo.simulazione
       ? '<div class="warnbox"><b>Modalità simulata attiva.</b> I checkout di prova non effettuano addebiti e gli ordini “simulato” non vengono conteggiati negli incassi.</div>'
-      : shopInfo.pagamenti&&shopInfo.provider==='shopify'
-      ? '<div class="okbox">✓ Checkout Shopify attivo. Shopify gestisce pagamenti, ricevute e ordini; qui sono mostrati solo gli ordini locali o simulati.</div>'
       : shopInfo.pagamenti
-      ? '<div class="okbox">✓ Pagamenti simulati attivi. Nessun addebito reale viene effettuato.</div>'
-      : '<div class="warnbox"><b>Checkout Shopify non ancora disponibile.</b> Verifica che lo store sia stato rivendicato e che il prodotto del corso sia pubblicato nel canale Replit. Nel frattempo i clienti possono ordinare via WhatsApp.</div>';
+      ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
+      : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Puoi continuare a usare la modalità simulata; per gli addebiti reali aggiungi <code>STRIPE_SECRET_KEY</code> nei Secrets di Replit. Istruzioni nel README.</div>';
+    $('payStatus').innerHTML+='<div class="warnbox"><b>Prodotti fisici:</b> lo shop non raccoglie ancora l’indirizzo di spedizione né gestisce l’evasione degli ordini. Configura questi passaggi prima di venderli.</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+'</h3>'+
         '<div class="meta"><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span></div>'+
@@ -486,7 +485,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   }
   function openProd(p){
     editProd=p?p.id:null;$('pTitle').textContent=p?'Modifica prodotto':'Nuovo prodotto';$('perr').textContent='';
-    $('pTitolo').value=p?p.titolo:'Chef on Board — Corso online';$('pPrezzo').value=p&&p.prezzo?String(p.prezzo/100).replace('.',','):'';
+    $('pTitolo').value=p?p.titolo:'';$('pPrezzo').value=p&&p.prezzo?String(p.prezzo/100).replace('.',','):'';
     $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;
     $('mProd').classList.add('open');$('pTitolo').focus();
   }

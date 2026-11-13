@@ -9,7 +9,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { getShopifyCourse, createShopifyCheckout, syncShopifyCourse } = require('./lib/shopify-storefront');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -207,7 +206,6 @@ const MAX_QTY = 10;
 
 // Prezzo iniziale del corso online: 890 €.
 const COURSE_PRICE_MIGRATION_KEY = 'migrazione-prezzo-corso-online-890-v1';
-const SHOPIFY_COURSE_HANDLE = 'chef-on-board-corso-online';
 const DEFAULT_PRODOTTI = [{
   id: 'corso-online', creato: new Date().toISOString(), pubblicato: true, prezzo: 89000,
   titolo: 'Chef on Board — Corso online',
@@ -320,50 +318,17 @@ async function api(req, res, url) {
   const p = url.pathname;
   const m = req.method;
 
-  // Pubblico: corso in vendita e stato del checkout Shopify
+  // Pubblico: prodotti in vendita + se i pagamenti Stripe o simulati sono attivi
   if (p === '/api/shop' && m === 'GET') {
-    const locali = (await getProdotti()).filter(x => x.pubblicato);
-    if (SIMULATED_PAYMENTS) {
-      return send(res, 200, { prodotti: locali.map(publicProdotto), pagamenti: true, simulazione: true, provider: 'simulated' });
-    }
-    let corsoShopify = null;
-    try { corsoShopify = await getShopifyCourse(SHOPIFY_COURSE_HANDLE); }
-    catch (e) { console.error('Shopify checkout non disponibile:', e.message); }
-    const prodotti = locali
-      .filter(x => x.id === 'corso-online')
-      .map(x => publicProdotto(corsoShopify ? { ...x, prezzo: corsoShopify.price } : x));
-    const corsoLocale = locali.find(x => x.id === 'corso-online' && x.prezzo > 0);
-    return send(res, 200, { prodotti, pagamenti: !!corsoShopify && !!corsoLocale, simulazione: false, provider: 'shopify' });
+    const prodotti = (await getProdotti()).filter(x => x.pubblicato).map(publicProdotto);
+    return send(res, 200, { prodotti, pagamenti: !!STRIPE_KEY || SIMULATED_PAYMENTS, simulazione: SIMULATED_PAYMENTS });
   }
 
-  // Pubblico: crea il carrello Shopify e invia il cliente al checkout ospitato
+  // Pubblico: crea l'ordine e la sessione di pagamento Stripe
   if (p === '/api/checkout' && m === 'POST') {
     const b = await readBody(req);
     if (str(b.website)) return send(res, 200, { ok: true }); // trappola anti-spam
-    if (!SIMULATED_PAYMENTS) {
-      let corsoShopify;
-      try { corsoShopify = await getShopifyCourse(SHOPIFY_COURSE_HANDLE); }
-      catch (e) { console.error('Shopify checkout non disponibile:', e.message); }
-      if (!corsoShopify) return send(res, 503, { error: 'Il checkout Shopify non è ancora disponibile. Scrivici su WhatsApp per iscriverti.' });
-      const course = (await getProdotti()).find(x => x.id === 'corso-online' && x.pubblicato && x.prezzo > 0);
-      const qty = (Array.isArray(b.items) ? b.items : [])
-        .filter(it => it && it.id === 'corso-online')
-        .reduce((sum, it) => sum + Math.min(MAX_QTY, Math.max(1, int(it.qty) || 1)), 0);
-      if (!course || !qty) return send(res, 400, { error: 'Il carrello è vuoto o il corso non è disponibile.' });
-      if ((Array.isArray(b.items) ? b.items : []).some(it => it && it.id !== 'corso-online')) {
-        return send(res, 400, { error: 'Al momento Shopify è configurato per il corso online.' });
-      }
-      const nome = str(b.nome, 120), email = str(b.email, 160);
-      if (!nome || !/\S+@\S+\.\S+/.test(email)) return send(res, 400, { error: 'Inserisci nome ed email.' });
-      if (b.accetto !== true) return send(res, 400, { error: 'Devi accettare le condizioni per procedere.' });
-      const boundedQty = Math.min(MAX_QTY, qty);
-      try {
-        const url = await createShopifyCheckout(corsoShopify.variantId, boundedQty, email);
-        return send(res, 201, { url, provider: 'shopify' });
-      } catch (e) {
-        return send(res, 502, { error: e.message || 'Il checkout Shopify non è disponibile. Riprova o scrivici su WhatsApp.' });
-      }
-    }
+    if (!STRIPE_KEY && !SIMULATED_PAYMENTS) return send(res, 503, { error: 'Pagamenti online non ancora attivi. Scrivici su WhatsApp per iscriverti.' });
     const prodotti = await getProdotti();
     const righe = [];
     (Array.isArray(b.items) ? b.items : []).slice(0, 10).forEach(it => {
@@ -390,7 +355,24 @@ async function api(req, res, url) {
       await save('ordini', list.slice(0, 5000));
       return send(res, 201, { simulato: true, ordineId: ordine.id });
     }
-    return send(res, 503, { error: 'Il checkout Shopify non è disponibile. Scrivici su WhatsApp per iscriverti.' });
+    const base = siteUrl(req);
+    const params = {
+      mode: 'payment', locale: lang, customer_email: email, billing_address_collection: 'auto',
+      success_url: base + '/?ordine=ok&o=' + ordine.id + '&session_id={CHECKOUT_SESSION_ID}#shop',
+      cancel_url: base + '/?ordine=annullato#shop',
+      metadata: { ordine_id: ordine.id },
+      payment_intent_data: { description: 'Chef on Board — ordine ' + ordine.id.slice(0, 8), metadata: { ordine_id: ordine.id } },
+      line_items: righe.map(r => ({
+        quantity: r.qty,
+        price_data: { currency: 'eur', unit_amount: r.prezzo, product_data: { name: r.titolo, description: r.descrizione ? r.descrizione.slice(0, 300) : undefined } },
+      })),
+    };
+    const s = await stripe('POST', '/v1/checkout/sessions', params);
+    ordine.stripeSessionId = s.id;
+    const list = await load('ordini', []);
+    list.unshift(ordine);
+    await save('ordini', list.slice(0, 5000));
+    return send(res, 201, { url: s.url });
   }
 
   // Pubblico: al ritorno da Stripe verifica il pagamento (funziona anche senza webhook)
@@ -504,22 +486,7 @@ async function api(req, res, url) {
 
     // Shop: prodotti in vendita
     if (p === '/api/admin/prodotti' && m === 'GET') {
-      let corsoShopify = null;
-      if (!SIMULATED_PAYMENTS) {
-        try { corsoShopify = await getShopifyCourse(SHOPIFY_COURSE_HANDLE); }
-        catch (e) { console.error('Shopify checkout non disponibile:', e.message); }
-      }
-      const prodotti = await getProdotti();
-      const prodottiAdmin = corsoShopify
-        ? prodotti.map(x => x.id === 'corso-online' ? { ...x, prezzo: corsoShopify.price } : x)
-        : prodotti;
-      return send(res, 200, {
-        prodotti: prodottiAdmin,
-        pagamenti: SIMULATED_PAYMENTS || !!corsoShopify,
-        webhook: false,
-        simulazione: SIMULATED_PAYMENTS,
-        provider: SIMULATED_PAYMENTS ? 'simulated' : 'shopify',
-      });
+      return send(res, 200, { prodotti: await getProdotti(), pagamenti: !!STRIPE_KEY, webhook: !!WEBHOOK_SECRET, simulazione: SIMULATED_PAYMENTS });
     }
     if (p === '/api/admin/prodotti' && m === 'POST') {
       const pr = { id: crypto.randomUUID(), creato: new Date().toISOString(), ...cleanProdotto(await readBody(req)) };
@@ -532,12 +499,7 @@ async function api(req, res, url) {
       const list = await getStoredProdotti();
       const i = list.findIndex(x => x.id === mp[1]);
       if (i < 0) return send(res, 404, { error: 'Prodotto non trovato' });
-      const updated = { ...list[i], ...cleanProdotto(await readBody(req)), id: list[i].id };
-      if (updated.id === 'corso-online' && !SIMULATED_PAYMENTS) {
-        try { await syncShopifyCourse(updated, SHOPIFY_COURSE_HANDLE); }
-        catch (e) { return send(res, 502, { error: e.message || 'Impossibile aggiornare il corso su Shopify.' }); }
-      }
-      list[i] = updated;
+      list[i] = { ...list[i], ...cleanProdotto(await readBody(req)), id: list[i].id };
       await save('prodotti', list);
       return send(res, 200, list[i]);
     }
@@ -626,5 +588,5 @@ http.createServer(async (req, res) => {
   if (!process.env.ADMIN_PASSWORD) console.log('ATTENZIONE: imposta ADMIN_PASSWORD nei Secrets per usare /admin');
   if (COMING_SOON) console.log('MODALITÀ "PRESTO ONLINE": il pubblico vede solo la pagina di attesa');
   if (SIMULATED_PAYMENTS) console.log('Pagamenti: modalità simulata attiva, nessun addebito reale');
-  else console.log('Pagamenti: checkout Shopify verificato al caricamento del catalogo');
+  else if (!STRIPE_KEY) console.log('Pagamenti: imposta STRIPE_SECRET_KEY nei Secrets per attivare il carrello');
 });
