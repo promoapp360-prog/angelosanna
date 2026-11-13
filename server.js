@@ -12,6 +12,11 @@ const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
+// COMING_SOON=1 → online c'è SOLO la pagina "stiamo arrivando" (public/presto.html); il resto del sito resta nascosto.
+// /admin continua a funzionare. Togli la variabile (o mettila a 0) per mostrare il sito completo.
+const COMING_SOON = /^(1|true|on|si)$/i.test(process.env.COMING_SOON || '');
+const CS_STATIC = ['/', '/admin', '/admin/', '/admin.html', '/presto.html', '/assets/hero-yacht.jpeg'];
+const CS_API = ['/api/login', '/api/richieste', '/api/stripe/webhook'];
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_URL = process.env.REPLIT_DB_URL || '';
 
@@ -160,7 +165,10 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': '
   '.webp': 'image/webp', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.json': 'application/json' };
 
 function serveStatic(req, res, pathname) {
-  if (pathname === '/') pathname = '/index.html';
+  if (COMING_SOON && !CS_STATIC.includes(pathname) && !pathname.startsWith('/assets/presto/')) {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Pagina non trovata');
+  }
+  if (pathname === '/') pathname = COMING_SOON ? '/presto.html' : '/index.html';
   if (pathname === '/admin' || pathname === '/admin/') pathname = '/admin.html';
   const file = path.normalize(path.join(PUBLIC_DIR, decodeURIComponent(pathname)));
   if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
@@ -566,6 +574,7 @@ http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'same-origin');
   if (url.pathname.startsWith('/api/')) {
+    if (COMING_SOON && !url.pathname.startsWith('/api/admin/') && !CS_API.includes(url.pathname)) return send(res, 404, { error: 'Non disponibile' });
     try { await api(req, res, url); }
     catch (e) {
       if (e.code === 409 || e.code === 502 || e.code === 503) return send(res, e.code, { error: e.message });
@@ -577,6 +586,7 @@ http.createServer(async (req, res) => {
 }).listen(PORT, '0.0.0.0', () => {
   console.log('Chef on Board attivo sulla porta ' + PORT + (DB_URL ? ' (Replit Database)' : ' (file in ./data)'));
   if (!process.env.ADMIN_PASSWORD) console.log('ATTENZIONE: imposta ADMIN_PASSWORD nei Secrets per usare /admin');
+  if (COMING_SOON) console.log('MODALITÀ "PRESTO ONLINE": il pubblico vede solo la pagina di attesa');
   if (SIMULATED_PAYMENTS) console.log('Pagamenti: modalità simulata attiva, nessun addebito reale');
   else if (!STRIPE_KEY) console.log('Pagamenti: imposta STRIPE_SECRET_KEY nei Secrets per attivare il carrello');
 });

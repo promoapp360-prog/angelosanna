@@ -52,3 +52,12 @@ Senza `STRIPE_SECRET_KEY` il carrello resta visibile ma il cliente può solo ord
 **Ordini:** compaiono in **/admin → Corso online → Ordini** (in attesa, pagato, annullato, rimborsato, simulato). Il pagamento si conferma anche senza webhook quando il cliente torna sul sito; il webhook serve se chiude la pagina prima. I rimborsi si fanno dalla dashboard Stripe, poi segna l'ordine "Rimborsato".
 
 **Da completare prima di incassare:** pagine legali (condizioni di vendita, diritto di recesso per contenuti digitali, privacy) e fatturazione: il sito non le genera.
+
+## Pubblicare solo la pagina "stiamo arrivando"
+
+Per mostrare online **solo** `public/presto.html` (immagine, annuncio della nuova piattaforma con acquisto online, pagamento comodo e Gift Card, e un modulo "avvisami al lancio") senza esporre il resto del sito:
+1. Nei **Secrets di Replit** aggiungi `COMING_SOON` = `1`, poi riavvia/Deploy.
+2. Il pubblico vede solo la pagina di attesa: tutto il resto (landing, foto, video, carrello, API) risponde "non trovato". `/admin` continua a funzionare e i contatti del modulo arrivano in **Contatti** con la nota "Lista d'attesa".
+3. Quando il sito è pronto, **elimina il secret** (o mettilo a `0`) e rifai il Deploy.
+
+L'immagine da condividere sui social (1080×1350) è `public/assets/presto/condividi.png`.

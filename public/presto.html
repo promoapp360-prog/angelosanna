@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chef on Board — La nuova piattaforma dei corsi sta arrivando</title>
+<meta name="description" content="Stiamo costruendo la nuova piattaforma dei corsi di Chef Angelo Sanna: acquisto online, pagamento comodo anche a rate e Gift Card da regalare.">
+<meta property="og:title" content="Chef on Board — la nuova piattaforma dei corsi sta arrivando">
+<meta property="og:description" content="Acquista i corsi online, paga in modo comodo e regala una Gift Card.">
+<meta property="og:image" content="/assets/presto/condividi.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#013E7F;--abyss:#012a57;--sky:#4fa8dc;--sky2:#9fd6f5}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{font-family:'Poppins',system-ui,sans-serif;color:#fff;background:var(--abyss)}
+.hero{min-height:100vh;min-height:100svh;position:relative;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(1,42,87,.55) 0%,rgba(1,42,87,.78) 55%,rgba(1,26,56,.95) 100%),url(/assets/hero-yacht.jpeg) center/cover}
+.top{display:flex;align-items:center;gap:14px;padding:26px clamp(20px,5vw,64px)}
+.logo{width:46px;height:46px;border:1.5px solid #fff;border-radius:50%;display:grid;place-items:center;font:400 1.35rem 'Playfair Display',serif}
+.top span{font-weight:500;letter-spacing:.02em}
+.main{flex:1;display:flex;align-items:center;padding:20px clamp(20px,5vw,64px) 40px}
+.box{max-width:780px}
+.eyebrow{color:var(--sky2);font-weight:600;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:18px}
+h1{font-size:clamp(2.1rem,6vw,4rem);line-height:1.08;font-weight:700;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--sky2)}
+.lead{margin-top:20px;font-size:clamp(1rem,2.2vw,1.2rem);color:rgba(255,255,255,.86);max-width:620px;line-height:1.6}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.pill{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(6px);border-radius:999px;padding:10px 18px;font-weight:500;font-size:.95rem}
+.pill svg{flex:none;color:var(--sky2)}
+form{margin-top:34px;max-width:560px;background:rgba(255,255,255,.96);color:#0b1b2e;border-radius:20px;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+form h2{font-size:1.1rem;margin-bottom:4px}
+form p{font-size:.88rem;color:#5b6675;margin-bottom:6px}
+label{display:block;font-size:.8rem;font-weight:600;margin:12px 0 5px}
+input{width:100%;padding:13px 14px;border:1px solid #d6dbe3;border-radius:10px;font:inherit;background:#fbfcfd}
+input:focus{outline:2px solid var(--navy);border-color:transparent}
+.hp{position:absolute;left:-9999px;opacity:0}
+button{width:100%;margin-top:18px;background:var(--navy);color:#fff;border:0;border-radius:999px;padding:15px 22px;font:600 1rem 'Poppins',sans-serif;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.msg{margin-top:12px;font-size:.9rem;font-weight:500}
+.msg.err{color:#b3261e}.msg.ok{color:var(--navy)}
+.foot{display:flex;flex-wrap:wrap;gap:12px 28px;padding:0 clamp(20px,5vw,64px) 30px;font-size:.9rem;color:rgba(255,255,255,.8)}
+.foot a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.4)}
+/* ?img=1 → versione immagine da condividere sui social (senza modulo) */
+.img form,.img .foot{display:none}
+.img .main{align-items:flex-end;padding-bottom:150px}
+.img .box{max-width:900px}
+.img h1{font-size:4.4rem}
+.img .lead{font-size:1.4rem;max-width:760px}
+.img .pill{font-size:1.05rem}
+@media(max-width:560px){form{padding:20px}}
+</style>
+</head>
+<body>
+<div class="hero" id="hero">
+  <div class="top"><div class="logo">AS</div><span>Chef Angelo Sanna · Chef on Board</span></div>
+  <div class="main"><div class="box">
+    <div class="eyebrow">Novità in arrivo</div>
+    <h1>Stiamo costruendo la <em>nuova piattaforma</em> dei corsi.</h1>
+    <p class="lead">Presto potrai acquistare i corsi di Chef Angelo Sanna online, pagarli in modo comodo e regalarli a chi sogna di lavorare a bordo.</p>
+    <div class="pills">
+      <div class="pill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.8a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>Acquisto online</div>
+      <div class="pill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></svg>Pagamento comodo, anche a rate</div>
+      <div class="pill"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 13h18M12 8c-1.5-4-6-4-6-1.5S10 8 12 8zm0 0c1.5-4 6-4 6-1.5S14 8 12 8z"/></svg>Gift Card da regalare</div>
+    </div>
+    <form id="f" novalidate>
+      <h2>Vuoi essere tra i primi?</h2>
+      <p>Lasciaci i tuoi dati: ti avvisiamo noi appena la piattaforma è online.</p>
+      <label for="n">Nome e cognome</label><input id="n" autocomplete="name">
+      <label for="e">Email</label><input id="e" type="email" autocomplete="email">
+      <label for="t">Telefono / WhatsApp</label><input id="t" type="tel" autocomplete="tel">
+      <input class="hp" id="w" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button id="b" type="submit">Avvisami al lancio</button>
+      <div class="msg" id="m" role="status"></div>
+    </form>
+  </div></div>
+  <div class="foot">
+    <a href="https://wa.me/393208877838" target="_blank" rel="noopener noreferrer">WhatsApp +39 320 887 7838</a>
+    <a href="https://www.instagram.com/angelosannachef/" target="_blank" rel="noopener noreferrer">@angelosannachef</a>
+    <a href="mailto:chef@angelosanna.com">chef@angelosanna.com</a>
+  </div>
+</div>
+<script>
+if(/[?&]img=1/.test(location.search))document.getElementById('hero').classList.add('img'),document.body.classList.add('img');
+var f=document.getElementById('f'),m=document.getElementById('m'),b=document.getElementById('b');
+f.addEventListener('submit',function(ev){
+  ev.preventDefault();var v=function(i){return document.getElementById(i).value.trim()};
+  m.className='msg err';
+  if(!v('n')||!v('t')||!/\S+@\S+\.\S+/.test(v('e'))){m.textContent='Inserisci nome, email e telefono.';return}
+  b.disabled=true;m.textContent='';
+  fetch('/api/richieste',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:v('n'),email:v('e'),tel:v('t'),website:v('w'),note:'Lista d\'attesa nuova piattaforma corsi / Gift Card'})})
+    .then(function(r){if(!r.ok)throw 0;m.className='msg ok';m.textContent='Grazie! Ti avvisiamo appena siamo online.';f.reset()})
+    .catch(function(){m.textContent='Qualcosa non ha funzionato. Scrivici su WhatsApp.'})
+    .finally(function(){b.disabled=false});
+});
+</script>
+</body>
+</html>
