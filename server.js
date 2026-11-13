@@ -300,6 +300,7 @@ function toCents(v) {
   const n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.'));
   return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n * 100), 10000000) : 0;
 }
+const { parseShippingEuros, shippingCost, calculateTotals } = require('./public/shop-totals');
 function cleanProdotto(b) {
   const include = (Array.isArray(b.include) ? b.include : String(b.include || '').split('\n'))
     .map(s => str(s, 160)).filter(Boolean).slice(0, 20);
@@ -310,11 +311,12 @@ function cleanProdotto(b) {
     prezzo: toCents(b.prezzo),
     categoria: b.categoria === 'corso' ? 'corso' : 'prodotto',
     richiedeSpedizione: b.richiedeSpedizione === true,
+    costoSpedizione: b.richiedeSpedizione === true ? parseShippingEuros(b.costoSpedizione) : 0,
       esempio: b.esempio === true,
     pubblicato: b.pubblicato !== false,
   };
 }
-const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true, esempio: p.esempio === true });
+const publicProdotto = (p) => ({ id: p.id, titolo: p.titolo, descrizione: p.descrizione, include: p.include || [], prezzo: p.prezzo, categoria: p.categoria === 'corso' ? 'corso' : 'prodotto', richiedeSpedizione: p.richiedeSpedizione === true, costoSpedizione: shippingCost(p), esempio: p.esempio === true });
 
 // Stripe vuole i parametri in form-encoding con parentesi quadre per oggetti e array.
 function formEncode(obj, prefix, out) {
@@ -473,7 +475,7 @@ async function api(req, res, url) {
       const qty = Math.min(MAX_QTY, Math.max(1, int(it.qty) || 1));
       if (!pr) return;
       const ex = righe.find(r => r.id === pr.id);
-      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + qty); else righe.push({ id: pr.id, titolo: pr.titolo, descrizione: pr.descrizione, prezzo: pr.prezzo, qty, richiedeSpedizione: pr.richiedeSpedizione === true });
+      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + qty); else righe.push({ id: pr.id, titolo: pr.titolo, descrizione: pr.descrizione, prezzo: pr.prezzo, qty, richiedeSpedizione: pr.richiedeSpedizione === true, costoSpedizione: shippingCost(pr) });
     });
     const nome = str(b.nome, 120), email = str(b.email, 160), tel = str(b.tel, 40);
     const codiceFiscale = str(b.codiceFiscale, 32).replace(/\s/g, '').toUpperCase();
@@ -489,12 +491,12 @@ async function api(req, res, url) {
     if (richiedeSpedizione && (!spedizione.via || !/^\d{5}$/.test(spedizione.cap) || !spedizione.citta || !spedizione.provincia)) {
       return send(res, 400, { error: 'Inserisci un indirizzo di consegna completo in Italia.' });
     }
-    const totale = righe.reduce((s, r) => s + r.prezzo * r.qty, 0);
+    const { subtotale, costoSpedizione, totale } = calculateTotals(righe);
     const lang = b.lang === 'en' ? 'en' : 'it';
     const ordine = {
       id: crypto.randomUUID(), data: new Date().toISOString(), stato: SIMULATED_PAYMENTS ? 'simulato' : 'in attesa',
       nome, email, tel, codiceFiscale, spedizione, lang,
-      righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty, richiedeSpedizione: r.richiedeSpedizione })), totale,
+      righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty, richiedeSpedizione: r.richiedeSpedizione, costoSpedizione: r.costoSpedizione })), subtotale, costoSpedizione, totale,
       stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX,
       emailRichiesta: PAYMENT_MODE === 'live',
     };
@@ -505,6 +507,10 @@ async function api(req, res, url) {
     const base = siteUrl(req);
     const params = {
       mode: 'payment', locale: lang, customer_email: email, billing_address_collection: 'auto',
+      shipping_options: costoSpedizione > 0 ? [{ shipping_rate_data: {
+        type: 'fixed_amount', fixed_amount: { amount: costoSpedizione, currency: 'eur' },
+        display_name: lang === 'en' ? 'Shipping to Italy' : 'Spedizione in Italia',
+      } }] : undefined,
       success_url: base + '/?ordine=ok&o=' + ordine.id + '&session_id={CHECKOUT_SESSION_ID}#shop',
       cancel_url: base + '/?ordine=annullato#shop',
       metadata: { ordine_id: ordine.id },
@@ -656,7 +662,9 @@ async function api(req, res, url) {
       return send(res, 200, { prodotti: await getProdotti(), pagamenti: STRIPE_READY, webhook: !!WEBHOOK_SECRET, emailOrdini: ORDER_MAILER.ready, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
     }
     if (p === '/api/admin/prodotti' && m === 'POST') {
-      const pr = { id: crypto.randomUUID(), creato: new Date().toISOString(), ...cleanProdotto(await readBody(req)) };
+      const body = await readBody(req);
+      if (body.richiedeSpedizione === true && parseShippingEuros(body.costoSpedizione) === null) return send(res, 400, { error: 'Inserisci un costo di spedizione da 0 a 100.000 euro, con massimo due decimali.' });
+      const pr = { id: crypto.randomUUID(), creato: new Date().toISOString(), ...cleanProdotto(body) };
       const list = await getStoredProdotti();
       list.push(pr); await save('prodotti', list);
       return send(res, 201, pr);
@@ -667,6 +675,8 @@ async function api(req, res, url) {
       const i = list.findIndex(x => x.id === mp[1]);
       if (i < 0) return send(res, 404, { error: 'Prodotto non trovato' });
       const body = await readBody(req);
+      if (!Object.prototype.hasOwnProperty.call(body, 'costoSpedizione')) body.costoSpedizione = (shippingCost(list[i]) / 100).toFixed(2);
+      if (body.richiedeSpedizione === true && parseShippingEuros(body.costoSpedizione) === null) return send(res, 400, { error: 'Inserisci un costo di spedizione da 0 a 100.000 euro, con massimo due decimali.' });
       const cleaned = cleanProdotto(body);
       if (!Object.prototype.hasOwnProperty.call(body, 'esempio')) cleaned.esempio = list[i].esempio === true;
       list[i] = { ...list[i], ...cleaned, id: list[i].id };

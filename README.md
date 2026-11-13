@@ -70,7 +70,7 @@ I controlli automatici della sandbox si eseguono con `node --test tests/stripe-s
 
 **Ordini:** compaiono in **/admin → Shop e prodotti → Ordini** (in attesa, pagato, annullato, rimborsato, simulato), con nome, email, telefono e codice fiscale del cliente. Quando un prodotto richiede la spedizione, nell'ordine viene salvato anche l'indirizzo in Italia. I rimborsi si gestiscono nella dashboard Stripe, poi si aggiorna lo stato dell'ordine nell'admin.
 
-Nell'admin, spunta **Richiede indirizzo di spedizione** per i prodotti fisici; per gli altri prodotti il cliente non deve inserire un indirizzo. Il sito non calcola le spese di spedizione e non gestisce corrieri, tracking o evasione degli ordini.
+Nell'admin, spunta **Richiede indirizzo di spedizione** per i prodotti fisici e imposta **Costo spedizione in euro per pezzo** (0 = gratuita). Il costo si moltiplica per la quantità; con più prodotti si sommano i costi. Per gli articoli già presenti senza costo impostato rimane 0: nessuna tariffa viene inventata. Il server ricalcola sempre le spese dai prodotti salvati, ignorando importi inviati dal cliente; vengono mostrate separatamente nel carrello, addebitate in Stripe, salvate nell'ordine e riportate nell'admin e nelle email. Per i prodotti senza spedizione il costo è 0 e non viene richiesto un indirizzo. Il sito non gestisce corrieri, tracking o evasione degli ordini.
 
 Le pagine **/privacy** e **/cookies** sono disponibili in italiano e inglese; sono bozze informative da far verificare. Lo shop accetta solo acquirenti maggiorenni e il server verifica la dichiarazione prima di creare un ordine.
 

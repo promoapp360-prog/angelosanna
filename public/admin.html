@@ -247,6 +247,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       <div class="full"><label for="pDesc">Descrizione</label><textarea id="pDesc" rows="3"></textarea></div>
       <div class="full"><label for="pInc">Dettagli / caratteristiche <small>(uno per riga)</small></label><textarea id="pInc" rows="5" placeholder="Es. Materiale&#10;Taglie disponibili"></textarea></div>
       <div class="full"><label class="check"><input type="checkbox" id="pShip"> Richiede indirizzo di spedizione</label><small>Spunta per i prodotti fisici da consegnare in Italia.</small></div>
+      <div id="pShippingCostRow"><label for="pShippingCost">Costo spedizione in euro per pezzo</label><input type="text" id="pShippingCost" inputmode="decimal" placeholder="Es. 5,90"><small>0 = gratuita. Il costo si moltiplica per la quantità; con più prodotti si sommano i rispettivi costi.</small></div>
       <div class="full"><label class="check"><input type="checkbox" id="pExample"> Scheda di esempio, non acquistabile</label><small>Togli la spunta solo dopo avere verificato descrizione, prezzo e disponibilità del prodotto reale.</small></div>
       <div class="full"><label class="check"><input type="checkbox" id="pPub" checked> Visibile sul sito</label></div>
     </div>
@@ -470,11 +471,11 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       : shopInfo.pagamenti
       ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
       : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Il salvataggio di una chiave non abilita gli addebiti: occorre configurare una modalità esplicita. Istruzioni nel README.</div>';
-    $('payStatus').innerHTML+='<div class="okbox">Il checkout richiede il codice fiscale per ogni ordine e l’indirizzo in Italia solo per i prodotti contrassegnati come fisici. Il sito non calcola le spese né gestisce corrieri o tracciamento.</div>';
+    $('payStatus').innerHTML+='<div class="okbox">Il checkout richiede il codice fiscale per ogni ordine e l’indirizzo in Italia solo per i prodotti contrassegnati come fisici. Le spese impostate per ciascun prodotto sono moltiplicate per la quantità e sommate al totale. Il sito non gestisce corrieri o tracciamento.</div>';
     $('payStatus').innerHTML+='<div class="'+(shopInfo.emailOrdini?'okbox':'warnbox')+'">'+(shopInfo.emailOrdini?'Servizio email ordini configurato. Le conferme vengono inviate solo per nuovi acquisti reali con pagamento verificato.':'Email ordini non ancora configurate: servono il servizio di invio e un mittente verificato. Gli incassi reali restano bloccati finché la configurazione è incompleta.')+'</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+(p.esempio?'<span class="tag draft">Esempio · non acquistabile</span>':'')+'</h3>'+
-        '<div class="meta"><span>'+(p.categoria==='corso'?'Corso':'Prodotto')+'</span><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Indirizzo richiesto · Italia':'Senza spedizione')+'</span></div>'+
+        '<div class="meta"><span>'+(p.categoria==='corso'?'Corso':'Prodotto')+'</span><span>💶 '+(p.prezzo>0?eur(p.prezzo):'<b style="color:var(--red)">Prezzo non impostato: non acquistabile</b>')+'</span><span>'+(p.richiedeSpedizione?'Italia · Spedizione '+eur(p.costoSpedizione||0)+' / pezzo':'Senza spedizione')+'</span></div>'+
         (p.descrizione?'<div class="note">'+esc(p.descrizione)+'</div>':'')+
         (p.include&&p.include.length?'<div class="chips">'+p.include.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+'</div>'+
         '<div class="acts"><button class="btn btn-line btn-sm" data-pedit="'+p.id+'">Modifica</button><button class="btn btn-red btn-sm" data-pdel="'+p.id+'">Elimina</button></div></div>';
@@ -490,7 +491,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
           (o.codiceFiscale?'<div class="src"><b>Codice fiscale:</b> '+esc(o.codiceFiscale)+'</div>':'')+
           (address?'<div class="src"><b>Consegna:</b> '+esc(address)+(s.paese==='IT'?' · Italia':'')+'</div>':'')+'</td>'+
           '<td>'+o.righe.map(function(r){return esc(r.titolo)+' × '+r.qty}).join('<br>')+'</td>'+
-          '<td><b>'+eur(o.totale)+'</b>'+(o.metodo?'<div class="src">'+esc(METODI[o.metodo]||o.metodo)+'</div>':'')+'</td>'+
+          '<td><b>'+eur(o.totale)+'</b>'+(o.spedizione?'<div class="src">Articoli: '+eur(o.subtotale==null?o.totale:o.subtotale)+'<br>Spedizione: '+eur(o.costoSpedizione||0)+'</div>':'')+(o.metodo?'<div class="src">'+esc(METODI[o.metodo]||o.metodo)+'</div>':'')+'</td>'+
           '<td>'+(o.sandbox?'<div class="src"><b>Sandbox · nessun incasso reale</b></div>':'')+'<select class="'+stCls(o.stato)+'" data-ostato="'+o.id+'">'+ORD_STATI.map(function(s){return '<option value="'+s+'"'+(s===o.stato?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+'</select></td>'+
           '<td>'+emailStatus+(retryEmail?'<button class="btn btn-line btn-sm" data-email="'+esc(o.id)+'">Riprova email mancanti</button><br>':'')+'<button class="link" data-odel="'+o.id+'">Elimina</button></td></tr>';
       }).join('')+'</tbody></table></div>':'<div class="empty">Nessun ordine ancora.</div>';
@@ -500,8 +501,15 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     $('pCategoria').value=p&&p.categoria==='corso'?'corso':'prodotto';
     $('pTitolo').value=p?p.titolo:'';$('pPrezzo').value=p&&p.prezzo?String(p.prezzo/100).replace('.',','):'';
     $('pDesc').value=p?p.descrizione:'';$('pInc').value=p&&p.include?p.include.join('\n'):'';$('pPub').checked=p?p.pubblicato:true;$('pShip').checked=!!(p&&p.richiedeSpedizione);$('pExample').checked=!!(p&&p.esempio);
+    $('pShippingCost').value=p&&p.costoSpedizione?String(p.costoSpedizione/100).replace('.',','):'0';
+    updateShippingField();
     $('mProd').classList.add('open');$('pTitolo').focus();
   }
+  function updateShippingField(){
+    $('pShippingCostRow').style.display=$('pShip').checked?'':'none';
+    $('pShippingCost').disabled=!$('pShip').checked;
+  }
+  $('pShip').addEventListener('change',updateShippingField);
   $('addProd').onclick=function(){openProd(null)};
   $('prodList').addEventListener('click',function(e){
     var b=e.target.closest('button');if(!b)return;
@@ -513,7 +521,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
   });
   $('pform').addEventListener('submit',function(e){
     e.preventDefault();
-    var d={categoria:$('pCategoria').value,titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked,esempio:$('pExample').checked};
+    var d={categoria:$('pCategoria').value,titolo:$('pTitolo').value,prezzo:$('pPrezzo').value,descrizione:$('pDesc').value,include:$('pInc').value,pubblicato:$('pPub').checked,richiedeSpedizione:$('pShip').checked,costoSpedizione:$('pShippingCost').value,esempio:$('pExample').checked};
     if(!d.titolo.trim()){$('perr').textContent='Inserisci il titolo.';return}
     $('pSave').disabled=true;
     api(editProd?'PUT':'POST','/api/admin/prodotti'+(editProd?'/'+editProd:''),d).then(function(){$('mProd').classList.remove('open');toast('Prodotto salvato');loadShop()})

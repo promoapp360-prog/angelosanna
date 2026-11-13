@@ -11,6 +11,7 @@ const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const product = { id: 'corso-online', titolo: 'Corso di prova', prezzo: 89000, categoria: 'corso', pubblicato: true, richiedeSpedizione: false };
 const buyer = { items: [{ id: product.id, qty: 1 }], nome: 'Cliente Test', email: 'test@example.com', tel: '0000000000', codiceFiscale: '00000000000', maggiorenne: true };
+const delivery = { via: 'Via Esempio 1', cap: '07100', citta: 'Sassari', provincia: 'SS', paese: 'IT' };
 
 function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripeResponse, stripeStatus = 200,
   liveKey = '', liveWebhook = '', liveAccountId = '', accountResponse, accountStatus = 200,
@@ -417,4 +418,75 @@ test('l’admin può riprovare solo le email mancanti dopo un errore del servizi
   assert.equal(a.store.get('ordini')[0].emailOrdine.cliente.stato, 'inviata');
   await a.request('POST', '/api/admin/ordini/' + order.id + '/email', {}, headers);
   assert.equal(a.mailCalls.length, 4);
+});
+
+test('admin: costo spedizione creabile, modificabile e pubblico; importi errati rifiutati', async () => {
+  const a = app();
+  const login = await a.request('POST', '/api/login', { password: 'unit-test-only' });
+  const headers = { authorization: 'Bearer ' + login.body.token };
+  const body = { titolo: 'Grembiule', prezzo: '29', richiedeSpedizione: true, costoSpedizione: '5,90' };
+  const created = await a.request('POST', '/api/admin/prodotti', body, headers);
+  assert.equal(created.status, 201);
+  assert.equal(created.body.costoSpedizione, 590);
+  const url = '/api/admin/prodotti/' + created.body.id;
+  for (const invalid of ['-1', 'abc', '5.999', '5 euro', '1e2', '100000.01']) {
+    assert.equal((await a.request('POST', '/api/admin/prodotti', { ...body, costoSpedizione: invalid }, headers)).status, 400);
+    assert.equal((await a.request('PUT', url, { ...body, costoSpedizione: invalid }, headers)).status, 400);
+  }
+  const legacy = { ...body };
+  delete legacy.costoSpedizione;
+  assert.equal((await a.request('PUT', url, legacy, headers)).body.costoSpedizione, 590);
+  const changed = await a.request('PUT', url, { ...body, costoSpedizione: '7.50' }, headers);
+  assert.equal(changed.body.costoSpedizione, 750);
+  assert.equal((await a.request('GET', '/api/shop')).body.prodotti.find(p => p.id === created.body.id).costoSpedizione, 750);
+  assert.equal((await a.request('PUT', url, { ...body, costoSpedizione: '0' }, headers)).body.costoSpedizione, 0);
+  assert.equal((await a.request('PUT', url, { ...body, richiedeSpedizione: false }, headers)).body.costoSpedizione, 0);
+});
+
+test('checkout: spedizione per pezzo sommata tra prodotti, ricalcolata dal server e addebitata in Stripe', async () => {
+  const a = app(liveConfig);
+  const physical = { ...product, id: 'grembiule', titolo: 'Grembiule', categoria: 'prodotto', prezzo: 2000, richiedeSpedizione: true, costoSpedizione: 590 };
+  a.store.set('prodotti', [product, physical, { ...physical, id: 'tagliere', prezzo: 1500, costoSpedizione: 350 }]);
+  const orderData = { ...buyer, items: [{ id: product.id, qty: 1 }, { id: physical.id, qty: 1 },
+    { id: physical.id, qty: 1 }, { id: 'tagliere', qty: 3 }], spedizione: delivery,
+    costoSpedizione: 1, totale: 1 };
+  assert.equal((await a.request('POST', '/api/checkout', { ...orderData, spedizione: null })).status, 400);
+  assert.equal((await a.request('POST', '/api/checkout', orderData)).status, 201);
+  const order = a.store.get('ordini')[0];
+  assert.equal(order.subtotale, 97500);
+  assert.equal(order.costoSpedizione, 2230);
+  assert.equal(order.totale, 99730);
+  assert.equal(order.righe.find(r => r.id === physical.id).costoSpedizione, 590);
+  assert.equal(order.spedizione.paese, 'IT');
+  const call = a.calls.find(c => c.url.endsWith('/v1/checkout/sessions'));
+  const params = new URLSearchParams(call.options.body);
+  assert.equal(params.get('shipping_options[0][shipping_rate_data][fixed_amount][amount]'), '2230');
+  assert.equal(params.get('shipping_options[0][shipping_rate_data][fixed_amount][currency]'), 'eur');
+  assert.equal((await signedEvent(a, paymentEvent(order, { amount_total: order.subtotale }))).status, 400);
+  assert.equal(a.store.get('ordini')[0].stato, 'in attesa');
+  a.store.set('prodotti', [{ ...physical, costoSpedizione: 9000 }]);
+  assert.equal((await signedEvent(a, paymentEvent(order))).status, 200);
+  assert.equal(a.store.get('ordini')[0].costoSpedizione, 2230);
+  assert.equal(a.mailCalls.length, 2);
+  for (const call of a.mailCalls) {
+    const email = JSON.parse(call.options.body);
+    assert.match(email.text, /Subtotale articoli:/);
+    assert.match(email.text, /Spedizione: 22,30/);
+    assert.match(email.text, /Totale pagato: 997,30/);
+  }
+});
+
+test('spedizione gratuita e prodotti preesistenti non aggiungono costi; i corsi non richiedono indirizzo', async () => {
+  const a = app();
+  const physical = { ...product, id: 'vecchio-prodotto', categoria: 'prodotto', richiedeSpedizione: true };
+  a.store.set('prodotti', [product, physical]);
+  assert.equal((await a.request('POST', '/api/checkout', { ...buyer, items: [{ id: physical.id, qty: 1 }], spedizione: delivery })).status, 201);
+  let order = a.store.get('ordini')[0];
+  assert.equal(order.costoSpedizione, 0);
+  assert.equal(order.totale, 89000);
+  assert.equal(new URLSearchParams(a.calls.at(-1).options.body).has('shipping_options[0][shipping_rate_data][fixed_amount][amount]'), false);
+  assert.equal((await a.request('POST', '/api/checkout', buyer)).status, 201);
+  order = a.store.get('ordini').find(o => o.spedizione === null);
+  assert.equal(order.costoSpedizione, 0);
+  assert.equal(order.totale, 89000);
 });

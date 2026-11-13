@@ -19,6 +19,10 @@ function orderMessage(order, recipient) {
     '', (en ? 'Order' : 'Ordine') + ' #' + reference,
     (en ? 'Date' : 'Data') + ': ' + new Date(order.data).toISOString().slice(0, 10),
     '', ...order.righe.map(row => row.titolo + ' × ' + row.qty + ' — ' + money(row.prezzo * row.qty)),
+    ...(order.costoSpedizione != null ? [
+      '', (en ? 'Items subtotal' : 'Subtotale articoli') + ': ' + money(order.subtotale),
+      (en ? 'Shipping' : 'Spedizione') + ': ' + money(order.costoSpedizione),
+    ] : []),
     '', (en ? 'Total paid' : 'Totale pagato') + ': ' + money(order.totale),
   ];
   if (owner) lines.push('', 'Cliente: ' + order.nome, 'Email: ' + order.email,

@@ -718,7 +718,7 @@ footer a:hover{color:#fff}
             <label for="cProvince">Provincia *</label><input id="cProvince" name="provincia" autocomplete="shipping address-level1" required>
             <p class="country-value">Paese di consegna: Italia</p>
           </div>
-          <small class="order-data-note">Il codice fiscale sarà salvato con l'ordine. Per i prodotti fisici raccogliamo anche l'indirizzo di consegna in Italia; spese e corriere non sono gestiti dal sito.</small>
+          <small class="order-data-note">Il codice fiscale sarà salvato con l'ordine. Per i prodotti fisici raccogliamo l'indirizzo in Italia e aggiungiamo le spese indicate per ogni pezzo. Il sito non gestisce il corriere.</small>
           <input class="hp" id="cWeb" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="consent"><input type="checkbox" id="cAccetto" required> Dichiaro di avere almeno 18 anni.</label>
           <small class="order-data-note">Consulta l'<a href="/privacy">informativa privacy</a> per sapere come trattiamo i tuoi dati.</small>
@@ -898,6 +898,7 @@ footer a:hover{color:#fff}
 
 <script src="/i18n.js"></script>
 <script src="/navigation.js"></script>
+<script src="/shop-totals.js"></script>
 <script>
 (function(){
   var t=window.ChefI18n.t;
@@ -977,7 +978,8 @@ footer a:hover{color:#fff}
     function find(id){return prods.filter(function(p){return p.id===id})[0]}
     function requiresShipping(){return cart.some(function(l){var p=find(l.id);return p&&p.richiedeSpedizione})}
     function inCart(id){return cart.filter(function(l){return l.id===id})[0]}
-    function total(){return cart.reduce(function(s,l){var p=find(l.id);return s+(p?p.prezzo*l.qty:0)},0)}
+    function cartTotals(){return window.ChefShopTotals.calculateTotals(cart.map(function(l){var p=find(l.id);return p?{prezzo:p.prezzo,qty:l.qty,richiedeSpedizione:p.richiedeSpedizione,costoSpedizione:p.costoSpedizione}:{prezzo:0,qty:0}}))}
+    function total(){return cartTotals().totale}
     function count(){return cart.reduce(function(s,l){return s+l.qty},0)}
     function payButtonText(){return t(simulazione?'Simula pagamento':sandbox?'Vai al checkout Stripe di prova':'Procedi al pagamento')}
 
@@ -1000,7 +1002,7 @@ footer a:hover{color:#fff}
       if(!filtered.length){var empty=categoria==='corso'?'Nuovi corsi nello shop in arrivo':'Nuovi prodotti in arrivo';box.innerHTML='<div class="empty"><h3 style="margin-bottom:8px">'+esc(t(empty))+'</h3>'+esc(t('Lascia i tuoi dati nel modulo e sarai tra i primi a saperlo.'))+'<div style="margin-top:18px"><a class="btn btn-navy" href="#iscriviti">'+esc(t('Avvisami'))+'</a></div></div>';return}
       box.innerHTML=filtered.map(function(p){
         var inc=(p.include&&p.include.length)?'<ul>'+p.include.map(function(i){return '<li>'+esc(i)+'</li>'}).join('')+'</ul>':'';
-        if(p.richiedeSpedizione)inc+='<p class="shipping-note">'+esc(t('Indirizzo di consegna in Italia richiesto'))+'</p>';
+        if(p.richiedeSpedizione)inc+='<p class="shipping-note">'+esc(t('Indirizzo di consegna in Italia richiesto'))+' · '+esc(t('Spedizione per pezzo'))+': '+esc(eur(p.costoSpedizione||0))+'</p>';
         var buy=p.esempio
           ? '<div class="price">'+esc(eur(p.prezzo))+'</div><button type="button" class="btn btn-navy" disabled>'+esc(t('Esempio · non acquistabile'))+'</button>'
           : p.prezzo>0
@@ -1020,8 +1022,8 @@ footer a:hover{color:#fff}
         return '<div class="ci"><b>'+esc(p.titolo)+'</b><span class="amt">'+esc(eur(p.prezzo*l.qty))+'</span>'+
           '<div class="ctl"><div class="qty"><button type="button" data-dec="'+esc(l.id)+'" aria-label="'+esc(t('Meno'))+'">−</button><span>'+l.qty+'</span><button type="button" data-inc="'+esc(l.id)+'" aria-label="'+esc(t('Più'))+'">+</button></div>'+
           '<button type="button" class="rm" data-del="'+esc(l.id)+'">'+esc(t('Rimuovi'))+'</button></div></div>'}).join('');
-      var tot=total();
-      $('cartTotals').innerHTML='<div class="tot"><span>'+esc(t('Totale'))+'</span><b>'+esc(eur(tot))+'</b></div>';
+      var amounts=cartTotals(),tot=amounts.totale;
+      $('cartTotals').innerHTML=(shipping?'<div class="tot"><span>'+esc(t('Subtotale articoli'))+'</span><b>'+esc(eur(amounts.subtotale))+'</b></div><div class="tot"><span>'+esc(t('Spedizione'))+'</span><b>'+esc(eur(amounts.costoSpedizione))+'</b></div>':'')+'<div class="tot"><span>'+esc(t('Totale'))+'</span><b>'+esc(eur(tot))+'</b></div>';
       form.style.display='block';
       $('payBtn').textContent=payButtonText();
       $('payBtn').style.display=pagamenti?'':'none';
