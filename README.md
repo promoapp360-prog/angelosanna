@@ -38,9 +38,15 @@ Il pannello si apre da `tuo-sito/admin` (link "Admin" in fondo alla pagina).
 
 La sezione **Shop** è divisa in **Corsi** e **Prodotti**. Da **/admin → Shop e prodotti** si possono aggiungere, modificare, pubblicare o nascondere articoli e assegnarli a una categoria, con titolo, descrizione, prezzo e dettagli. Il prodotto iniziale è il corso online a **890 €**.
 
-Il pagamento avviene su **Stripe Checkout**. Per attivare gli addebiti reali, aggiungi la chiave `STRIPE_SECRET_KEY` nei Secrets di Replit; per le conferme automatiche via webhook aggiungi `STRIPE_WEBHOOK_SECRET`. Klarna e PayPal vanno abilitati nella dashboard Stripe.
+Il pagamento avviene su **Stripe Checkout**. La sola presenza di `STRIPE_SECRET_KEY` non attiva gli addebiti. Per le conferme automatiche via webhook serve anche `STRIPE_WEBHOOK_SECRET`; senza webhook lo stato viene verificato quando il cliente torna da Stripe. Klarna e PayPal vanno abilitati nella dashboard Stripe.
 
 **Solo per provare in sviluppo, senza addebiti:** imposta `PAYMENT_MODE=simulated` nell'ambiente **Development** di Replit. La modalità simulata non contatta Stripe, registra gli ordini con stato "simulato" e non li conta negli incassi. Non impostare `PAYMENT_MODE` in Shared o Production.
+
+**Checkout Stripe sandbox:** in **Development** imposta `PAYMENT_MODE=stripe_test` e inserisci la chiave segreta sandbox nei Secrets. Il server accetta solo chiavi con prefisso `sk_test_` e sessioni Stripe con `livemode=false`, rifiutando le chiavi live. Usa esclusivamente dati fittizi e carte di test Stripe, per esempio `4242 4242 4242 4242`, una scadenza futura e tre cifre per il CVC. Gli ordini sandbox sono identificati nell'admin ed esclusi dagli incassi, anche se lo stato è "pagato". La chiave pubblicabile non serve per questo checkout con reindirizzamento. La chiave API non è il segreto webhook.
+
+**Pagamenti reali:** richiedono un'attivazione separata e consapevole, `PAYMENT_MODE=live` e una chiave `sk_live_`. Non configurati da questa prova. Completare prima condizioni di vendita, recesso e fatturazione.
+
+I controlli automatici della sandbox si eseguono con `node --test tests/stripe-sandbox.test.js`: usano chiavi fittizie e non contattano Stripe.
 
 **Ordini:** compaiono in **/admin → Shop e prodotti → Ordini** (in attesa, pagato, annullato, rimborsato, simulato), con nome, email, telefono e codice fiscale del cliente. Quando un prodotto richiede la spedizione, nell'ordine viene salvato anche l'indirizzo in Italia. I rimborsi si gestiscono nella dashboard Stripe, poi si aggiorna lo stato dell'ordine nell'admin.
 

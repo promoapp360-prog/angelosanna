@@ -936,7 +936,7 @@ footer a:hover{color:#fff}
 
   /* Shop: prodotti, carrello e checkout Stripe */
   (function(){
-    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, loaded=false, cart=[], msg=null, categoria='corso';
+    var KEY='chef-cart', prods=[], pagamenti=false, simulazione=false, sandbox=false, loaded=false, cart=[], msg=null, categoria='corso';
     try{cart=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){cart=[]}
     if(!Array.isArray(cart))cart=[];
     var $=function(id){return document.getElementById(id)};
@@ -947,13 +947,14 @@ footer a:hover{color:#fff}
     function inCart(id){return cart.filter(function(l){return l.id===id})[0]}
     function total(){return cart.reduce(function(s,l){var p=find(l.id);return s+(p?p.prezzo*l.qty:0)},0)}
     function count(){return cart.reduce(function(s,l){return s+l.qty},0)}
-    function payButtonText(){return t(simulazione?'Simula pagamento':'Procedi al pagamento')}
+    function payButtonText(){return t(simulazione?'Simula pagamento':sandbox?'Vai al checkout Stripe di prova':'Procedi al pagamento')}
 
     function renderMsg(){
       var el=$('shopMsg');
-      var html=simulazione?'<div class="shopmsg warn">'+esc(t('Modalità di prova: nessun pagamento reale verrà effettuato.'))+'</div>':'';
+      var html=simulazione?'<div class="shopmsg warn">'+esc(t('Modalità di prova: nessun pagamento reale verrà effettuato.'))+'</div>':sandbox?'<div class="shopmsg warn">'+esc(t('Checkout Stripe sandbox: nessun addebito reale. Usa solo dati e carte di test.'))+'</div>':'';
       if(!msg){el.innerHTML=html;return}
       var txt=msg.kind==='simulated'?t('Prova completata: nessun addebito reale. Ordine simulato {id} registrato.',{id:msg.id||''})
+        :msg.kind==='sandbox'?t('Pagamento di prova completato. Nessun addebito reale; ordine sandbox registrato.')
         :msg.kind==='ok'?t('Grazie {nome}! Il pagamento è andato a buon fine. Abbiamo ricevuto il tuo ordine.',{nome:msg.nome||''}).replace('  ',' ')
         :msg.kind==='wait'?t('Stiamo confermando il pagamento… se non vedi aggiornamenti entro pochi minuti scrivici su WhatsApp.')
         :t('Pagamento annullato: non è stato addebitato nulla. Il tuo carrello è ancora qui.');
@@ -992,7 +993,7 @@ footer a:hover{color:#fff}
       $('payBtn').style.display=pagamenti?'':'none';
       var wa=$('waOrder'); wa.style.display=pagamenti?'none':'';
       wa.href='https://wa.me/393208877838?text='+encodeURIComponent(t('Ciao Chef Angelo, vorrei acquistare questi prodotti:')+'\n'+rows.map(function(l){return '- '+find(l.id).titolo+' x'+l.qty}).join('\n')+'\n'+t('Totale')+': '+eur(tot));
-      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):pagamenti?t('Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.'):t('Per ora ordina tramite WhatsApp; nessun pagamento online.');
+      $('paymentNote').textContent=simulazione?t('Pagamento simulato: nessun addebito reale.'):sandbox&&pagamenti?t('Pagamento di prova su Stripe: nessun addebito reale.'):pagamenti?t('Pagamento sicuro su Stripe: i dati della carta non passano dal nostro sito.'):t('Per ora ordina tramite WhatsApp; nessun pagamento online.');
       if(!pagamenti){$('cErr').style.display='block';$('cErr').style.color='var(--muted)';$('cErr').textContent=t('I pagamenti online sono in attivazione: per ora puoi ordinare scrivendo su WhatsApp.')}
       else $('cErr').style.display='none';
     }
@@ -1029,14 +1030,14 @@ footer a:hover{color:#fff}
       if(shipping&&(!v('cVia')||!/^\d{5}$/.test(v('cCap'))||!v('cCity')||!v('cProvince'))){err.textContent=t('Inserisci un indirizzo di consegna completo in Italia.');err.style.display='block';return}
       if(!$('cAccetto').checked){err.textContent=t('Per acquistare devi avere almeno 18 anni.');err.style.display='block';return}
       err.style.display='none'; btn.disabled=true; btn.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
-      function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=m||t('Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.');err.style.display='block'}
+      function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=t(m||'Pagamento non disponibile al momento. Riprova o scrivici su WhatsApp.');err.style.display='block'}
       fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),codiceFiscale:cf,spedizione:shipping?{via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince'),paese:'IT'}:null,maggiorenne:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
         .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
         .then(function(x){
           if(x.ok&&x.j.simulato){
             msg={kind:'simulated',id:String(x.j.ordineId||'').slice(0,8)};cart=[];persist();btn.disabled=false;btn.textContent=payButtonText();renderAll();
             $('shopMsg').scrollIntoView({behavior:'smooth',block:'start'});
-          }else if(x.ok&&x.j.url){try{if(window.fbq)fbq('track','InitiateCheckout');if(window.gtag)gtag('event','begin_checkout')}catch(e){}location.href=x.j.url}
+          }else if(x.ok&&x.j.url){if(!sandbox){try{if(window.fbq)fbq('track','InitiateCheckout');if(window.gtag)gtag('event','begin_checkout')}catch(e){}}location.href=x.j.url}
           else fail(x.j&&x.j.error);
         })
         .catch(function(){fail()});
@@ -1053,12 +1054,12 @@ footer a:hover{color:#fff}
       msg={kind:'wait'};
       fetch('/api/checkout/conferma?o='+encodeURIComponent(qs.get('o'))+'&session_id='+encodeURIComponent(qs.get('session_id')))
         .then(function(r){return r.ok?r.json():null})
-        .then(function(j){if(j&&j.stato==='pagato'){msg={kind:'ok',nome:j.nome};cart=[];persist();try{if(window.fbq)fbq('track','Purchase');if(window.gtag)gtag('event','purchase')}catch(e){}}renderAll()})
+        .then(function(j){if(j&&j.stato==='pagato'){msg={kind:j.sandbox?'sandbox':'ok',nome:j.nome};cart=[];persist();if(!j.sandbox){try{if(window.fbq)fbq('track','Purchase');if(window.gtag)gtag('event','purchase')}catch(e){}}}renderAll()})
         .catch(function(){});
       cleanUrl();
     }
     renderAll();
-    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
+    fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;sandbox=!!s.sandbox;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});
     if(msg)$('shop').scrollIntoView();
   })();
 

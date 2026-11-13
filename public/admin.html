@@ -459,14 +459,16 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     }).catch(function(e){toast(e.message)});
   }
   function renderShop(){
-    var pagati=ordini.filter(function(o){return o.stato==='pagato'});
+    var pagati=ordini.filter(function(o){return o.stato==='pagato'&&!o.sandbox&&!o.simulato});
     var tot=pagati.reduce(function(s,o){return s+o.totale},0);
     var n=$('nOrd');n.textContent=pagati.length;n.style.display=pagati.length?'':'none';
     $('payStatus').innerHTML=shopInfo.simulazione
       ? '<div class="warnbox"><b>Modalità simulata attiva.</b> I checkout di prova non effettuano addebiti e gli ordini “simulato” non vengono conteggiati negli incassi.</div>'
+      : shopInfo.sandbox
+      ? '<div class="warnbox"><b>Checkout Stripe sandbox.</b> Nessun addebito reale. Gli ordini sandbox sono etichettati ed esclusi dagli incassi. '+(shopInfo.pagamenti?'Usa soltanto carte di test. '+(shopInfo.webhook?'Webhook configurato.':'Webhook non configurato: la conferma avviene al ritorno del cliente sul sito.'):'Checkout bloccato: verifica la chiave segreta di test nei Secrets.')+'</div>'
       : shopInfo.pagamenti
       ? '<div class="okbox">✓ Pagamenti Stripe attivi'+(shopInfo.webhook?' · webhook configurato':' · <b>webhook non configurato</b>: gli ordini si confermano comunque quando il cliente torna sul sito, ma imposta <code>STRIPE_WEBHOOK_SECRET</code> per non perdere conferme se chiude la pagina.')+'<br>Ordini pagati: <b>'+pagati.length+'</b> · Incassato: <b>'+eur(tot)+'</b></div>'
-      : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Puoi continuare a usare la modalità simulata; per gli addebiti reali aggiungi <code>STRIPE_SECRET_KEY</code> nei Secrets di Replit. Istruzioni nel README.</div>';
+      : '<div class="warnbox"><b>Pagamenti non ancora attivi.</b> Il salvataggio di una chiave non abilita gli addebiti: occorre configurare una modalità esplicita. Istruzioni nel README.</div>';
     $('payStatus').innerHTML+='<div class="okbox">Il checkout richiede il codice fiscale per ogni ordine e l’indirizzo in Italia solo per i prodotti contrassegnati come fisici. Il sito non calcola le spese né gestisce corrieri o tracciamento.</div>';
     $('prodList').innerHTML=prodotti.length?prodotti.map(function(p){
       return '<div class="card course"><div><h3>'+esc(p.titolo)+(p.pubblicato?'<span class="tag pub">Visibile</span>':'<span class="tag draft">Nascosto</span>')+'</h3>'+
@@ -484,7 +486,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
           (address?'<div class="src"><b>Consegna:</b> '+esc(address)+(s.paese==='IT'?' · Italia':'')+'</div>':'')+'</td>'+
           '<td>'+o.righe.map(function(r){return esc(r.titolo)+' × '+r.qty}).join('<br>')+'</td>'+
           '<td><b>'+eur(o.totale)+'</b>'+(o.metodo?'<div class="src">'+esc(METODI[o.metodo]||o.metodo)+'</div>':'')+'</td>'+
-          '<td><select class="'+stCls(o.stato)+'" data-ostato="'+o.id+'">'+ORD_STATI.map(function(s){return '<option value="'+s+'"'+(s===o.stato?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+'</select></td>'+
+          '<td>'+(o.sandbox?'<div class="src"><b>Sandbox · nessun incasso reale</b></div>':'')+'<select class="'+stCls(o.stato)+'" data-ostato="'+o.id+'">'+ORD_STATI.map(function(s){return '<option value="'+s+'"'+(s===o.stato?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+'</select></td>'+
           '<td><button class="link" data-odel="'+o.id+'">Elimina</button></td></tr>';
       }).join('')+'</tbody></table></div>':'<div class="empty">Nessun ordine ancora.</div>';
   }
