@@ -2,6 +2,8 @@
 (function () {
   'use strict';
   var en = {
+    "Shop di Chef Angelo Sanna": "Chef Angelo Sanna’s shop",
+    "Scopri corsi e prodotti.": "Discover courses and products.",
     "Telefono *": "Phone number *",
     "Indirizzo dell'intestatario": "Customer address",
     "Paese: Italia": "Country: Italy",
