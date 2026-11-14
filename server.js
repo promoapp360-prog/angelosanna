@@ -14,6 +14,9 @@ const { createGmailOrderMailer } = require('./gmail-mailer');
 const { createStorage } = require('./storage');
 const { createOrderNotifications } = require('./order-notifications');
 const { SAMPLE_PRODUCTS_KEY, SAMPLE_IMAGES_KEY, SAMPLE_PRODUCTS } = require('./sample-products');
+const { orderNumber, customerOrder } = require('./order-reference');
+const { createCustomerAccounts } = require('./customer-accounts');
+const { createCustomerRoutes } = require('./customer-routes');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -171,6 +174,9 @@ function serveStatic(req, res, pathname) {
   }
   if (pathname === '/') pathname = COMING_SOON ? '/presto.html' : '/index.html';
   if (pathname === '/admin' || pathname === '/admin/') pathname = '/admin.html';
+  if (pathname === '/cliente' || pathname === '/cliente/') pathname = '/customer.html';
+  if (pathname === '/ordine' || pathname === '/ordine/') pathname = '/order-confirmation.html';
+  if (pathname === '/customer.html' || pathname === '/order-confirmation.html') res.setHeader('Referrer-Policy', 'no-referrer');
   if (pathname === '/privacy') pathname = '/privacy.html';
   if (pathname === '/cookies') pathname = '/cookies.html';
   const file = path.normalize(path.join(PUBLIC_DIR, decodeURIComponent(pathname)));
@@ -447,11 +453,31 @@ const ORDER_NOTIFICATIONS = createOrderNotifications({
   loadOrders: () => load('ordini', []),
   updateOrder: (id, patch) => setOrdine(id, patch),
 });
+const CUSTOMERS = createCustomerAccounts({ load, save, mailer: ORDER_MAILER, live: PAYMENT_MODE === 'live' });
+const CUSTOMER_ROUTES = createCustomerRoutes({ accounts: CUSTOMERS, send, readBody, clientIp, siteUrl: customerSiteUrl });
+function customerSiteUrl(req) {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  const origin = new URL('https://' + host);
+  const allowed = ['angelosanna.promoapp.it', 'angelo-sanna.replit.app', process.env.REPLIT_DEV_DOMAIN].filter(Boolean);
+  if (!allowed.includes(origin.hostname)) throw Object.assign(new Error('Origine non consentita.'), { code: 403 });
+  return origin.origin;
+}
+async function nextOrderNumber() {
+  return withOrderWrite(async () => {
+    const year = new Date().getFullYear(), key = 'ordine_progressivo_' + year;
+    const current = Number(await load(key, 0));
+    if (!Number.isSafeInteger(current) || current < 0 || current >= Number.MAX_SAFE_INTEGER) throw storageUnavailable();
+    const next = current + 1;
+    await save(key, next);
+    return 'COB-' + year + '-' + String(next).padStart(6, '0');
+  });
+}
 
 /* ---------------- API ---------------- */
 async function api(req, res, url) {
   const p = url.pathname;
   const m = req.method;
+  if (await CUSTOMER_ROUTES(req, res, url)) return;
 
   // Pubblico: prodotti in vendita + se i pagamenti Stripe o simulati sono attivi
   if (p === '/api/shop' && m === 'GET') {
@@ -494,7 +520,7 @@ async function api(req, res, url) {
     const spedizione = richiedeSpedizione ? anagrafica : null;
     if (!righe.length) return send(res, 400, { error: 'Il carrello è vuoto.' });
     if (!nome || !emailValid(email) || tel.length < 5) return send(res, 400, { error: 'Inserisci nome, email e telefono.' });
-    if (!/^(?:[A-Z0-9]{16}|\d{11})$/.test(codiceFiscale)) return send(res, 400, { error: 'Inserisci un codice fiscale valido.' });
+    if (codiceFiscale && !/^(?:[A-Z0-9]{16}|\d{11})$/.test(codiceFiscale)) return send(res, 400, { error: 'Inserisci un codice fiscale valido oppure lascia il campo vuoto.' });
     if (!anagrafica.via || !/^\d{5}$/.test(anagrafica.cap) || !anagrafica.citta || !anagrafica.provincia || anagrafica.paese !== 'IT') {
       return send(res, 400, { error: 'Inserisci un indirizzo completo in Italia.' });
     }
@@ -502,6 +528,7 @@ async function api(req, res, url) {
     const lang = b.lang === 'en' ? 'en' : 'it';
     const ordine = {
       id: crypto.randomUUID(), data: new Date().toISOString(), stato: SIMULATED_PAYMENTS ? 'simulato' : 'in attesa',
+      numero: await nextOrderNumber(), areaClienteUrl: 'https://angelosanna.promoapp.it/cliente',
       nome, email, tel, codiceFiscale, indirizzo: anagrafica, spedizione, lang,
       righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty, richiedeSpedizione: r.richiedeSpedizione, costoSpedizione: r.costoSpedizione })), subtotale, costoSpedizione, totale,
       stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX,
@@ -509,7 +536,7 @@ async function api(req, res, url) {
     };
     if (SIMULATED_PAYMENTS) {
       await storeOrdine(ordine);
-      return send(res, 201, { simulato: true, ordineId: ordine.id });
+      return send(res, 201, { simulato: true, ordineId: ordine.id, numero: ordine.numero });
     }
     const base = siteUrl(req);
     const params = {
@@ -518,10 +545,10 @@ async function api(req, res, url) {
         type: 'fixed_amount', fixed_amount: { amount: costoSpedizione, currency: 'eur' },
         display_name: lang === 'en' ? 'Shipping to Italy' : 'Spedizione in Italia',
       } }] : undefined,
-      success_url: base + '/?ordine=ok&o=' + ordine.id + '&session_id={CHECKOUT_SESSION_ID}#shop',
+      success_url: base + '/ordine?o=' + ordine.id + '&session_id={CHECKOUT_SESSION_ID}',
       cancel_url: base + '/?ordine=annullato#shop',
       metadata: { ordine_id: ordine.id },
-      payment_intent_data: { description: 'Chef on Board — ordine ' + ordine.id.slice(0, 8), metadata: { ordine_id: ordine.id } },
+      payment_intent_data: { description: 'Chef on Board — ordine ' + ordine.numero, metadata: { ordine_id: ordine.id } },
       line_items: righe.map(r => ({
         quantity: r.qty,
         price_data: { currency: 'eur', unit_amount: r.prezzo, product_data: { name: r.titolo, description: r.descrizione ? r.descrizione.slice(0, 300) : undefined } },
@@ -546,8 +573,11 @@ async function api(req, res, url) {
   // Pubblico: al ritorno da Stripe verifica il pagamento (funziona anche senza webhook)
   if (p === '/api/checkout/conferma' && m === 'GET') {
     const id = str(url.searchParams.get('o'), 60), sid = str(url.searchParams.get('session_id'), 200);
-    const o = (await load('ordini', [])).find(x => x.id === id && x.stripeSessionId === sid);
+    if (!id || !sid) return send(res, 400, { error: 'Apri il link di conferma del pagamento oppure accedi alla tua area cliente.' });
+    const o = (await load('ordini', [])).find(x => x.id === id && (x.stripeSessionId === sid ||
+      (SIMULATED_PAYMENTS && x.simulato === true && sid === 'simulato')));
     if (!o) return send(res, 404, { error: 'Ordine non trovato' });
+    if (o.simulato) return send(res, 200, { ...customerOrder(o), email: o.email });
     let cur = o;
     if (o.stato === 'in attesa') {
       const s = await stripe('GET', '/v1/checkout/sessions/' + encodeURIComponent(sid), { 'expand': ['payment_intent.payment_method'] });
@@ -559,7 +589,7 @@ async function api(req, res, url) {
       try { emailInAttesa = !(await ORDER_NOTIFICATIONS.send(cur.id)).ok; }
       catch (_) { emailInAttesa = true; console.error('Email ordine in attesa di un nuovo tentativo.'); }
     }
-    return send(res, 200, { stato: cur.stato, nome: (cur.nome || '').split(' ')[0], sandbox: cur.sandbox === true, emailInAttesa });
+    return send(res, 200, { ...customerOrder(cur), nome: (cur.nome || '').split(' ')[0], email: cur.email, emailInAttesa });
   }
 
   // Webhook Stripe (firmato): conferma pagamenti anche se il cliente chiude la pagina
@@ -697,7 +727,11 @@ async function api(req, res, url) {
     }
 
     // Shop: ordini
-    if (p === '/api/admin/ordini' && m === 'GET') return send(res, 200, await load('ordini', []));
+    if (p === '/api/admin/ordini' && m === 'GET') return send(res, 200, (await load('ordini', [])).map(o => ({ ...o, numero: orderNumber(o) })));
+    if (p === '/api/admin/clienti' && m === 'GET') return send(res, 200, await CUSTOMERS.customers());
+    if (p === '/api/admin/clienti' && m === 'POST') return send(res, 201, await CUSTOMERS.adminCreate(await readBody(req)));
+    const mCustomer = p.match(/^\/api\/admin\/clienti\/([a-f0-9]{24})$/);
+    if (mCustomer && m === 'PUT') return send(res, 200, await CUSTOMERS.adminEdit(mCustomer[1], await readBody(req)));
     const me = p.match(/^\/api\/admin\/ordini\/([\w-]+)\/email$/);
     if (me && m === 'POST') {
       if (!ORDER_MAILER.ready || PAYMENT_MODE !== 'live') return send(res, 503, { error: 'Servizio email ordini non configurato.' });

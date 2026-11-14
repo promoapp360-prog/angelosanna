@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Il tuo ordine · Chef Angelo Sanna</title>
+  <link rel="icon" href="/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/customer.css">
+</head>
+<body>
+  <header class="account-header"><div><a href="/">Chef Angelo Sanna</a><nav class="account-nav"><a href="/cliente">Area cliente</a><div class="language"><button type="button" data-language="it">IT</button> <button type="button" data-language="en">EN</button></div></nav></div></header>
+  <main class="confirmation">
+    <section class="card">
+      <div class="confirmation-icon" aria-hidden="true" id="confirmationIcon">…</div>
+      <h1 id="confirmationTitle">Stiamo verificando il pagamento</h1>
+      <p id="confirmationText" class="muted" role="status" aria-live="polite">Attendi qualche istante. Non ripetere il pagamento.</p>
+      <div id="orderDetail"></div>
+      <button class="button secondary" id="refreshOrder" type="button" hidden>Aggiorna lo stato</button>
+      <div class="notice" id="emailPending" hidden>La conferma email è in preparazione. Il pagamento è stato registrato.</div>
+    </section>
+    <section class="card" id="createAccount" hidden>
+      <h2>Ritrova tutti i tuoi acquisti</h2><p>Puoi creare un account con l'email dell'ordine e una password di almeno 6 caratteri. La registrazione è facoltativa.</p>
+      <div class="actions"><a class="button" href="/cliente?azione=registrati">Crea il tuo account</a><a class="button secondary" href="/cliente">Accedi</a></div>
+    </section>
+    <p><a href="/#shop">Torna allo shop</a> · <a href="mailto:yachtchefangelosanna@gmail.com">Contatta Chef Angelo Sanna</a></p>
+  </main>
+  <script src="/i18n.js"></script><script src="/customer-common.js"></script><script src="/order-confirmation.js"></script>
+</body>
+</html>

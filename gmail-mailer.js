@@ -1,6 +1,7 @@
 'use strict';
 
 const { OWNER_EMAIL, SENDER_NAME, orderMessage, emailValid } = require('./order-emails');
+const { randomUUID } = require('node:crypto');
 
 function unavailable() {
   const error = new Error('Email ordini temporaneamente non disponibili. Riprova più tardi.');
@@ -30,25 +31,28 @@ function createGmailOrderMailer({ appPassword, createTransport = require('nodema
     }
     return check;
   }
+  async function deliver(message, messageId) {
+    await verify();
+    try {
+      const result = await smtp.sendMail({
+        from: { name: SENDER_NAME, address: OWNER_EMAIL }, replyTo: OWNER_EMAIL, ...message, messageId,
+      });
+      if (!result.messageId || !Array.isArray(result.accepted) ||
+        !result.accepted.some(address => String(address).toLowerCase() === message.to[0].toLowerCase())) throw unavailable();
+      return result.messageId;
+    } catch (_) { throw unavailable(); }
+  }
   return {
     ready, provider: 'gmail', verify,
     async send(order, recipient) {
       if (!['angelo', 'cliente'].includes(recipient) || !emailValid(order.email)) throw unavailable();
-      await verify();
       const message = orderMessage(order, recipient);
       const reference = String(order.id).replace(/[^a-zA-Z0-9_-]/g, '');
-      try {
-        const result = await smtp.sendMail({
-          from: { name: SENDER_NAME, address: OWNER_EMAIL },
-          replyTo: OWNER_EMAIL, ...message,
-          // Gmail non offre l'idempotenza Resend: ID stabile, stato persistente
-          // e coda serializzata riducono i duplicati, ma non garantiscono exactly-once.
-          messageId: '<chef-order-' + reference + '-' + recipient + '@angelosanna.promoapp.it>',
-        });
-        if (!result.messageId || !Array.isArray(result.accepted) ||
-          !result.accepted.some(address => String(address).toLowerCase() === message.to[0].toLowerCase())) throw unavailable();
-        return result.messageId;
-      } catch (_) { throw unavailable(); }
+      return deliver(message, '<chef-order-' + reference + '-' + recipient + '@angelosanna.promoapp.it>');
+    },
+    async sendAccount({ to, subject, text }) {
+      if (!emailValid(to) || /[\r\n]/.test(subject)) throw unavailable();
+      return deliver({ to: [to], subject, text }, '<chef-account-' + randomUUID() + '@angelosanna.promoapp.it>');
     },
   };
 }

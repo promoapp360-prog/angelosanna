@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Area cliente · Chef Angelo Sanna</title>
+  <link rel="icon" href="/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/customer.css">
+</head>
+<body>
+  <header class="account-header"><div><a href="/">Chef Angelo Sanna</a><nav class="account-nav" aria-label="Navigazione cliente">
+    <a href="/#shop">Shop</a><div class="language"><button type="button" data-language="it">IT</button> <button type="button" data-language="en">EN</button></div>
+  </nav></div></header>
+  <main>
+    <div id="accountMessage" class="notice" role="status" aria-live="polite"></div>
+    <section id="auth" class="narrow">
+      <div class="card" id="panel-login">
+        <h1>La tua area cliente</h1><p class="muted">Accedi per consultare i tuoi ordini e aggiornare i tuoi dati.</p>
+        <form id="loginForm"><div class="field"><label for="loginEmail">Email dell'ordine</label><input id="loginEmail" name="email" type="email" autocomplete="username" maxlength="160" required></div>
+          <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="6" maxlength="128" required></div>
+          <button class="button auth-submit" type="submit">Accedi</button></form>
+        <div class="auth-links"><button class="text-button" type="button" data-panel="register">Crea il tuo account</button><button class="text-button" type="button" data-panel="forgot">Password dimenticata?</button></div>
+        <button class="text-button" id="resendButton" type="button" hidden>Invia di nuovo la verifica email</button>
+      </div>
+      <div class="card" id="panel-register" hidden>
+        <h1>Crea il tuo account</h1><p class="muted">La registrazione è facoltativa. Usa la stessa email dell'ordine per ritrovare i tuoi acquisti.</p>
+        <form id="registerForm"><div class="field"><label for="registerEmail">Email dell'ordine</label><input id="registerEmail" name="email" type="email" autocomplete="username" maxlength="160" required></div>
+          <div class="field"><label for="registerPassword">Password di almeno 6 caratteri</label><input id="registerPassword" name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" required></div>
+          <div class="field"><label for="registerRepeat">Ripeti la password</label><input id="registerRepeat" name="repeat" type="password" minlength="6" maxlength="128" autocomplete="new-password" required></div>
+          <button class="button auth-submit" type="submit">Registrati</button></form>
+        <p class="privacy-note">Per proteggere gli acquisti, dovrai confermare l'indirizzo tramite il link ricevuto via email.</p>
+        <p class="privacy-note"><a href="/privacy">Informativa privacy</a></p>
+        <button class="text-button" type="button" data-panel="login">Hai già un account? Accedi</button>
+      </div>
+      <div class="card" id="panel-forgot" hidden>
+        <h1>Recupera la password</h1><p class="muted">Inserisci l'email del tuo account. Riceverai un link per scegliere una nuova password.</p>
+        <form id="forgotForm"><div class="field"><label for="forgotEmail">Email</label><input id="forgotEmail" name="email" type="email" autocomplete="email" maxlength="160" required></div>
+          <button class="button auth-submit" type="submit">Invia il link</button></form>
+        <button class="text-button" type="button" data-panel="login">Torna all'accesso</button>
+      </div>
+      <div class="card" id="panel-reset" hidden>
+        <h1>Scegli una nuova password</h1>
+        <form id="resetForm"><div class="field"><label for="newPassword">Password di almeno 6 caratteri</label><input id="newPassword" name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" required></div>
+          <div class="field"><label for="newRepeat">Ripeti la password</label><input id="newRepeat" name="repeat" type="password" minlength="6" maxlength="128" autocomplete="new-password" required></div>
+          <button class="button auth-submit" type="submit">Salva la password</button></form>
+      </div>
+    </section>
+    <section id="dashboard" hidden>
+      <div class="order-head"><div><h1>I tuoi acquisti</h1><p id="accountEmail" class="muted"></p></div><button id="logoutButton" class="button secondary" type="button">Esci</button></div>
+      <div class="dashboard-grid">
+        <div class="card"><h2>I tuoi dati</h2><form id="profileForm"><div class="field-grid" id="profileFields"></div><p class="privacy-note">Paese: Italia</p><button class="button" type="submit">Salva i dati</button></form>
+          <button id="changePassword" class="text-button" type="button">Cambia password via email</button></div>
+        <div><h2>I tuoi ordini</h2><div id="customerOrders"></div></div>
+      </div>
+    </section>
+  </main>
+  <footer><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/cookies">Cookie</a></footer>
+  <script src="/i18n.js"></script><script src="/customer-common.js"></script><script src="/customer.js"></script>
+</body>
+</html>

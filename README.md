@@ -80,6 +80,18 @@ Le pagine **/privacy** e **/cookies** sono disponibili in italiano e inglese; so
 
 **Da completare prima di incassare:** condizioni di vendita, diritto di recesso e regole per i contenuti digitali, oltre alla fatturazione: il sito non le genera. Aggiornare l'informativa prima di attivare strumenti pubblicitari o analytics.
 
+## Ordini e area cliente
+
+Il checkout non richiede un account e il codice fiscale è facoltativo. Ogni nuovo ordine riceve un numero progressivo `COB-ANNO-NUMERO`, riportato nel riepilogo, nell'admin e nelle email. Dopo Stripe, `/ordine` verifica il pagamento e mostra stato, articoli e totale; per i pagamenti differiti rimane in attesa fino alla conferma.
+
+Da `/cliente` è possibile registrarsi facoltativamente con l'email dell'ordine e una password di almeno 6 caratteri. Per accedere agli ordini serve prima la verifica via email. Sono disponibili accesso, logout, recupero password e modifica dell'anagrafica; le modifiche non alterano gli ordini già emessi. La sezione **Clienti** dell'admin riunisce acquirenti ospiti e registrati, con ricerca, creazione e modifica delle anagrafiche e ordini collegati.
+
+Non sono state aggiunte dipendenze: l'autenticazione cliente usa `crypto.scrypt` di Node, token casuali conservati soltanto come hash e cookie HttpOnly/Secure/SameSite=Lax con scadenza di 7 giorni. Le email dedicate di Angelo inviano link monouso validi un'ora. Un reset password revoca le sessioni; tentativi e invii sono limitati. Clienti e sessioni persistono nel database esistente, con chiavi separate per test e live. Mantenere una sola istanza Reserved VM: le code di scrittura e le sessioni amministratore originali non sono distribuite.
+
+I link di verifica ammettono soltanto i due domini pubblici del progetto e il dominio di sviluppo Replit: aggiornare l'elenco di fiducia in caso di cambio dominio. Non usare account o integrazioni di altri clienti.
+
+Verifiche senza pagamenti né email reali: `node --test tests/*.test.js`.
+
 ## Pubblicare solo la pagina "stiamo arrivando"
 
 Per mostrare online **solo** `public/presto.html` (immagine, annuncio della nuova piattaforma con acquisto online, pagamento comodo e Gift Card, e un modulo "avvisami al lancio") senza esporre il resto del sito:

@@ -441,6 +441,7 @@ footer a:hover{color:#fff}
     <div class="menu-panel" id="siteMenu" hidden>
       <div class="menu-heading">Esplora Chef on Board</div>
       <a class="menu-shop" href="#shop">Shop</a>
+      <a href="/cliente">Area cliente</a>
       <a href="#corsi">Prossimi corsi</a>
       <a href="#programma">Programma</a>
       <a href="#requisiti">Requisiti</a>
@@ -742,7 +743,7 @@ footer a:hover{color:#fff}
           <label for="cNome">Nome e cognome *</label><input id="cNome" name="nome" autocomplete="name" required>
           <label for="cEmail">Email *</label><input id="cEmail" name="email" type="email" autocomplete="email" required>
           <label for="cTel">Telefono *</label><input id="cTel" name="tel" type="tel" inputmode="tel" maxlength="40" placeholder="+39 333 123 4567" autocomplete="tel" required>
-          <label for="cCF">Codice fiscale *</label><input id="cCF" class="tax-code" name="codiceFiscale" type="text" maxlength="16" placeholder="RSSMRA80A01H501U" autocapitalize="characters" spellcheck="false" autocomplete="off" required>
+          <label for="cCF">Codice fiscale (facoltativo)</label><input id="cCF" class="tax-code" name="codiceFiscale" type="text" maxlength="16" placeholder="RSSMRA80A01H501U" autocapitalize="characters" spellcheck="false" autocomplete="off">
           <div id="shippingFields">
             <p class="order-data-title">Indirizzo dell'intestatario</p>
             <label for="cVia">Via, piazza e numero civico *</label><input id="cVia" name="via" maxlength="180" autocomplete="street-address" required>
@@ -753,7 +754,7 @@ footer a:hover{color:#fff}
             <label for="cCity">Città *</label><input id="cCity" name="citta" maxlength="100" autocomplete="address-level2" required>
             <p class="country-value">Paese: Italia</p>
           </div>
-          <small class="order-data-note">Codice fiscale e indirizzo completano l'anagrafica dell'ordine, anche per i corsi. Per i prodotti fisici questo indirizzo sarà usato per la consegna in Italia. Le spese di spedizione si applicano solo ai prodotti che la richiedono.</small>
+          <small class="order-data-note">L'indirizzo completa l'anagrafica dell'ordine, anche per i corsi. Il codice fiscale è facoltativo. Per i prodotti fisici questo indirizzo sarà usato per la consegna in Italia. Le spese di spedizione si applicano solo ai prodotti che la richiedono.</small>
           <input class="hp" id="cWeb" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="consent"><input type="checkbox" id="cAccetto" required> Dichiaro di avere almeno 18 anni.</label>
           <small class="order-data-note">Consulta l'<a href="/privacy">informativa privacy</a> per sapere come trattiamo i tuoi dati.</small>
@@ -916,7 +917,7 @@ footer a:hover{color:#fff}
 <footer id="site-footer">
   <div class="wrap">
     <div style="display:flex;align-items:center;gap:12px"><svg width="34" height="28" style="color:#fff"><use href="#as"/></svg> © <span id="y"></span> Chef Angelo Sanna · Chef on Board</div>
-    <div><a href="mailto:yachtchefangelosanna@gmail.com">yachtchefangelosanna@gmail.com</a> · @angelosannachef · <a href="/admin" aria-label="Accedi al pannello amministratore">Admin</a></div>
+    <div><a href="mailto:yachtchefangelosanna@gmail.com">yachtchefangelosanna@gmail.com</a> · @angelosannachef · <a href="/cliente">Area cliente</a> · <a href="/admin" aria-label="Accedi al pannello amministratore">Admin</a></div>
     <div class="footer-meta">
       <span>Ditta individuale SANNA ANGELO · P.IVA 03079060905 · S.V. Prunizzedda Serra Secca n. 14, 07100 Sassari (SS), Italia</span>
       <span><a href="/privacy">Privacy</a> · <a href="/cookies">Cookie</a> · <a href="mailto:yachtchefangelosanna@gmail.com">Contatti privacy</a></span>
@@ -1097,7 +1098,7 @@ footer a:hover{color:#fff}
       err.style.color='var(--red)';
       if(!v('cNome')||!/\S+@\S+\.\S+/.test(v('cEmail'))||!v('cTel')){err.textContent=t('Inserisci nome, email e telefono.');err.style.display='block';return}
       var cf=v('cCF').replace(/\s/g,'').toUpperCase();
-      if(!/^(?:[A-Z0-9]{16}|\d{11})$/.test(cf)){err.textContent=t('Inserisci un codice fiscale valido.');err.style.display='block';return}
+      if(cf&&!/^(?:[A-Z0-9]{16}|\d{11})$/.test(cf)){err.textContent=t('Inserisci un codice fiscale valido oppure lascia il campo vuoto.');err.style.display='block';$('cCF').focus();return}
       var shipping=requiresShipping();
       if(!v('cVia')||!/^\d{5}$/.test(v('cCap'))||!v('cCity')||!v('cProvince')){err.textContent=t('Inserisci un indirizzo completo in Italia.');err.style.display='block';return}
       var address={via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince').toUpperCase(),paese:'IT'};
@@ -1108,8 +1109,7 @@ footer a:hover{color:#fff}
         .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
         .then(function(x){
           if(x.ok&&x.j.simulato){
-            msg={kind:'simulated',id:String(x.j.ordineId||'').slice(0,8)};cart=[];persist();btn.disabled=false;btn.textContent=payButtonText();renderAll();
-            $('shopMsg').scrollIntoView({behavior:'smooth',block:'start'});
+            location.href='/ordine?o='+encodeURIComponent(x.j.ordineId)+'&simulato=1';
           }else if(x.ok&&x.j.url){if(!sandbox){try{if(window.fbq)fbq('track','InitiateCheckout');if(window.gtag)gtag('event','begin_checkout')}catch(e){}}location.href=x.j.url}
           else fail(x.j&&x.j.error);
         })
@@ -1124,12 +1124,8 @@ footer a:hover{color:#fff}
     function cleanUrl(){['ordine','o','session_id'].forEach(function(k){qs.delete(k)});var s=qs.toString();try{history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash)}catch(e){}}
     if(st==='annullato'){msg={kind:'cancel'};cleanUrl()}
     else if(st==='ok'&&qs.get('o')&&qs.get('session_id')){
-      msg={kind:'wait'};
-      fetch('/api/checkout/conferma?o='+encodeURIComponent(qs.get('o'))+'&session_id='+encodeURIComponent(qs.get('session_id')))
-        .then(function(r){return r.ok?r.json():null})
-        .then(function(j){if(j&&j.stato==='pagato'){msg={kind:j.sandbox?'sandbox':'ok',nome:j.nome};cart=[];persist();if(!j.sandbox){try{if(window.fbq)fbq('track','Purchase');if(window.gtag)gtag('event','purchase')}catch(e){}}}renderAll()})
-        .catch(function(){});
-      cleanUrl();
+      location.replace('/ordine?o='+encodeURIComponent(qs.get('o'))+'&session_id='+encodeURIComponent(qs.get('session_id')));
+      return;
     }
     renderAll();
     fetch('/api/shop').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(s){prods=s.prodotti||[];pagamenti=!!s.pagamenti;simulazione=!!s.simulazione;sandbox=!!s.sandbox;loaded=true;cart=cart.filter(function(l){var p=find(l.id);return p&&p.prezzo>0&&!p.esempio});persist();renderAll()}).catch(function(){loaded=true;prods=[];renderAll()});

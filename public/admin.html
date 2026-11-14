@@ -105,7 +105,7 @@ tr.hl td{background:#f4fbf6}
 .full{grid-column:1/-1}
 label{display:block;font-size:.8rem;font-weight:600;margin-bottom:5px;color:#0b1b2e}
 label small{font-weight:400;color:var(--muted)}
-input[type=text],input[type=date],input[type=number],input[type=email],input[type=tel],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfcfd}
+input[type=text],input[type=date],input[type=number],input[type=email],input[type=tel],input[type=search],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfcfd}
 textarea{resize:vertical}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-color:transparent}
 .check{display:flex;gap:10px;align-items:center;font-weight:500}
@@ -123,6 +123,10 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
 .st-simulato{background:#e6f1fb;color:#0d5a92}
 @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:640px){.grid{grid-template-columns:1fr}.course{grid-template-columns:1fr}.acts{justify-content:flex-start}header .t span{display:none}}
+dialog.customer-editor{border:0;border-radius:20px;padding:0;margin:auto;width:min(760px,94vw);max-height:90vh;color:var(--ink)}
+dialog.customer-editor::backdrop{background:rgba(0,15,34,.6)}
+.customer-editor .sheet{max-height:88vh;overflow:auto}
+#vClienti details{margin-top:6px}#vClienti summary{cursor:pointer;color:var(--navy)}
 </style>
 </head>
 <body>
@@ -146,6 +150,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       <button id="tCorsi" class="on">Corsi</button>
       <button id="tCont">Contatti<span class="count" id="nNew" style="display:none"></span></button>
       <button id="tShop">Shop<span class="count" id="nOrd" style="display:none"></span></button>
+      <button id="tClienti">Clienti</button>
     </div>
     <div style="display:flex;gap:8px"><a class="btn btn-line btn-sm" href="/" target="_blank">Vedi sito</a><button class="btn btn-line btn-sm" id="logout">Esci</button></div>
   </div></header>
@@ -179,6 +184,12 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
       <div id="prodList"></div>
       <div class="bar" style="margin-top:34px"><h2>Ordini</h2></div>
       <div id="ordList"></div>
+    </div>
+    <div id="vClienti" style="display:none">
+      <div class="bar"><h2>Clienti e anagrafiche</h2><button class="btn btn-navy" id="addCustomer" type="button">+ Nuovo cliente</button></div>
+      <p style="color:var(--muted);margin-bottom:18px">Acquirenti ospiti e account registrati, con dati anagrafici e ordini collegati. Le password non sono visibili.</p>
+      <label for="customerSearch">Cerca per nome, email, telefono o codice fiscale</label><input id="customerSearch" type="search" placeholder="Cerca un cliente…" style="margin-bottom:20px">
+      <div id="customersList"></div>
     </div>
   </main>
 </div>
@@ -260,7 +271,19 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
 </div>
 
 <div class="toast" id="toast"></div>
+<dialog id="customerEditor" class="customer-editor">
+  <form class="sheet" id="adminCustomerForm">
+    <h2 id="customerEditorTitle">Anagrafica cliente</h2>
+    <p class="src">La modifica dell'anagrafica non cambia i dati degli ordini già emessi. Per sicurezza, l'email di un cliente esistente non è modificabile da qui.</p>
+    <div><label for="adminCustomerEmail">Email *</label><input id="adminCustomerEmail" name="email" type="email" maxlength="160" required></div>
+    <div class="grid" id="adminCustomerFields"></div>
+    <div class="ferr" id="customerEditError" role="status"></div>
+    <div class="foot"><button class="btn btn-line" id="closeCustomer" type="button">Annulla</button><button class="btn btn-navy" type="submit">Salva cliente</button></div>
+  </form>
+</dialog>
 
+<script src="/customer-common.js"></script>
+<script src="/admin-customers.js"></script>
 <script>
 (function(){
   var STATI=['nuovo','contattato','colloquio','partecipante','non interessato'];
@@ -293,13 +316,15 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
 
   /* ---------- Tabs ---------- */
   function tab(which){
-    [['tCorsi','vCorsi','corsi'],['tCont','vCont','cont'],['tShop','vShop','shop']].forEach(function(x){
+    [['tCorsi','vCorsi','corsi'],['tCont','vCont','cont'],['tShop','vShop','shop'],['tClienti','vClienti','clienti']].forEach(function(x){
       $(x[0]).classList.toggle('on',which===x[2]);$(x[1]).style.display=which===x[2]?'':'none';
     });
   }
   $('tCorsi').onclick=function(){tab('corsi')};
   $('tCont').onclick=function(){tab('cont')};
   $('tShop').onclick=function(){tab('shop');loadShop()};
+  window.ChefAdminCustomers.init(api);
+  $('tClienti').onclick=function(){tab('clienti');window.ChefAdminCustomers.load()};
 
   /* ---------- Corsi ---------- */
   function partOf(id){return cont.filter(function(k){return k.corsoId===id&&k.stato==='partecipante'})}
@@ -481,13 +506,13 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
         (p.include&&p.include.length?'<div class="chips">'+p.include.map(function(a){return '<span class="chip">'+esc(a)+'</span>'}).join('')+'</div>':'')+'</div>'+
         '<div class="acts"><button class="btn btn-line btn-sm" data-pedit="'+p.id+'">Modifica</button><button class="btn btn-red btn-sm" data-pdel="'+p.id+'">Elimina</button></div></div>';
     }).join(''):'<div class="empty">Nessun prodotto. Clicca "+ Nuovo prodotto".</div>';
-    $('ordList').innerHTML=ordini.length?'<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Articoli</th><th>Totale</th><th>Stato</th><th></th></tr></thead><tbody>'+
+    $('ordList').innerHTML=ordini.length?'<div class="tablewrap"><table><thead><tr><th>Ordine / Data</th><th>Cliente</th><th>Articoli</th><th>Totale</th><th>Stato</th><th></th></tr></thead><tbody>'+
       ordini.map(function(o){
         var s=o.indirizzo||o.spedizione||{}, address=[s.via,s.cap,s.citta,s.provincia].filter(Boolean).join(', ');
         var emails=o.emailOrdine||{}, emailLabels={inviata:'Accettata dal servizio',errore:'Da riprovare','in attesa':'In attesa'};
         var emailStatus=o.emailRichiesta&&o.stato==='pagato'?'<div class="src">Email Angelo: '+esc(emailLabels[(emails.angelo||{}).stato]||'In attesa')+'<br>Email cliente: '+esc(emailLabels[(emails.cliente||{}).stato]||'In attesa')+'</div>':'';
         var retryEmail=o.emailRichiesta&&o.stato==='pagato'&&(!emails.angelo||emails.angelo.stato!=='inviata'||!emails.cliente||emails.cliente.stato!=='inviata');
-        return '<tr><td>'+new Date(o.data).toLocaleDateString('it-IT')+'<div class="src">'+new Date(o.data).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</div></td>'+
+        return '<tr><td><b>'+esc(o.numero||String(o.id||'—').slice(0,8).toUpperCase())+'</b><div class="src">'+new Date(o.data).toLocaleDateString('it-IT')+' · '+new Date(o.data).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</div></td>'+
           '<td><b>'+esc(o.nome)+'</b><div class="src"><a href="mailto:'+esc(o.email)+'">'+esc(o.email)+'</a>'+(o.tel?' · '+esc(o.tel):'')+'</div>'+
           (o.codiceFiscale?'<div class="src"><b>Codice fiscale:</b> '+esc(o.codiceFiscale)+'</div>':'')+
           (address?'<div class="src"><b>'+(o.spedizione?'Consegna:':'Indirizzo:')+'</b> '+esc(address)+(s.paese==='IT'?' · Italia':'')+'</div>':'')+'</td>'+

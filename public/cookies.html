@@ -29,15 +29,16 @@
     <article class="legal-copy">
       <div data-language-content="it">
         <h1>Informativa Cookie e archiviazione locale</h1>
-        <p class="updated">Ultimo aggiornamento: 13 novembre 2026</p>
+        <p class="updated">Ultimo aggiornamento: 14 novembre 2026</p>
         <p>Questa pagina descrive gli strumenti di archiviazione usati dal sito Chef on Board. Le pagine legali e la landing ricordano la lingua scelta; lo shop conserva il carrello nel browser.</p>
 
         <h2>Cookie</h2>
-        <p>Il codice del sito non imposta cookie propri. Usa invece l’archiviazione locale del browser, che è distinta dai cookie ma può essere soggetta a regole applicabili ai dispositivi dell’utente.</p>
+        <p>L’area cliente usa il cookie tecnico <strong>cob_customer</strong> per mantenere l’accesso per un massimo di 7 giorni. È HttpOnly, SameSite=Lax e Secure su HTTPS; contiene un identificativo casuale, non la password. È necessario al servizio richiesto dopo l’accesso e non viene usato per pubblicità. Il sito usa anche l’archiviazione locale del browser:</p>
         <ul>
           <li><strong>Carrello shop (localStorage, “chef-cart”):</strong> mantiene gli articoli selezionati mentre navighi.</li>
           <li><strong>Lingua (localStorage, “chef-on-board-language”):</strong> ricorda se hai scelto italiano o inglese.</li>
           <li><strong>Sessione admin (sessionStorage):</strong> conserva nel browser la sessione di accesso al pannello e si cancella alla chiusura della scheda o del browser, secondo il comportamento del browser.</li>
+          <li><strong>Conferma ordine e registrazione (sessionStorage):</strong> mantiene nella scheda il riferimento riservato di conferma e l’email da precompilare nella registrazione facoltativa; si cancella alla chiusura della scheda, secondo il browser.</li>
         </ul>
         <p>Questi elementi non servono per profilazione o pubblicità. Puoi cancellarli dalle impostazioni del browser; eliminando il carrello perderai gli articoli non acquistati.</p>
 
@@ -54,15 +55,16 @@
 
       <div data-language-content="en" hidden>
         <h1>Cookies and local storage notice</h1>
-        <p class="updated">Last updated: 13 November 2026</p>
+        <p class="updated">Last updated: 14 November 2026</p>
         <p>This page describes the storage used by Chef on Board. The legal pages and landing page remember your language choice; the shop keeps your cart in your browser.</p>
 
         <h2>Cookies</h2>
-        <p>The site code does not set first-party cookies. It uses browser local storage instead. Local storage is different from cookies, but rules applying to storage on a user’s device may also be relevant.</p>
+        <p>The customer area uses the essential <strong>cob_customer</strong> cookie to maintain sign-in for up to 7 days. It is HttpOnly, SameSite=Lax and Secure over HTTPS; it contains a random identifier, not your password. It is necessary for the service requested after sign-in and is not used for advertising. The site also uses browser storage:</p>
         <ul>
           <li><strong>Shop cart (localStorage, “chef-cart”):</strong> keeps selected items while you browse.</li>
           <li><strong>Language (localStorage, “chef-on-board-language”):</strong> remembers whether you chose Italian or English.</li>
           <li><strong>Admin session (sessionStorage):</strong> keeps the admin sign-in session in the browser and is cleared when the tab or browser closes, subject to browser behaviour.</li>
+          <li><strong>Order confirmation and registration (sessionStorage):</strong> keeps the private confirmation reference and email prefill for optional registration in the tab; it is cleared when the tab closes, subject to browser behaviour.</li>
         </ul>
         <p>These items are not used for profiling or advertising. You can clear them in your browser settings; clearing the cart removes items that have not been purchased.</p>
 

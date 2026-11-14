@@ -2,6 +2,7 @@
 
 const OWNER_EMAIL = 'yachtchefangelosanna@gmail.com';
 const SENDER_NAME = 'Chef Angelo Sanna';
+const { orderNumber } = require('./order-reference');
 const emailValid = value => /^[^\s@<>,;:"()\\]+@[^\s@<>,;:"()\\]+\.[^\s@<>,;:"()\\]+$/.test(String(value || ''));
 const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -10,7 +11,7 @@ const money = cents => (Number(cents) / 100).toLocaleString('it-IT', { style: 'c
 function orderMessage(order, recipient) {
   const owner = recipient === 'angelo';
   const en = !owner && order.lang === 'en';
-  const reference = order.id.slice(0, 8).toUpperCase();
+  const reference = orderNumber(order);
   const subject = owner ? 'Nuovo ordine pagato #' + reference
     : en ? 'Your Chef on Board order #' + reference : 'Conferma ordine Chef on Board #' + reference;
   const lines = [
@@ -27,7 +28,7 @@ function orderMessage(order, recipient) {
     '', (en ? 'Total paid' : 'Totale pagato') + ': ' + money(order.totale),
   ];
   if (owner) lines.push('', 'Cliente: ' + order.nome, 'Email: ' + order.email,
-    'Telefono: ' + order.tel, 'Codice fiscale: ' + order.codiceFiscale);
+    'Telefono: ' + order.tel, ...(order.codiceFiscale ? ['Codice fiscale: ' + order.codiceFiscale] : []));
   if (order.indirizzo || order.spedizione) {
     const s = order.indirizzo || order.spedizione;
     const label = order.spedizione ? (en ? 'Delivery address (Italy):' : 'Indirizzo di consegna (Italia):')
@@ -38,6 +39,9 @@ function orderMessage(order, recipient) {
   if (!owner) lines.push('', en
     ? 'Keep this order confirmation. For assistance, reply to this email.'
     : 'Conserva questa conferma d’ordine. Per assistenza puoi rispondere a questa email.');
+  if (!owner && order.areaClienteUrl) lines.push('', en
+    ? 'Optional customer account: register with this order’s email to view your purchases:'
+    : 'Area cliente facoltativa: registrati con l’email di questo ordine per consultare i tuoi acquisti:', order.areaClienteUrl);
   lines.push('', 'Chef on Board — Chef Angelo Sanna', OWNER_EMAIL);
   const text = lines.join('\n');
   return {

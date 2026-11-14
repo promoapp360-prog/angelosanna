@@ -38,7 +38,8 @@ function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripe
     async fetch(url, options = {}) {
       if (env.REPLIT_DB_URL && url.startsWith(env.REPLIT_DB_URL)) {
         if (options.method === 'POST') {
-          if (writeStatus !== 200) return new Response('Unavailable', { status: writeStatus });
+          const status = typeof writeStatus === 'function' ? writeStatus(options.body) : writeStatus;
+          if (status !== 200) return new Response('Unavailable', { status });
           for (const [key, value] of new URLSearchParams(options.body)) store.set(key, JSON.parse(value));
           return new Response('OK');
         }
@@ -57,7 +58,7 @@ function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripe
         { id: 'acct_clientunit', charges_enabled: true }), { status: accountStatus });
       const params = new URLSearchParams(options.body);
       const orderId = params.get('metadata[ordine_id]') || (store.get('ordini') || [])[0]?.id;
-      const response = stripeResponse || {
+      const response = (typeof stripeResponse === 'function' ? stripeResponse(orderId) : stripeResponse) || {
         id: mode === 'live' ? 'cs_live_unit' : 'cs_test_unit', object: 'checkout.session', livemode: mode === 'live',
         url: 'https://checkout.stripe.com/c/pay/unit', payment_status: 'paid',
         amount_total: 89000, currency: 'eur', metadata: { ordine_id: orderId },
@@ -78,6 +79,60 @@ function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripe
   }
   return { request, store, calls, mailCalls, errors };
 }
+
+test('codice fiscale facoltativo e conferma numerata con riepilogo completo', async () => {
+  const a = app();
+  assert.equal((await a.request('POST', '/api/checkout', { ...buyer, codiceFiscale: undefined })).status, 201);
+  const order = a.store.get('ordini')[0];
+  assert.equal(order.codiceFiscale, '');
+  assert.match(order.numero, /^COB-\d{4}-000001$/);
+  const creation = a.calls.find(c => c.options.method === 'POST');
+  const success = new URLSearchParams(creation.options.body).get('success_url');
+  assert.match(success, /\/ordine\?o=/);
+  assert.equal((await a.request('GET', '/api/checkout/conferma?o=' + order.id)).status, 400);
+  assert.equal((await a.request('GET', '/api/checkout/conferma?o=' + order.id + '&session_id=wrong')).status, 404);
+  const confirmation = await a.request('GET', '/api/checkout/conferma?o=' + order.id + '&session_id=' + order.stripeSessionId);
+  assert.equal(confirmation.status, 200); assert.equal(confirmation.body.stato, 'pagato');
+  assert.equal(confirmation.body.numero, order.numero); assert.equal(confirmation.body.totale, 89000);
+  assert.equal(confirmation.body.righe.length, 1); assert.equal(confirmation.body.sandbox, true);
+  assert.equal(confirmation.body.email, buyer.email);
+});
+
+test('conferma della simulazione distinta da un pagamento reale', async () => {
+  const a = app({ mode: 'simulated' });
+  const result = await a.request('POST', '/api/checkout', { ...buyer, codiceFiscale: '' });
+  const confirmation = await a.request('GET', '/api/checkout/conferma?o=' + result.body.ordineId + '&session_id=simulato');
+  assert.equal(confirmation.status, 200); assert.equal(confirmation.body.simulato, true);
+  assert.equal(confirmation.body.stato, 'simulato'); assert.ok(confirmation.body.numero);
+  assert.equal(a.calls.length, 0); assert.equal(a.mailCalls.length, 0);
+});
+
+test('un pagamento ancora da completare non diventa un ordine confermato', async () => {
+  const a = app({ stripeResponse: id => ({ id: 'cs_test_unit', url: 'https://checkout.stripe.com/c/pay/unit',
+    livemode: false, amount_total: 89000, currency: 'eur', payment_status: 'unpaid', metadata: { ordine_id: id } }) });
+  await a.request('POST', '/api/checkout', buyer);
+  const order = a.store.get('ordini')[0];
+  const reply = await a.request('GET', '/api/checkout/conferma?o=' + order.id + '&session_id=cs_test_unit');
+  assert.equal(reply.status, 200); assert.equal(reply.body.stato, 'in attesa'); assert.equal(a.mailCalls.length, 0);
+});
+
+test('checkout di un prodotto reale con quantità, spedizione e codice fiscale vuoto', async () => {
+  const a = app();
+  a.store.set('prodotti', [{ ...product, id: 'prodotto-fisico', categoria: 'prodotto', prezzo: 2000,
+    richiedeSpedizione: true, costoSpedizione: 700 }]);
+  const result = await a.request('POST', '/api/checkout', { ...buyer, codiceFiscale: '',
+    items: [{ id: 'prodotto-fisico', qty: 2 }], costoSpedizione: 0, totale: 1 });
+  assert.equal(result.status, 201); const order = a.store.get('ordini')[0];
+  assert.equal(order.totale, 5400); assert.equal(order.costoSpedizione, 1400);
+  assert.deepEqual(order.spedizione, delivery);
+});
+
+test('token e cookie cliente non autorizzano il pannello amministrativo', async () => {
+  const a = app();
+  assert.equal((await a.request('GET', '/api/admin/clienti', null, { cookie: 'cob_customer=' + 'a'.repeat(64) })).status, 401);
+  const admin = await a.request('POST', '/api/login', { password: 'unit-test-only' });
+  assert.equal((await a.request('GET', '/api/cliente/me', null, { authorization: 'Bearer ' + admin.body.token })).status, 401);
+});
 
 test('la sandbox rifiuta chiavi live o mancanti prima di contattare Stripe', async () => {
   for (const key of ['sk_live_fake_for_unit_tests', '']) {
@@ -138,7 +193,7 @@ test('indirizzo del corso normalizzato e salvato senza trasformarlo in una spedi
 test('il checkout richiede maggiore età e dati cliente anche in sandbox', async () => {
   const a = app();
   assert.equal((await a.request('POST', '/api/checkout', { ...buyer, maggiorenne: false })).status, 400);
-  assert.equal((await a.request('POST', '/api/checkout', { ...buyer, codiceFiscale: '' })).status, 400);
+  assert.equal((await a.request('POST', '/api/checkout', { ...buyer, codiceFiscale: 'INVALIDO' })).status, 400);
   assert.equal(a.calls.length, 0);
 });
 
@@ -362,7 +417,7 @@ test('il live non usa file locali e non maschera un database irraggiungibile', a
 });
 
 test('se il salvataggio fallisce, il checkout non viene esposto e la sessione viene chiusa', async () => {
-  const a = app({ ...liveConfig, writeStatus: 500 });
+  const a = app({ ...liveConfig, writeStatus: body => new URLSearchParams(body).has('ordini') ? 500 : 200 });
   const result = await a.request('POST', '/api/checkout', buyer);
   assert.equal(result.status, 503);
   assert.equal(result.body.url, undefined);
@@ -375,6 +430,7 @@ test('ordini contemporanei non si sovrascrivono nell’archivio', async () => {
   const results = await Promise.all(Array.from({ length: 4 }, () => a.request('POST', '/api/checkout', buyer)));
   assert.ok(results.every(r => r.status === 201));
   assert.equal(a.store.get('ordini').length, 4);
+  assert.equal(new Set(a.store.get('ordini').map(o => o.numero)).size, 4);
 });
 
 test('dopo un pagamento live partono solo due email, anche con webhook e ritorno ripetuti', async () => {
