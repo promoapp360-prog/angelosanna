@@ -230,6 +230,19 @@ test('il live verifica l’account prima di creare sessioni, usando solo la sua 
   assert.equal(a.calls.filter(c => c.url.endsWith('/v1/account')).length, 1);
 });
 
+test('una chiave live limitata usa le stesse verifiche account e non abilita la sandbox', async () => {
+  const liveKey = 'rk_live_client_unit_test';
+  const a = app({ ...liveConfig, liveKey });
+  assert.equal((await a.request('POST', '/api/checkout', buyer)).status, 201);
+  assert.ok(a.calls.every(c => c.options.headers.Authorization === 'Bearer ' + liveKey));
+  const wrongAccount = app({ ...liveConfig, liveKey, accountResponse: { id: 'acct_other_project', charges_enabled: true } });
+  assert.equal((await wrongAccount.request('POST', '/api/checkout', buyer)).status, 503);
+  assert.equal(wrongAccount.calls.length, 1);
+  const sandbox = app({ key: liveKey });
+  assert.equal((await sandbox.request('POST', '/api/checkout', buyer)).status, 503);
+  assert.equal(sandbox.calls.length, 0);
+});
+
 test('account diverso, incassi disabilitati o errore Stripe bloccano il live senza creare ordini', async () => {
   for (const invalid of [
     { accountResponse: { id: 'acct_other_project', charges_enabled: true } },

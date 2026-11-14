@@ -3,7 +3,7 @@
 (async function () {
   const live = process.argv.includes('--live');
   const key = (live ? process.env.STRIPE_LIVE_SECRET_KEY : process.env.STRIPE_SECRET_KEY) || '';
-  if (!key.startsWith(live ? 'sk_live_' : 'sk_test_')) throw new Error('Verifica sospesa: manca la chiave segreta ' + (live ? 'live dedicata.' : 'sandbox.'));
+  if (!(live ? /^(sk|rk)_live_/.test(key) : key.startsWith('sk_test_'))) throw new Error('Verifica sospesa: manca la chiave segreta ' + (live ? 'live dedicata.' : 'sandbox.'));
   const response = await fetch('https://api.stripe.com/v1/account', {
     headers: { Authorization: 'Bearer ' + key },
     signal: AbortSignal.timeout(15000),

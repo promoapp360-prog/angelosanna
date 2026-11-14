@@ -234,7 +234,7 @@ const ORDER_MAILER = createOrderMailer({
 });
 // Una chiave salvata non abilita da sola gli addebiti. Il modo live richiede una scelta esplicita.
 const STRIPE_READY = (STRIPE_SANDBOX && STRIPE_KEY.startsWith('sk_test_')) ||
-  (PAYMENT_MODE === 'live' && STRIPE_KEY.startsWith('sk_live_') &&
+  (PAYMENT_MODE === 'live' && /^(sk|rk)_live_/.test(STRIPE_KEY) &&
     WEBHOOK_SECRET.startsWith('whsec_') && /^acct_[A-Za-z0-9]+$/.test(STRIPE_LIVE_ACCOUNT_ID) && !!DB_URL && ORDER_MAILER.ready);
 const PAYMENTS_READY = SIMULATED_PAYMENTS || STRIPE_READY;
 const PAYMENT_UNAVAILABLE = STRIPE_SANDBOX
