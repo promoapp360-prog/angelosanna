@@ -2,6 +2,9 @@
 (function () {
   'use strict';
   var en = {
+    "Formazione con Chef Angelo Sanna": "Training with Chef Angelo Sanna",
+    "Esplora il catalogo dello shop": "Explore the product catalogue",
+    "Categorie shop": "Shop categories",
     "Shop di Chef Angelo Sanna": "Chef Angelo Sanna’s shop",
     "Scopri corsi e prodotti.": "Discover courses and products.",
     "Telefono *": "Phone number *",

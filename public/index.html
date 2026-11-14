@@ -265,10 +265,18 @@ section[id]{scroll-margin-top:82px}
 .cartbox .country-value{padding:11px 0 0;font-weight:500}
 .cartbox .order-data-note{display:block;margin-top:12px;color:var(--muted);font-size:.78rem;line-height:1.5}
 .cartbox .consent{display:flex}
-.shop-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 18px}
-.shop-tab{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:10px 20px;font:600 .92rem var(--sans);cursor:pointer}
+.shop-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:30px 0 26px}
+.shop-tab{display:flex;align-items:center;gap:16px;min-width:0;border:2px solid #ccd8e4;background:#fff;color:var(--navy);border-radius:20px;padding:24px;text-align:left;font-family:var(--sans);cursor:pointer;box-shadow:0 6px 22px rgba(1,42,87,.06);transition:border-color .15s ease,box-shadow .15s ease}
+.shop-tab:hover{border-color:var(--navy);box-shadow:0 10px 28px rgba(1,42,87,.13)}
+.shop-tab .category-icon{display:grid;place-items:center;flex:0 0 50px;height:50px;border-radius:14px;background:#eaf5fc}
+.shop-tab .category-copy{flex:1;min-width:0}
+.shop-tab strong{display:block;font-size:1.4rem;font-weight:700;line-height:1.3}
+.shop-tab small{display:block;font-size:.88rem;font-weight:400;line-height:1.5;margin-top:5px;opacity:.85}
+.shop-tab .category-arrow{flex-shrink:0}
 .shop-tab[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
-.shop-tab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.shop-tab[aria-pressed="true"] .category-icon{background:rgba(255,255,255,.14)}
+.shop-tab:focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+@media(max-width:600px){.shop-tabs{grid-template-columns:1fr;gap:12px}.shop-tab{padding:20px}.shop-tab strong{font-size:1.3rem}}
 .cartbox .btn{width:100%;justify-content:center;margin-top:18px}
 .cartbox .btn[disabled]{opacity:.6;cursor:wait}
 .secure{display:flex;gap:8px;align-items:center;justify-content:center;font-size:.8rem;color:var(--muted);margin-top:14px;text-align:center}
@@ -711,8 +719,16 @@ footer a:hover{color:#fff}
       <p class="lead">Scopri i prodotti e acquistali in modo sicuro con Stripe.</p>
     </div>
     <div class="shop-tabs" id="shopTabs" role="group" aria-label="Categorie shop">
-      <button class="shop-tab" type="button" data-shop-category="corso" aria-pressed="true">Corsi</button>
-      <button class="shop-tab" type="button" data-shop-category="prodotto" aria-pressed="false">Prodotti</button>
+      <button class="shop-tab" type="button" data-shop-category="corso" aria-pressed="true">
+        <span class="category-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v15M12 5C9 3 5 3 2 4v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Z"/></svg></span>
+        <span class="category-copy"><strong>Corsi</strong><small>Formazione con Chef Angelo Sanna</small></span>
+        <svg class="category-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button class="shop-tab" type="button" data-shop-category="prodotto" aria-pressed="false">
+        <span class="category-icon" aria-hidden="true"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l1 14H4L5 7Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></span>
+        <span class="category-copy"><strong>Prodotti</strong><small>Esplora il catalogo dello shop</small></span>
+        <svg class="category-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </div>
     <div id="shopMsg" role="status" aria-live="polite"></div>
     <div class="shopgrid">
@@ -1004,7 +1020,7 @@ footer a:hover{color:#fff}
 
     function renderMsg(){
       var el=$('shopMsg');
-      var html=simulazione?'<div class="shopmsg warn">'+esc(t('Modalità di prova: nessun pagamento reale verrà effettuato.'))+'</div>':sandbox?'<div class="shopmsg warn">'+esc(t('Checkout Stripe sandbox: nessun addebito reale. Usa solo dati e carte di test.'))+'</div>':'';
+      var html=simulazione?'<div class="shopmsg warn">'+esc(t('Modalità di prova: nessun pagamento reale verrà effettuato.'))+'</div>':'';
       if(!msg){el.innerHTML=html;return}
       var txt=msg.kind==='simulated'?t('Prova completata: nessun addebito reale. Ordine simulato {id} registrato.',{id:msg.id||''})
         :msg.kind==='sandbox'?t('Pagamento di prova completato. Nessun addebito reale; ordine sandbox registrato.')
