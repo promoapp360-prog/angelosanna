@@ -10,8 +10,8 @@ const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const product = { id: 'corso-online', titolo: 'Corso di prova', prezzo: 89000, categoria: 'corso', pubblicato: true, richiedeSpedizione: false };
-const buyer = { items: [{ id: product.id, qty: 1 }], nome: 'Cliente Test', email: 'test@example.com', tel: '0000000000', codiceFiscale: '00000000000', maggiorenne: true };
 const delivery = { via: 'Via Esempio 1', cap: '07100', citta: 'Sassari', provincia: 'SS', paese: 'IT' };
+const buyer = { items: [{ id: product.id, qty: 1 }], nome: 'Cliente Test', email: 'test@example.com', tel: '0000000000', codiceFiscale: '00000000000', maggiorenne: true, indirizzo: delivery };
 
 function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripeResponse, stripeStatus = 200,
   liveKey = '', liveWebhook = '', liveAccountId = '', accountResponse, accountStatus = 200,
@@ -110,6 +110,29 @@ test('il checkout sandbox crea una sessione EUR 890 e un ordine marcato test', a
   assert.equal(a.store.get('ordini')[0].sandbox, true);
   assert.equal(a.store.get('ordini')[0].stato, 'in attesa');
   assert.equal(a.store.get('ordini')[0].spedizione, null);
+  assert.deepEqual(a.store.get('ordini')[0].indirizzo, delivery);
+});
+
+test('indirizzo anagrafico obbligatorio anche per i corsi, senza creare sessioni incomplete', async () => {
+  const a = app();
+  for (const indirizzo of [null, {}, { ...delivery, via: '' }, { ...delivery, cap: '071000' },
+    { ...delivery, citta: '' }, { ...delivery, provincia: '' }, { ...delivery, paese: 'FR' }]) {
+    assert.equal((await a.request('POST', '/api/checkout', { ...buyer, indirizzo })).status, 400);
+  }
+  assert.equal(a.calls.length, 0);
+  assert.equal(a.store.get('ordini')?.length || 0, 0);
+});
+
+test('indirizzo del corso normalizzato e salvato senza trasformarlo in una spedizione', async () => {
+  const a = app();
+  const result = await a.request('POST', '/api/checkout', { ...buyer,
+    indirizzo: { ...delivery, via: '  Via Esempio 1  ', provincia: 'ss', paese: 'it' } });
+  assert.equal(result.status, 201);
+  const order = a.store.get('ordini')[0];
+  assert.deepEqual(order.indirizzo, delivery);
+  assert.equal(order.spedizione, null);
+  assert.equal(order.costoSpedizione, 0);
+  assert.equal(order.totale, 89000);
 });
 
 test('il checkout richiede maggiore età e dati cliente anche in sandbox', async () => {
@@ -502,7 +525,7 @@ test('checkout: spedizione per pezzo sommata tra prodotti, ricalcolata dal serve
   const physical = { ...product, id: 'grembiule', titolo: 'Grembiule', categoria: 'prodotto', prezzo: 2000, richiedeSpedizione: true, costoSpedizione: 590 };
   a.store.set('prodotti', [product, physical, { ...physical, id: 'tagliere', prezzo: 1500, costoSpedizione: 350 }]);
   const orderData = { ...buyer, items: [{ id: product.id, qty: 1 }, { id: physical.id, qty: 1 },
-    { id: physical.id, qty: 1 }, { id: 'tagliere', qty: 3 }], spedizione: delivery,
+    { id: physical.id, qty: 1 }, { id: 'tagliere', qty: 3 }], indirizzo: null, spedizione: delivery,
     costoSpedizione: 1, totale: 1 };
   assert.equal((await a.request('POST', '/api/checkout', { ...orderData, spedizione: null })).status, 400);
   assert.equal((await a.request('POST', '/api/checkout', orderData)).status, 201);
@@ -530,7 +553,7 @@ test('checkout: spedizione per pezzo sommata tra prodotti, ricalcolata dal serve
   }
 });
 
-test('spedizione gratuita e prodotti preesistenti non aggiungono costi; i corsi non richiedono indirizzo', async () => {
+test('spedizione gratuita e prodotti preesistenti non aggiungono costi; i corsi conservano solo l’indirizzo anagrafico', async () => {
   const a = app();
   const physical = { ...product, id: 'vecchio-prodotto', categoria: 'prodotto', richiedeSpedizione: true };
   a.store.set('prodotti', [product, physical]);

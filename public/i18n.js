@@ -2,6 +2,11 @@
 (function () {
   'use strict';
   var en = {
+    "Telefono *": "Phone number *",
+    "Indirizzo dell'intestatario": "Customer address",
+    "Paese: Italia": "Country: Italy",
+    "Inserisci un indirizzo completo in Italia.": "Please enter a complete address in Italy.",
+    "Codice fiscale e indirizzo completano l'anagrafica dell'ordine, anche per i corsi. Per i prodotti fisici questo indirizzo sarà usato per la consegna in Italia. Le spese di spedizione si applicano solo ai prodotti che la richiedono.": "Your tax code and address complete the order's customer details, including course purchases. For physical products, this address will be used for delivery in Italy. Shipping charges apply only to products that require delivery.",
     "Corso online": "Online course",
     "Acquista il corso online.": "Buy the online course.",
     "Shop": "Shop",

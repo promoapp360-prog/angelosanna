@@ -11,6 +11,18 @@ const original = {
   spedizione: { via: 'Via di prova 1', cap: '07100', citta: 'Sassari', provincia: 'SS', paese: 'IT' },
 };
 
+test('il corso include l’indirizzo anagrafico nelle email senza indicare una consegna', () => {
+  const course = { ...original, indirizzo: original.spedizione, spedizione: null };
+  const owner = orderMessage(course, 'angelo');
+  const customer = orderMessage({ ...course, lang: 'en' }, 'cliente');
+  assert.match(owner.text, /Indirizzo intestatario \(Italia\):/);
+  assert.match(customer.text, /Customer address \(Italy\):/);
+  assert.match(owner.text, /Via di prova 1/);
+  assert.match(customer.text, /07100 Sassari \(SS\)/);
+  assert.doesNotMatch(owner.text, /Indirizzo di consegna/);
+  assert.doesNotMatch(customer.text, /Codice fiscale|00000000000/);
+});
+
 function queue({ failCustomer = false, ready = true, overrides = {} } = {}) {
   let saved = { ...structuredClone(original), ...overrides };
   let timestamp = Date.parse('2026-11-13T11:00:00Z');

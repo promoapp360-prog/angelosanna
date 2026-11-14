@@ -483,23 +483,26 @@ async function api(req, res, url) {
     });
     const nome = str(b.nome, 120), email = str(b.email, 160), tel = str(b.tel, 40);
     const codiceFiscale = str(b.codiceFiscale, 32).replace(/\s/g, '').toUpperCase();
-    const indirizzo = b.spedizione && typeof b.spedizione === 'object' ? b.spedizione : {};
+    const datiIndirizzo = b.indirizzo || b.spedizione;
+    const indirizzo = datiIndirizzo && typeof datiIndirizzo === 'object' ? datiIndirizzo : {};
     const richiedeSpedizione = righe.some(r => r.richiedeSpedizione);
-    const spedizione = richiedeSpedizione ? {
-      via: str(indirizzo.via, 180), cap: str(indirizzo.cap, 5),
-      citta: str(indirizzo.citta, 100), provincia: str(indirizzo.provincia, 80), paese: 'IT',
-    } : null;
+    const anagrafica = {
+      via: str(indirizzo.via, 180), cap: str(indirizzo.cap, 10),
+      citta: str(indirizzo.citta, 100), provincia: str(indirizzo.provincia, 80).toUpperCase(),
+      paese: str(indirizzo.paese || 'IT', 10).toUpperCase(),
+    };
+    const spedizione = richiedeSpedizione ? anagrafica : null;
     if (!righe.length) return send(res, 400, { error: 'Il carrello è vuoto.' });
     if (!nome || !emailValid(email) || tel.length < 5) return send(res, 400, { error: 'Inserisci nome, email e telefono.' });
     if (!/^(?:[A-Z0-9]{16}|\d{11})$/.test(codiceFiscale)) return send(res, 400, { error: 'Inserisci un codice fiscale valido.' });
-    if (richiedeSpedizione && (!spedizione.via || !/^\d{5}$/.test(spedizione.cap) || !spedizione.citta || !spedizione.provincia)) {
-      return send(res, 400, { error: 'Inserisci un indirizzo di consegna completo in Italia.' });
+    if (!anagrafica.via || !/^\d{5}$/.test(anagrafica.cap) || !anagrafica.citta || !anagrafica.provincia || anagrafica.paese !== 'IT') {
+      return send(res, 400, { error: 'Inserisci un indirizzo completo in Italia.' });
     }
     const { subtotale, costoSpedizione, totale } = calculateTotals(righe);
     const lang = b.lang === 'en' ? 'en' : 'it';
     const ordine = {
       id: crypto.randomUUID(), data: new Date().toISOString(), stato: SIMULATED_PAYMENTS ? 'simulato' : 'in attesa',
-      nome, email, tel, codiceFiscale, spedizione, lang,
+      nome, email, tel, codiceFiscale, indirizzo: anagrafica, spedizione, lang,
       righe: righe.map(r => ({ id: r.id, titolo: r.titolo, prezzo: r.prezzo, qty: r.qty, richiedeSpedizione: r.richiedeSpedizione, costoSpedizione: r.costoSpedizione })), subtotale, costoSpedizione, totale,
       stripeSessionId: '', metodo: SIMULATED_PAYMENTS ? 'simulato' : '', simulato: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX,
       emailRichiesta: PAYMENT_MODE === 'live',

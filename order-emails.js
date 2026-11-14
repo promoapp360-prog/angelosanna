@@ -28,9 +28,11 @@ function orderMessage(order, recipient) {
   ];
   if (owner) lines.push('', 'Cliente: ' + order.nome, 'Email: ' + order.email,
     'Telefono: ' + order.tel, 'Codice fiscale: ' + order.codiceFiscale);
-  if (order.spedizione) {
-    const s = order.spedizione;
-    lines.push('', en ? 'Delivery address (Italy):' : 'Indirizzo di consegna (Italia):',
+  if (order.indirizzo || order.spedizione) {
+    const s = order.indirizzo || order.spedizione;
+    const label = order.spedizione ? (en ? 'Delivery address (Italy):' : 'Indirizzo di consegna (Italia):')
+      : (en ? 'Customer address (Italy):' : 'Indirizzo intestatario (Italia):');
+    lines.push('', label,
       order.nome, s.via, s.cap + ' ' + s.citta + ' (' + s.provincia + ')', 'Italia');
   }
   if (!owner) lines.push('', en

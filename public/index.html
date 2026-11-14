@@ -248,7 +248,10 @@ section[id]{scroll-margin-top:82px}
 .cartbox label{display:block;font-size:.85rem;font-weight:600;margin:14px 0 6px;color:var(--ink)}
 .cartbox input:not([type=checkbox]){width:100%;padding:13px 14px;border:1px solid #d6dbe3;border-radius:10px;font:inherit;font-size:1rem;background:#fbfcfd}
 .cartbox input:focus{outline:2px solid var(--navy);border-color:transparent}
-.cartbox .cart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cartbox .cart-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cartbox .cart-row>div{min-width:0}
+.cartbox input:not([type=checkbox]){min-width:0}
+.cartbox .tax-code{text-transform:uppercase;letter-spacing:.035em}
 .cartbox .order-data-title{margin-top:18px;font-size:.95rem;font-weight:600;color:var(--ink)}
 .cartbox .country-value{padding:11px 0 0;font-weight:500}
 .cartbox .order-data-note{display:block;margin-top:12px;color:var(--muted);font-size:.78rem;line-height:1.5}
@@ -708,20 +711,19 @@ footer a:hover{color:#fff}
           <p class="order-data-title">Dati per l'ordine e la consegna</p>
           <label for="cNome">Nome e cognome *</label><input id="cNome" name="nome" autocomplete="name" required>
           <label for="cEmail">Email *</label><input id="cEmail" name="email" type="email" autocomplete="email" required>
-          <div class="cart-row">
-            <div><label for="cTel">Telefono / WhatsApp *</label><input id="cTel" name="tel" type="tel" autocomplete="tel" required></div>
-            <div><label for="cCF">Codice fiscale *</label><input id="cCF" name="codiceFiscale" type="text" maxlength="16" autocapitalize="characters" spellcheck="false" autocomplete="off" required></div>
-          </div>
-          <div id="shippingFields" style="display:none" aria-hidden="true">
-            <label for="cVia">Via, piazza e numero civico *</label><input id="cVia" name="via" autocomplete="shipping street-address" required>
+          <label for="cTel">Telefono *</label><input id="cTel" name="tel" type="tel" inputmode="tel" maxlength="40" placeholder="+39 333 123 4567" autocomplete="tel" required>
+          <label for="cCF">Codice fiscale *</label><input id="cCF" class="tax-code" name="codiceFiscale" type="text" maxlength="16" placeholder="RSSMRA80A01H501U" autocapitalize="characters" spellcheck="false" autocomplete="off" required>
+          <div id="shippingFields">
+            <p class="order-data-title">Indirizzo dell'intestatario</p>
+            <label for="cVia">Via, piazza e numero civico *</label><input id="cVia" name="via" maxlength="180" autocomplete="street-address" required>
             <div class="cart-row">
-              <div><label for="cCap">CAP *</label><input id="cCap" name="cap" inputmode="numeric" maxlength="5" autocomplete="shipping postal-code" required></div>
-              <div><label for="cCity">Città *</label><input id="cCity" name="citta" autocomplete="shipping address-level2" required></div>
+              <div><label for="cCap">CAP *</label><input id="cCap" name="cap" inputmode="numeric" maxlength="5" autocomplete="postal-code" required></div>
+              <div><label for="cProvince">Provincia *</label><input id="cProvince" name="provincia" maxlength="80" placeholder="SS" autocapitalize="characters" autocomplete="address-level1" required></div>
             </div>
-            <label for="cProvince">Provincia *</label><input id="cProvince" name="provincia" autocomplete="shipping address-level1" required>
-            <p class="country-value">Paese di consegna: Italia</p>
+            <label for="cCity">Città *</label><input id="cCity" name="citta" maxlength="100" autocomplete="address-level2" required>
+            <p class="country-value">Paese: Italia</p>
           </div>
-          <small class="order-data-note">Il codice fiscale sarà salvato con l'ordine. Per i prodotti fisici raccogliamo l'indirizzo in Italia e aggiungiamo le spese indicate per ogni pezzo. Il sito non gestisce il corriere.</small>
+          <small class="order-data-note">Codice fiscale e indirizzo completano l'anagrafica dell'ordine, anche per i corsi. Per i prodotti fisici questo indirizzo sarà usato per la consegna in Italia. Le spese di spedizione si applicano solo ai prodotti che la richiedono.</small>
           <input class="hp" id="cWeb" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="consent"><input type="checkbox" id="cAccetto" required> Dichiaro di avere almeno 18 anni.</label>
           <small class="order-data-note">Consulta l'<a href="/privacy">informativa privacy</a> per sapere come trattiamo i tuoi dati.</small>
@@ -1021,7 +1023,7 @@ footer a:hover{color:#fff}
       var items=$('cartItems'), form=$('cartForm');
       var rows=cart.filter(function(l){return find(l.id)});
       if(!rows.length){items.innerHTML='<p class="none">'+esc(t('Il carrello è vuoto.'))+'</p>';form.style.display='none';return}
-      var shipping=requiresShipping();$('shippingFields').style.display=shipping?'':'none';$('shippingFields').setAttribute('aria-hidden',String(!shipping));
+      var shipping=requiresShipping();
       items.innerHTML=rows.map(function(l){var p=find(l.id);
         return '<div class="ci"><b>'+esc(p.titolo)+'</b><span class="amt">'+esc(eur(p.prezzo*l.qty))+'</span>'+
           '<div class="ctl"><div class="qty"><button type="button" data-dec="'+esc(l.id)+'" aria-label="'+esc(t('Meno'))+'">−</button><span>'+l.qty+'</span><button type="button" data-inc="'+esc(l.id)+'" aria-label="'+esc(t('Più'))+'">+</button></div>'+
@@ -1067,11 +1069,12 @@ footer a:hover{color:#fff}
       var cf=v('cCF').replace(/\s/g,'').toUpperCase();
       if(!/^(?:[A-Z0-9]{16}|\d{11})$/.test(cf)){err.textContent=t('Inserisci un codice fiscale valido.');err.style.display='block';return}
       var shipping=requiresShipping();
-      if(shipping&&(!v('cVia')||!/^\d{5}$/.test(v('cCap'))||!v('cCity')||!v('cProvince'))){err.textContent=t('Inserisci un indirizzo di consegna completo in Italia.');err.style.display='block';return}
+      if(!v('cVia')||!/^\d{5}$/.test(v('cCap'))||!v('cCity')||!v('cProvince')){err.textContent=t('Inserisci un indirizzo completo in Italia.');err.style.display='block';return}
+      var address={via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince').toUpperCase(),paese:'IT'};
       if(!$('cAccetto').checked){err.textContent=t('Per acquistare devi avere almeno 18 anni.');err.style.display='block';return}
       err.style.display='none'; btn.disabled=true; btn.textContent=t(simulazione?'Simulazione in corso…':'Ti porto al pagamento…');
       function fail(m){btn.disabled=false;btn.textContent=payButtonText();err.textContent=t(m||'Pagamento non disponibile al momento. Riprova più tardi o contattaci via email.');err.style.display='block'}
-      fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),codiceFiscale:cf,spedizione:shipping?{via:v('cVia'),cap:v('cCap'),citta:v('cCity'),provincia:v('cProvince'),paese:'IT'}:null,maggiorenne:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
+      fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,nome:v('cNome'),email:v('cEmail'),tel:v('cTel'),codiceFiscale:cf,indirizzo:address,spedizione:shipping?address:null,maggiorenne:true,lang:window.ChefI18n.language(),website:v('cWeb')})})
         .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
         .then(function(x){
           if(x.ok&&x.j.simulato){

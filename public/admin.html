@@ -483,14 +483,14 @@ input:focus,textarea:focus,select:focus{outline:2px solid var(--navy);border-col
     }).join(''):'<div class="empty">Nessun prodotto. Clicca "+ Nuovo prodotto".</div>';
     $('ordList').innerHTML=ordini.length?'<div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Articoli</th><th>Totale</th><th>Stato</th><th></th></tr></thead><tbody>'+
       ordini.map(function(o){
-        var s=o.spedizione||{}, address=[s.via,s.cap,s.citta,s.provincia].filter(Boolean).join(', ');
+        var s=o.indirizzo||o.spedizione||{}, address=[s.via,s.cap,s.citta,s.provincia].filter(Boolean).join(', ');
         var emails=o.emailOrdine||{}, emailLabels={inviata:'Accettata dal servizio',errore:'Da riprovare','in attesa':'In attesa'};
         var emailStatus=o.emailRichiesta&&o.stato==='pagato'?'<div class="src">Email Angelo: '+esc(emailLabels[(emails.angelo||{}).stato]||'In attesa')+'<br>Email cliente: '+esc(emailLabels[(emails.cliente||{}).stato]||'In attesa')+'</div>':'';
         var retryEmail=o.emailRichiesta&&o.stato==='pagato'&&(!emails.angelo||emails.angelo.stato!=='inviata'||!emails.cliente||emails.cliente.stato!=='inviata');
         return '<tr><td>'+new Date(o.data).toLocaleDateString('it-IT')+'<div class="src">'+new Date(o.data).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</div></td>'+
           '<td><b>'+esc(o.nome)+'</b><div class="src"><a href="mailto:'+esc(o.email)+'">'+esc(o.email)+'</a>'+(o.tel?' · '+esc(o.tel):'')+'</div>'+
           (o.codiceFiscale?'<div class="src"><b>Codice fiscale:</b> '+esc(o.codiceFiscale)+'</div>':'')+
-          (address?'<div class="src"><b>Consegna:</b> '+esc(address)+(s.paese==='IT'?' · Italia':'')+'</div>':'')+'</td>'+
+          (address?'<div class="src"><b>'+(o.spedizione?'Consegna:':'Indirizzo:')+'</b> '+esc(address)+(s.paese==='IT'?' · Italia':'')+'</div>':'')+'</td>'+
           '<td>'+o.righe.map(function(r){return esc(r.titolo)+' × '+r.qty}).join('<br>')+'</td>'+
           '<td><b>'+eur(o.totale)+'</b>'+(o.spedizione?'<div class="src">Articoli: '+eur(o.subtotale==null?o.totale:o.subtotale)+'<br>Spedizione: '+eur(o.costoSpedizione||0)+'</div>':'')+(o.metodo?'<div class="src">'+esc(METODI[o.metodo]||o.metodo)+'</div>':'')+'</td>'+
           '<td>'+(o.sandbox?'<div class="src"><b>Sandbox · nessun incasso reale</b></div>':'')+'<select class="'+stCls(o.stato)+'" data-ostato="'+o.id+'">'+ORD_STATI.map(function(s){return '<option value="'+s+'"'+(s===o.stato?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+'</select></td>'+
