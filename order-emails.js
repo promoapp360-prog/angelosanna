@@ -1,7 +1,7 @@
 'use strict';
 
 const OWNER_EMAIL = 'yachtchefangelosanna@gmail.com';
-const emailValid = value => /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(String(value || ''));
+const emailValid = value => /^[^\s@<>,;:"()\\]+@[^\s@<>,;:"()\\]+\.[^\s@<>,;:"()\\]+$/.test(String(value || ''));
 const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const money = cents => (Number(cents) / 100).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
@@ -73,4 +73,4 @@ function createOrderMailer({ apiKey, from, transport }) {
   };
 }
 
-module.exports = { createOrderMailer, orderMessage, emailValid };
+module.exports = { createOrderMailer, orderMessage, emailValid, OWNER_EMAIL };

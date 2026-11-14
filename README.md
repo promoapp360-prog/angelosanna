@@ -8,17 +8,17 @@ Sito del corso **Chef on Board** di Chef Angelo Sanna. Contiene:
   - **Contatti**: le richieste dal sito arrivano da sole; si aggiungono a mano i contatti da Instagram, WhatsApp, telefono, passaparola. Ogni contatto ha uno stato (Nuovo → Contattato → Colloquio → **Partecipante** / Non interessato) e un corso collegato. Quando diventa *Partecipante*, i posti occupati del corso si aggiornano da soli (e si liberano se torna indietro o viene eliminato). Statistiche di conversione, filtri ed export CSV;
 - `STRATEGIA-MARKETING.md`, la strategia per le sponsorizzate.
 
-Server: `server.js`, scritto in Node puro senza dipendenze esterne.
+Server: `server.js`, Node 20+ senza framework. Le dipendenze autorizzate sono `pg` (PostgreSQL) e Nodemailer (Gmail SMTP).
 
 ## Avvio su Replit
 1. Importa il repo GitHub `promoapp360-prog/angelosanna` su Replit.
 2. **Tools → Secrets**: aggiungi `ADMIN_PASSWORD` con la password del pannello.
-3. **Tools → Database (Key-Value)**: attivalo, così corsi e richieste restano salvati anche dopo un nuovo deploy. Il server lo rileva da solo tramite `REPLIT_DB_URL`.
+3. **Database PostgreSQL Replit**: lo schema sorgente è in `database/schema.sql`. Applicarlo solo in sviluppo; in produzione lo schema viene gestito dal flusso Publish. Il server usa `DATABASE_URL` e importa senza sovrascrivere le chiavi ancora mancanti dal precedente Key-Value, quando disponibile.
 4. Premi **Run**, poi **Deploy** per avere l'indirizzo pubblico.
 
 Il pannello si apre da `tuo-sito/admin` (link "Admin" in fondo alla pagina).
 
-> Senza il Database di Replit i dati vengono scritti nella cartella `data/`. In locale va bene, ma su un deploy Autoscale quei file si possono perdere.
+> Installare prima le dipendenze (`npm install` oppure `pnpm install`). Senza database il server può usare `data/` solo per prove locali; il checkout live non accetta l'archivio su file.
 
 ## Sicurezza
 - Dopo 5 password sbagliate l'accesso si blocca per 15 minuti.
@@ -50,15 +50,17 @@ Nel pannello Stripe live di Angelo registrare l'endpoint `https://angelosanna.pr
 
 Completare e far verificare condizioni di vendita, recesso e fatturazione prima di iniziare a vendere. Non inserire chiavi in Git e non abilitare modalità live nella preview.
 
-**Archivio degli ordini reali:** la modalità live richiede anche il database Key-Value esistente tramite `REPLIT_DB_URL` in produzione. Non ripiega sui file locali e segnala gli errori del database senza trasformarli in un archivio vuoto. Verificare la persistenza prima di attivare gli incassi; la disponibilità del database nella preview non prova quella in produzione. Non migrare o sostituire il database senza consenso. Se il salvataggio dell'ordine fallisce, il checkout non viene restituito al cliente e il server prova a chiudere la sessione Stripe appena creata. Le scritture degli ordini sono serializzate nel singolo processo della Reserved VM; non passare a istanze multiple senza riprogettare la concorrenza dell'archivio.
+**Archivio degli ordini reali:** PostgreSQL ha precedenza sul precedente Key-Value. Le chiavi e i valori JSON restano invariati nella tabella `chef_on_board_store`; i dati precedenti vengono copiati solo se la chiave non esiste, mai cancellati o sostituiti da un fallback. Nessun DDL viene eseguito all'avvio. Il server non ripiega sui file quando PostgreSQL non risponde. L'importazione una tantum `scripts/import-legacy-development.js` è riservata allo sviluppo e richiede un marcatore temporaneo creato tramite SQL sul database di sviluppo. Al primo Publish del database selezionare l'inizializzazione con i dati di sviluppo; non sovrascrivere un database di produzione già popolato. Verificare anche la conservazione di eventuali contatti/ordini nel vecchio deployment prima di ripubblicare: i suoi file non sono automaticamente accessibili dal workspace. Se il salvataggio di un ordine fallisce, il checkout non viene restituito e la sessione Stripe viene chiusa quando possibile. Restare su una singola Reserved VM: le scritture degli ordini sono serializzate nel processo.
 
 ### Ordini ed email
 
 Gli acquisti avvengono esclusivamente dal checkout del sito: non esiste più un'alternativa di ordine via WhatsApp. WhatsApp resta un contatto per le richieste di informazioni. Dopo la conferma verificata del pagamento, il server invia due email separate: un riepilogo con dati cliente e consegna ad Angelo e una conferma al cliente, in italiano o inglese secondo la lingua scelta. Il codice fiscale compare soltanto nella notifica al venditore. Non vengono inviate email reali per prove, simulazioni, ordini non pagati o ordini storici precedenti a questa funzione.
 
-L'invio usa le API Resend con `fetch`, senza dipendenze. Servono un account autorizzato per questo progetto, il Secret dedicato `ORDER_EMAIL_RESEND_API_KEY` e la variabile non segreta `ORDER_EMAIL_FROM`, contenente un indirizzo sul dominio verificato del mittente. Non usare indirizzi Gmail come mittente Resend: `yachtchefangelosanna@gmail.com` riceve le notifiche ed è il Reply-To. Non riutilizzare automaticamente account o chiavi di altri clienti. Verificare il dominio e l'invio prima di attivare gli incassi. Il checkout live resta bloccato se la configurazione email manca.
+**Gmail dedicato al progetto:** impostare `ORDER_EMAIL_PROVIDER=gmail` e salvare nei Secrets `GMAIL_APP_PASSWORD`, la password per app generata da Google nell'account di Angelo con verifica in due passaggi attiva. Non usare la password normale dell'account. SMTP usa TLS, mittente e autenticazione fissi su `yachtchefangelosanna@gmail.com`; non usa il connettore Gmail globale dell'agenzia né account alternativi. `node scripts/check-gmail.js` verifica l'autenticazione senza inviare messaggi. Il checkout controlla l'autenticazione prima di aprire nuovi pagamenti; errori temporanei vengono riprovati con la coda persistente. Gmail ha limiti di invio e può sospendere il servizio: per volumi elevati valutare un mittente transazionale dedicato.
 
-Gli esiti dei due invii sono salvati nell'ordine e visibili nell'admin. “Accettata dal servizio” non garantisce il recapito in casella: controllare Resend per errori di consegna o bounce. Un problema email non annulla un pagamento riuscito: il webhook richiede una riprova e la Reserved VM controlla ogni minuto le email mancanti, con attesa crescente fino a un'ora. Dall'admin è disponibile “Riprova email mancanti”, senza reinviare quelle già registrate come accettate. Le richieste usano chiavi di idempotenza stabili; Resend le conserva per 24 ore. In caso di interruzione fra accettazione e salvataggio dell'esito, verificare il registro del fornitore prima di forzare un nuovo invio oltre tale finestra.
+Il precedente trasporto Resend resta disponibile solo con scelta esplicita `ORDER_EMAIL_PROVIDER=resend`, `ORDER_EMAIL_RESEND_API_KEY` e `ORDER_EMAIL_FROM` su un dominio verificato di questo cliente. Non esiste ripiego automatico da Gmail a Resend. Il checkout live resta bloccato se la configurazione email manca.
+
+Gli esiti dei due invii sono salvati nell'ordine e visibili nell'admin. “Accettata dal servizio” non garantisce il recapito in casella: controllare mancati recapiti e cartella spam. Un problema email non annulla un pagamento riuscito: il webhook richiede una riprova e la Reserved VM controlla ogni minuto le email mancanti, con attesa crescente fino a un'ora. Dall'admin è disponibile “Riprova email mancanti”, senza reinviare quelle già registrate come accettate. Resend offre idempotenza per 24 ore; Gmail SMTP non offre questa garanzia. Con Gmail viene usato un Message-ID stabile, ma un'interruzione fra accettazione e salvataggio può causare una ripetizione: controllare la posta inviata prima di riprovare manualmente dopo un'interruzione.
 
 ### Cinque schede di esempio
 

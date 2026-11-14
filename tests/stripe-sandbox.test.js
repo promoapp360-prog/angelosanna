@@ -16,7 +16,8 @@ const delivery = { via: 'Via Esempio 1', cap: '07100', citta: 'Sassari', provinc
 function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripeResponse, stripeStatus = 200,
   liveKey = '', liveWebhook = '', liveAccountId = '', accountResponse, accountStatus = 200,
   databaseUrl = 'https://database.invalid', readStatus = 200, writeStatus = 200,
-  seedExamples = false, seedImages = false, mailKey = 're_unit_fake', mailFrom = 'orders@example.com', mailStatus = 200 } = {}) {
+  seedExamples = false, seedImages = false, mailKey = 're_unit_fake', mailFrom = 'orders@example.com', mailStatus = 200,
+  emailProvider = 'resend' } = {}) {
   const store = new Map([['prodotti', [product]], ['migrazione-prezzo-corso-online-890-v1', true]]);
   if (!seedExamples) store.set('shop-cinque-esempi-inseriti-v1', true);
   if (!seedImages) store.set('shop-foto-esempi-inserite-v1', true);
@@ -24,7 +25,7 @@ function app({ mode = 'stripe_test', key = 'sk_test_fake_for_unit_tests', stripe
   let handler;
   const env = { PAYMENT_MODE: mode, STRIPE_SECRET_KEY: key, STRIPE_WEBHOOK_SECRET: 'whsec_fake_unit_test',
     STRIPE_LIVE_SECRET_KEY: liveKey, STRIPE_LIVE_WEBHOOK_SECRET: liveWebhook, STRIPE_LIVE_ACCOUNT_ID: liveAccountId,
-    ORDER_EMAIL_RESEND_API_KEY: mailKey, ORDER_EMAIL_FROM: mailFrom,
+    ORDER_EMAIL_RESEND_API_KEY: mailKey, ORDER_EMAIL_FROM: mailFrom, ORDER_EMAIL_PROVIDER: emailProvider,
     ADMIN_PASSWORD: 'unit-test-only', REPLIT_DB_URL: databaseUrl };
   vm.runInNewContext(source, {
     __dirname: root, Buffer, URL, AbortSignal, process: { env },
@@ -213,6 +214,16 @@ test('il live richiede chiave dedicata, webhook e account atteso: nessun ripiego
     assert.equal((await a.request('GET', '/api/shop')).body.pagamenti, false);
     assert.equal((await a.request('POST', '/api/checkout', buyer)).status, 503);
     assert.equal(a.calls.length, 0);
+  }
+});
+
+test('Gmail selezionato senza password dedicata non usa Resend né abilita incassi', async () => {
+  for (const emailProvider of ['gmail', 'unknown-provider']) {
+    const a = app({ ...liveConfig, emailProvider });
+    assert.equal((await a.request('GET', '/api/shop')).body.pagamenti, false);
+    assert.equal((await a.request('POST', '/api/checkout', buyer)).status, 503);
+    assert.equal(a.calls.length, 0);
+    assert.equal(a.mailCalls.length, 0);
   }
 });
 

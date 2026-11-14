@@ -21,6 +21,7 @@
     chargesEnabled: account.charges_enabled === true,
     payoutsEnabled: account.payouts_enabled === true,
     detailsSubmitted: account.details_submitted === true,
+    klarnaPayments: account.capabilities && account.capabilities.klarna_payments || 'non indicato',
   }, null, 2));
 })().catch(function (error) {
   console.error(error.message);

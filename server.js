@@ -1,15 +1,17 @@
 // Chef on Board — server per landing + pannello admin
-// Nessuna dipendenza esterna: basta Node 18+.
+// Node 20+. PostgreSQL e Gmail SMTP usano i driver autorizzati pg e Nodemailer.
 // Variabili d'ambiente (su Replit: Tools → Secrets):
 //   ADMIN_PASSWORD  → password del pannello /admin  (obbligatoria)
 //   PORT            → porta (Replit la imposta da solo)
-// Dati: se esiste REPLIT_DB_URL usa il Database di Replit, altrimenti i file in ./data
+// Dati: preferisce DATABASE_URL (PostgreSQL); mantiene la lettura del vecchio archivio.
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { createOrderMailer, emailValid } = require('./order-emails');
+const { createGmailOrderMailer } = require('./gmail-mailer');
+const { createStorage } = require('./storage');
 const { createOrderNotifications } = require('./order-notifications');
 const { SAMPLE_PRODUCTS_KEY, SAMPLE_IMAGES_KEY, SAMPLE_PRODUCTS } = require('./sample-products');
 
@@ -22,6 +24,13 @@ const CS_STATIC = ['/', '/admin', '/admin/', '/admin.html', '/privacy', '/privac
 const CS_API = ['/api/login', '/api/richieste', '/api/stripe/webhook'];
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_URL = process.env.REPLIT_DB_URL || '';
+const PG_URL = process.env.DATABASE_URL || '';
+const pgPool = PG_URL ? new (require('pg').Pool)({
+  connectionString: PG_URL, max: 5, connectionTimeoutMillis: 10000, idleTimeoutMillis: 30000,
+}) : null;
+if (pgPool) pgPool.on('error', () => console.error('Connessione archivio PostgreSQL interrotta.'));
+const STORAGE = createStorage({ pool: pgPool, legacyUrl: DB_URL, dataDir: DATA_DIR,
+  transport: (url, options) => fetch(url, options) });
 
 /* ---------------- Archivio ---------------- */
 function storageUnavailable() {
@@ -31,42 +40,18 @@ function storageUnavailable() {
 }
 async function load(key, fallback) {
   try {
-    if (PAYMENT_MODE === 'live' && !DB_URL) throw storageUnavailable();
-    if (DB_URL) {
-      const r = await fetch(DB_URL + '/' + encodeURIComponent(key), { signal: AbortSignal.timeout(15000) });
-      if (r.status === 404) return fallback;
-      if (!r.ok) throw storageUnavailable();
-      const t = await r.text();
-      return t ? JSON.parse(t) : fallback;
-    }
-    const f = path.join(DATA_DIR, key + '.json');
-    if (!fs.existsSync(f)) return fallback;
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
+    if (PAYMENT_MODE === 'live' && !STORAGE.persistent) throw storageUnavailable();
+    return await STORAGE.load(key, fallback);
   } catch (e) {
     console.error('Errore lettura', key);
-    if (PAYMENT_MODE === 'live') throw storageUnavailable();
+    if (PG_URL || PAYMENT_MODE === 'live') throw storageUnavailable();
     return fallback;
   }
 }
 async function save(key, value) {
-  if (PAYMENT_MODE === 'live' && !DB_URL) throw storageUnavailable();
-  const json = JSON.stringify(value);
-  if (DB_URL) {
-    try {
-      const response = await fetch(DB_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: encodeURIComponent(key) + '=' + encodeURIComponent(json),
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!response.ok) throw storageUnavailable();
-    } catch (_) { throw storageUnavailable(); }
-    return;
-  }
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const f = path.join(DATA_DIR, key + '.json');
-  fs.writeFileSync(f + '.tmp', JSON.stringify(value, null, 2));
-  fs.renameSync(f + '.tmp', f);
+  if (PAYMENT_MODE === 'live' && !STORAGE.persistent) throw storageUnavailable();
+  try { await STORAGE.save(key, value); }
+  catch (_) { throw storageUnavailable(); }
 }
 
 /* ---------------- Sicurezza ---------------- */
@@ -227,15 +212,18 @@ const WEBHOOK_SECRET = PAYMENT_MODE === 'live'
   ? process.env.STRIPE_LIVE_WEBHOOK_SECRET || ''
   : process.env.STRIPE_WEBHOOK_SECRET || '';
 const STRIPE_LIVE_ACCOUNT_ID = process.env.STRIPE_LIVE_ACCOUNT_ID || '';
-const ORDER_MAILER = createOrderMailer({
+const EMAIL_PROVIDER = process.env.ORDER_EMAIL_PROVIDER || 'resend';
+const ORDER_MAILER = EMAIL_PROVIDER === 'gmail' ? createGmailOrderMailer({
+  appPassword: process.env.GMAIL_APP_PASSWORD || '',
+}) : EMAIL_PROVIDER === 'resend' ? createOrderMailer({
   apiKey: process.env.ORDER_EMAIL_RESEND_API_KEY || '',
   from: process.env.ORDER_EMAIL_FROM || '',
   transport: (url, options) => fetch(url, options),
-});
+}) : { ready: false };
 // Una chiave salvata non abilita da sola gli addebiti. Il modo live richiede una scelta esplicita.
 const STRIPE_READY = (STRIPE_SANDBOX && STRIPE_KEY.startsWith('sk_test_')) ||
   (PAYMENT_MODE === 'live' && /^(sk|rk)_live_/.test(STRIPE_KEY) &&
-    WEBHOOK_SECRET.startsWith('whsec_') && /^acct_[A-Za-z0-9]+$/.test(STRIPE_LIVE_ACCOUNT_ID) && !!DB_URL && ORDER_MAILER.ready);
+    WEBHOOK_SECRET.startsWith('whsec_') && /^acct_[A-Za-z0-9]+$/.test(STRIPE_LIVE_ACCOUNT_ID) && STORAGE.persistent && ORDER_MAILER.ready);
 const PAYMENTS_READY = SIMULATED_PAYMENTS || STRIPE_READY;
 const PAYMENT_UNAVAILABLE = STRIPE_SANDBOX
   ? 'Sandbox Stripe non disponibile: verifica la chiave segreta di test nei Secrets.'
@@ -468,7 +456,11 @@ async function api(req, res, url) {
   // Pubblico: prodotti in vendita + se i pagamenti Stripe o simulati sono attivi
   if (p === '/api/shop' && m === 'GET') {
     const prodotti = (await getProdotti()).filter(x => x.pubblicato).map(publicProdotto);
-    return send(res, 200, { prodotti, pagamenti: PAYMENTS_READY, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
+    let available = PAYMENTS_READY;
+    if (available && PAYMENT_MODE === 'live' && ORDER_MAILER.verify) {
+      try { await ORDER_MAILER.verify(); } catch (_) { available = false; }
+    }
+    return send(res, 200, { prodotti, pagamenti: available, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
   }
 
   // Pubblico: crea l'ordine e la sessione di pagamento Stripe
@@ -532,6 +524,7 @@ async function api(req, res, url) {
         price_data: { currency: 'eur', unit_amount: r.prezzo, product_data: { name: r.titolo, description: r.descrizione ? r.descrizione.slice(0, 300) : undefined } },
       })),
     };
+    if (PAYMENT_MODE === 'live' && ORDER_MAILER.verify) await ORDER_MAILER.verify();
     const s = await stripe('POST', '/v1/checkout/sessions', params);
     if (!s.id || !s.url || !s.id.startsWith(STRIPE_SANDBOX ? 'cs_test_' : 'cs_live_')) {
       const e = new Error('Sessione di pagamento non valida.'); e.code = 502; throw e;
@@ -671,7 +664,7 @@ async function api(req, res, url) {
 
     // Shop: prodotti in vendita
     if (p === '/api/admin/prodotti' && m === 'GET') {
-      return send(res, 200, { prodotti: await getProdotti(), pagamenti: STRIPE_READY, webhook: !!WEBHOOK_SECRET, emailOrdini: ORDER_MAILER.ready, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
+      return send(res, 200, { prodotti: await getProdotti(), pagamenti: STRIPE_READY, webhook: !!WEBHOOK_SECRET, emailOrdini: ORDER_MAILER.ready, emailProvider: EMAIL_PROVIDER, archivio: STORAGE.backend, simulazione: SIMULATED_PAYMENTS, sandbox: STRIPE_SANDBOX });
     }
     if (p === '/api/admin/prodotti' && m === 'POST') {
       const body = await readBody(req);
@@ -783,7 +776,7 @@ http.createServer(async (req, res) => {
   }
   serveStatic(req, res, url.pathname);
 }).listen(PORT, '0.0.0.0', () => {
-  console.log('Chef on Board attivo sulla porta ' + PORT + (DB_URL ? ' (Replit Database)' : ' (file in ./data)'));
+  console.log('Chef on Board attivo sulla porta ' + PORT + ' (' + STORAGE.backend + ')');
   if (!process.env.ADMIN_PASSWORD) console.log('ATTENZIONE: imposta ADMIN_PASSWORD nei Secrets per usare /admin');
   if (COMING_SOON) console.log('MODALITÀ "PRESTO ONLINE": il pubblico vede solo la pagina di attesa');
   if (SIMULATED_PAYMENTS) console.log('Pagamenti: modalità simulata attiva, nessun addebito reale');
