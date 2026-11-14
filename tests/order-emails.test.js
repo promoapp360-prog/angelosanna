@@ -59,6 +59,7 @@ test('Resend riceve due messaggi separati con chiavi stabili, senza destinatari 
   assert.equal(calls[1].options.headers['Idempotency-Key'], calls[2].options.headers['Idempotency-Key']);
   assert.notEqual(calls[0].options.headers['Idempotency-Key'], calls[1].options.headers['Idempotency-Key']);
   const payload = JSON.parse(calls[1].options.body);
+  assert.equal(payload.from, 'Chef Angelo Sanna <orders@example.com>');
   assert.equal(payload.reply_to, 'yachtchefangelosanna@gmail.com');
   assert.equal(payload.bcc, undefined);
   assert.equal(payload.to.length, 1);

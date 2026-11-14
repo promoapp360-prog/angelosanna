@@ -108,6 +108,7 @@ test('Gmail usa esclusivamente Angelo, TLS e password dedicata: nessun account g
   assert.equal(a.verifies(), 1);
   assert.deepEqual(a.sent.map(m => m.to[0]), [OWNER_EMAIL, order.email]);
   assert.ok(a.sent.every(m => m.from.address === OWNER_EMAIL && m.replyTo === OWNER_EMAIL));
+  assert.ok(a.sent.every(m => m.from.name === 'Chef Angelo Sanna'));
   assert.match(a.sent[0].text, /UNITCF0000000000/);
   assert.doesNotMatch(a.sent[1].text, /UNITCF0000000000/);
   assert.match(a.sent[1].text, /Via Esempio 1/);

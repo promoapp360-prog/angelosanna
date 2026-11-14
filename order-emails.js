@@ -1,6 +1,7 @@
 'use strict';
 
 const OWNER_EMAIL = 'yachtchefangelosanna@gmail.com';
+const SENDER_NAME = 'Chef Angelo Sanna';
 const emailValid = value => /^[^\s@<>,;:"()\\]+@[^\s@<>,;:"()\\]+\.[^\s@<>,;:"()\\]+$/.test(String(value || ''));
 const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -61,7 +62,7 @@ function createOrderMailer({ apiKey, from, transport }) {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json',
           'Idempotency-Key': 'chef-order/' + order.id + '/' + recipient },
-        body: JSON.stringify({ from: 'Chef on Board <' + from + '>', reply_to: OWNER_EMAIL,
+        body: JSON.stringify({ from: SENDER_NAME + ' <' + from + '>', reply_to: OWNER_EMAIL,
           ...orderMessage(order, recipient) }),
         signal: AbortSignal.timeout(15000),
       }); } catch (_) { throw new Error('Servizio email temporaneamente non disponibile.'); }
@@ -73,4 +74,4 @@ function createOrderMailer({ apiKey, from, transport }) {
   };
 }
 
-module.exports = { createOrderMailer, orderMessage, emailValid, OWNER_EMAIL };
+module.exports = { createOrderMailer, orderMessage, emailValid, OWNER_EMAIL, SENDER_NAME };

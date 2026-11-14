@@ -1,6 +1,6 @@
 'use strict';
 
-const { OWNER_EMAIL, orderMessage, emailValid } = require('./order-emails');
+const { OWNER_EMAIL, SENDER_NAME, orderMessage, emailValid } = require('./order-emails');
 
 function unavailable() {
   const error = new Error('Email ordini temporaneamente non disponibili. Riprova più tardi.');
@@ -39,7 +39,7 @@ function createGmailOrderMailer({ appPassword, createTransport = require('nodema
       const reference = String(order.id).replace(/[^a-zA-Z0-9_-]/g, '');
       try {
         const result = await smtp.sendMail({
-          from: { name: 'Chef Angelo Sanna — Chef on Board', address: OWNER_EMAIL },
+          from: { name: SENDER_NAME, address: OWNER_EMAIL },
           replyTo: OWNER_EMAIL, ...message,
           // Gmail non offre l'idempotenza Resend: ID stabile, stato persistente
           // e coda serializzata riducono i duplicati, ma non garantiscono exactly-once.
